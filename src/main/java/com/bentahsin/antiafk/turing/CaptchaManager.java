@@ -102,6 +102,8 @@ public class CaptchaManager {
             challenge.getTimeoutTask().cancel();
         }
 
+        plugin.getDatabaseManager().incrementTestsPassed(player.getUniqueId());
+
         plugin.getAfkManager().resetSuspicion(player);
         plugin.getLanguageManager().sendMessage(player, "turing_test.success");
     }
@@ -111,6 +113,8 @@ public class CaptchaManager {
         if (challenge != null) {
             challenge.getTimeoutTask().cancel();
         }
+
+        plugin.getDatabaseManager().incrementTestsFailed(player.getUniqueId());
 
         List<Map<String, String>> actions = plugin.getConfigManager().getCaptchaFailureActions();
 

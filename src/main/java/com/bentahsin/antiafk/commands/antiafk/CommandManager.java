@@ -1,10 +1,7 @@
 package com.bentahsin.antiafk.commands.antiafk;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
-import com.bentahsin.antiafk.commands.antiafk.subcommands.CheckCommand;
-import com.bentahsin.antiafk.commands.antiafk.subcommands.ListCommand;
-import com.bentahsin.antiafk.commands.antiafk.subcommands.PanelCommand;
-import com.bentahsin.antiafk.commands.antiafk.subcommands.ReloadCommand;
+import com.bentahsin.antiafk.commands.antiafk.subcommands.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -41,6 +38,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         registerCommand(new PanelCommand(plugin));
         registerCommand(new ListCommand(plugin));
         registerCommand(new CheckCommand(plugin));
+        registerCommand(new TopCommand(plugin));
     }
 
     @Override

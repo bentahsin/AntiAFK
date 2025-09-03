@@ -14,6 +14,8 @@ import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.LanguageManager;
 import com.bentahsin.antiafk.placeholderapi.AFKPlaceholder;
+import com.bentahsin.antiafk.storage.DatabaseManager;
+import com.bentahsin.antiafk.storage.PlayerStatsManager;
 import com.bentahsin.antiafk.tasks.AFKCheckTask;
 import com.bentahsin.antiafk.turing.CaptchaManager;
 import org.bukkit.Bukkit;
@@ -31,6 +33,8 @@ public final class AntiAFKPlugin extends JavaPlugin {
     private BehaviorAnalysisManager behaviorAnalysisManager;
     private BookInputManager bookInputManager;
     private CaptchaManager captchaManager;
+    private DatabaseManager databaseManager;
+    private PlayerStatsManager playerStatsManager;
     private boolean placeholderApiEnabled = false;
     private boolean worldGuardHooked = false;
     private boolean protocolLibEnabled = false;
@@ -41,10 +45,14 @@ public final class AntiAFKPlugin extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
         languageManager = new LanguageManager(this);
-
         configManager = new ConfigManager(this);
 
+        databaseManager = new DatabaseManager(this);
+        databaseManager.connect();
+
         afkManager = new AFKManager(this);
+
+        playerStatsManager = new PlayerStatsManager( databaseManager);
 
         if (getConfigManager().isTuringTestEnabled()) {
             captchaManager = new CaptchaManager(this);
@@ -121,6 +129,9 @@ public final class AntiAFKPlugin extends JavaPlugin {
         if (behaviorAnalysisManager != null && behaviorAnalysisManager.isEnabled()) {
             behaviorAnalysisManager.shutdown();
         }
+        if (databaseManager != null) {
+            databaseManager.disconnect();
+        }
         Bukkit.getScheduler().cancelTasks(this);
         getLogger().info("AntiAFK plugini devre dışı bırakıldı.");
     }
@@ -173,5 +184,11 @@ public final class AntiAFKPlugin extends JavaPlugin {
 
     public Optional<CaptchaManager> getCaptchaManager() {
         return Optional.ofNullable(captchaManager);
+    }
+    public DatabaseManager getDatabaseManager() {
+        return databaseManager;
+    }
+    public PlayerStatsManager getPlayerStatsManager() {
+        return playerStatsManager;
     }
 }

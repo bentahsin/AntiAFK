@@ -23,7 +23,7 @@ rejoin_kick: "&cAFK ceza süreniz henüz dolmadı! Lütfen &e%time_left% &csonra
 
 # Turing Testi (Captcha) Mesajları
 turing_test:
-  header: "&8&m------------------------------------------"
+  header: "!&8&m------------------------------------------"
   instruction: "&fCevaplamak için sohbete &e/afkcevap <cevap> &fyaz. &c(%seconds% saniyen var)"
   no_active_test: "&cŞu anda cevaplaman gereken bir test bulunmuyor."
   success: "&aDoğru cevap! Teşekkürler, oyuna devam edebilirsin."
@@ -33,6 +33,28 @@ turing_test:
 command:
   antiafk:
     usage: "&cKullanım: /%label% <reload|panel>"
+    list:
+      header: "!&8&m-------&r &6AFK Oyuncular (Sayfa %page%/%max_pages%) &8&m-------"
+      footer: "!&8&m--------------------------------------------------"
+      entry: "!&e%rank%. &f%player% &7- &c%afk_time%"
+      no_afk_players: "&aŞu anda sunucuda AFK olan oyuncu bulunmuyor."
+      invalid_page: "&cGeçersiz sayfa numarası."
+    check:
+      header: "!&8&m----------&r &6AntiAFK Durumu: %player% &8&m----------"
+      status_afk: "!&fMevcut Durum: &cAFK"
+      status_suspicious: "!&fMevcut Durum: &eŞüpheli (Captcha Bekleniyor)"
+      status_active: "!&fMevcut Durum: &aAktif"
+      reason: "!&fAFK Sebebi: &7%reason%"
+      is_autonomous: "!&fBot Olarak İşaretli: %value%"
+      boolean_yes: "!&aEvet"
+      boolean_no: "!&cHayır"
+    top:
+      usage: "&cKullanım: /%label% top <time|punishments>"
+      invalid_category: "&cGeçersiz kategori. Kullanılabilir: time, punishments"
+      no_data: "&cGösterilecek veri bulunamadı."
+      header_time: "!&8&m----&r &6En Uzun Süre AFK Kalanlar &8&m----"
+      header_punishments: "!&8&m----&r &6En Çok Ceza Alanlar &8&m----"
+      entry: "!&e%rank%. &f%player% &7- &c%value%"
   afk:
     usage: "&cKullanım: /afk [sebep]"
     already_afk: "&eZaten AFK durumundasınız."
@@ -42,6 +64,13 @@ command:
     on_return_broadcast: "&e%player_displayname% &7artık AFK değil."
     command_disabled: "&cAFK komutu şu anda yönetici tarafından devre dışı bırakılmıştır."
 
+# Sabıka Sistemi Mesajları (/antiafk check komutu için)
+sabika_system:
+  total_afk_time: "!&fToplam AFK Süresi: &e%time%"
+  times_punished: "!&fToplam Ceza Sayısı: &6%count%"
+  last_punishment: "!&fSon Ceza: &e%time%"
+  captcha_stats: "!&fCaptcha (Başarı/Başarısızlık): &a%passed%&7/&c%failed%"
+
 # Davranışsal Analiz
 behavior:
   afk_detected: "Otonom hareket tespiti."
@@ -50,7 +79,7 @@ behavior:
   rapid_world_change: "Sürekli dünya değiştirme tespiti."
   turing_test_failed: "Bot testi başarısız."
   debug:
-    suspicion: "§8[AntiAFK-Debug] Yörünge şüphesi. Analiz başlıyor."
+    suspicion: "!§8[AntiAFK-Debug] Yörünge şüphesi. Analiz başlıyor."
     repetition: "!§8[AntiAFK-Debug] %time%s'lik yörünge tekrarı! Sayaç: %count%/%max_repeats%"
     pattern_changed: "§8[AntiAFK-Debug] Yörünge değişti. Analiz sıfırlandı."
 

@@ -41,6 +41,42 @@ actions:
   #  command: "kick %player% &6Merhaba &c%player_displayname% &6uzun süre AFK kaldığın için sunucudan atıldın. :("
 
 # ================================== #
+#        KADEMELİ CEZA SİSTEMİ       #
+# ================================== #
+progressive_punishment:
+  enabled: true
+
+  # Bir oyuncunun ceza sayacının ne kadar süre sonra sıfırlanacağını belirler.
+  # Örneğin "30d" ayarı, bir oyuncu 30 gün boyunca hiç AFK cezası almazsa
+  # ceza sayacının sıfırlanacağı anlamına gelir.
+  # Devre dışı bırakmak için "never" yazın.
+  reset_after: "30d"
+
+  # Ceza kademeleri. Eklenti, bir oyuncunun ceza sayısına eşit veya
+  # ondan KÜÇÜK olan en YÜKSEK 'count' değerini bulup uygular.
+  # Her zaman 'count: 1' ile başlamanız önerilir.
+  punishments:
+    # 1. kez yakalandığında
+    - count: 1
+      actions:
+        - type: "CONSOLE"
+          command: "warn %player% Lütfen sunucuda AFK kalmaktan kaçının."
+        - type: "PLAYER"
+          command: "spawn"
+
+    # 3. kez yakalandığında (yani 3., 4. kez)
+    - count: 3
+      actions:
+        - type: "CONSOLE"
+          command: "kick %player% &cTekrar eden AFK davranışı nedeniyle sunucudan atıldınız."
+
+    # 5. kez ve sonrasında yakalandığında
+    - count: 5
+      actions:
+        - type: "CONSOLE"
+          command: "tempban %player% 10m &cAFK kalmayı alışkanlık haline getirdiğiniz için geçici olarak uzaklaştırıldınız."
+
+# ================================== #
 #         AKTİVİTE TESPİTİ           #
 # ================================== #
 detection:

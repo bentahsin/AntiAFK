@@ -1,7 +1,10 @@
 package com.bentahsin.antiafk.managers;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.models.PlayerState;
+import com.bentahsin.antiafk.models.PunishmentLevel;
 import com.bentahsin.antiafk.models.RegionOverride;
+import com.bentahsin.antiafk.storage.DatabaseManager;
 import com.bentahsin.antiafk.utils.TimeUtil;
 import com.bentahsin.antiafk.data.PointlessActivityData;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -20,53 +23,47 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class AFKManager {
-
     private final AntiAFKPlugin plugin;
     private final ConfigManager configManager;
     private final LanguageManager lang;
+    private final DatabaseManager databaseManager;
 
     private final Cache<UUID, Long> lastActivity;
     private final Cache<UUID, Long> lastWarningTime;
     private final Cache<UUID, Long> rejoinProtectedPlayers;
     private final Cache<UUID, PointlessActivityData> botDetectionData;
+    private final Cache<UUID, PlayerState> playerStates;
 
-    private final Set<UUID> manualAFKPlayers;
-    private final Set<UUID> autoSetAfkPlayers;
-    private final Set<UUID> autonomousPlayers;
-    private final Set<UUID> systemPunishedPlayers;
-    private final Map<UUID, String> originalDisplayNames;
-    private final Map<UUID, String> afkReasons;
-    private final Set<UUID> suspiciousPlayers;
+    private final Map<UUID, Long> afkStartTime = new ConcurrentHashMap<>();
 
     public AFKManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
         this.configManager = plugin.getConfigManager();
         this.lang = plugin.getLanguageManager();
+        this.databaseManager = plugin.getDatabaseManager();
 
-        this.lastActivity = Caffeine.newBuilder()
-                .expireAfterAccess(1, TimeUnit.HOURS)
-                .build();
-
-        this.lastWarningTime = Caffeine.newBuilder()
-                .expireAfterAccess(30, TimeUnit.MINUTES)
-                .build();
+        this.lastActivity = buildCache(1, TimeUnit.HOURS);
+        this.lastWarningTime = buildCache(30, TimeUnit.MINUTES);
+        this.botDetectionData = buildCache(1, TimeUnit.HOURS);
 
         this.rejoinProtectedPlayers = Caffeine.newBuilder()
-
                 .expireAfterWrite(Math.max(10, configManager.getRejoinCooldownSeconds() * 2), TimeUnit.SECONDS)
                 .build();
-
-        this.botDetectionData = Caffeine.newBuilder()
+        this.playerStates = Caffeine.newBuilder()
                 .expireAfterAccess(1, TimeUnit.HOURS)
                 .build();
 
-        this.manualAFKPlayers = ConcurrentHashMap.newKeySet();
-        this.autoSetAfkPlayers = ConcurrentHashMap.newKeySet();
-        this.autonomousPlayers = ConcurrentHashMap.newKeySet();
-        this.systemPunishedPlayers = ConcurrentHashMap.newKeySet();
-        this.suspiciousPlayers = ConcurrentHashMap.newKeySet();
-        this.originalDisplayNames = new ConcurrentHashMap<>();
-        this.afkReasons = new ConcurrentHashMap<>();
+    }
+
+    private <K, V> Cache<K, V> buildCache(long duration, TimeUnit unit) {
+        return Caffeine.newBuilder().expireAfterAccess(duration, unit).build();
+    }
+
+    private PlayerState getState(Player player) {
+        return playerStates.get(
+                player.getUniqueId(),
+                uuid -> new PlayerState(uuid, player.getDisplayName())
+        );
     }
 
     public void updateActivity(Player player) {
@@ -76,20 +73,33 @@ public class AFKManager {
 
     public void addPlayer(Player player) {
         updateActivity(player);
+        getState(player);
     }
 
     public void removePlayer(Player player) {
+        if (isEffectivelyAfk(player)) {
+            saveTotalAfkTime(player);
+        }
         UUID uuid = player.getUniqueId();
         lastActivity.invalidate(uuid);
         lastWarningTime.invalidate(uuid);
         botDetectionData.invalidate(uuid);
-        manualAFKPlayers.remove(uuid);
-        autoSetAfkPlayers.remove(uuid);
-        originalDisplayNames.remove(uuid);
-        afkReasons.remove(uuid);
-        autonomousPlayers.remove(uuid);
-        systemPunishedPlayers.remove(uuid);
-        suspiciousPlayers.remove(player.getUniqueId());
+        rejoinProtectedPlayers.invalidate(uuid);
+    }
+
+    /**
+     * Bir oyuncuyu AFK olarak işaretlemenin temel teknik işlemlerini yapar:
+     * oyuncuya standart AFK mesajını gönderir ve AFK süresi sayacını başlatır.
+     * Bu metot, AFK sebebini belirlemekle İLGİLENMEZ.
+     * @param state Değiştirilecek oyuncu durumu.
+     */
+    private void setPlayerAfk(PlayerState state) {
+        Player player = Bukkit.getPlayer(state.getUuid());
+        if (player != null) {
+            lang.sendMessage(player, "command.afk.now_afk");
+        }
+
+        afkStartTime.put(state.getUuid(), System.currentTimeMillis());
     }
 
     public long getAfkTime(Player player) {
@@ -105,15 +115,18 @@ public class AFKManager {
      * Oyuncunun manuel veya otomatik olarak AFK durumunda olup olmadığını kontrol eder.
      */
     public boolean isEffectivelyAfk(Player player) {
-        UUID uuid = player.getUniqueId();
-        return manualAFKPlayers.contains(uuid) || autoSetAfkPlayers.contains(uuid) || systemPunishedPlayers.contains(uuid);
+        return getState(player).isEffectivelyAfk();
     }
 
     /**
      * Sadece oyuncunun kendi /afk komutuyla mı AFK olduğunu kontrol eder.
      */
     public boolean isManuallyAFK(Player player) {
-        return manualAFKPlayers.contains(player.getUniqueId());
+        return getState(player).isManualAfk();
+    }
+
+    public String getAfkReason(Player player) {
+        return getState(player).getAfkReason();
     }
 
     public void checkPlayer(Player player) {
@@ -124,25 +137,19 @@ public class AFKManager {
 
         RegionOverride override = configManager.getRegionOverrideForPlayer(player);
         long effectiveMaxAfkTime;
-        List<Map<String, String>> effectiveActions;
+
         if (override != null) {
             if (override.getMaxAfkTime() < 0) return;
             effectiveMaxAfkTime = override.getMaxAfkTime();
-            effectiveActions = override.getActions();
         } else {
             effectiveMaxAfkTime = configManager.getMaxAfkTimeSeconds();
-            effectiveActions = configManager.getActions();
         }
 
         long afkSeconds = getAfkTime(player);
 
         if (afkSeconds >= effectiveMaxAfkTime) {
             if (!isEffectivelyAfk(player)) {
-                executeActions(player, effectiveActions);
-                systemPunishedPlayers.add(player.getUniqueId());
-                if (configManager.isRejoinProtectionEnabled()) {
-                    rejoinProtectedPlayers.put(player.getUniqueId(), System.currentTimeMillis());
-                }
+                applyPunishment(player, override);
             }
             return;
         }
@@ -156,6 +163,58 @@ public class AFKManager {
 
         if (!isEffectivelyAfk(player)) {
             checkAndSendWarning(player, afkSeconds, effectiveMaxAfkTime);
+        }
+    }
+
+    /**
+     * Bir oyuncuya, ceza geçmişine ve bulunduğu bölgeye göre uygun cezayı uygular.
+     * @param player Cezalandırılacak oyuncu.
+     * @param regionOverride Oyuncunun bulunduğu bölge (null olabilir).
+     */
+    private void applyPunishment(Player player, RegionOverride regionOverride) {
+        List<Map<String, String>> actionsToExecute;
+        UUID playerUUID = player.getUniqueId();
+
+        if (configManager.isProgressivePunishmentEnabled()) {
+
+            int currentPunishmentCount = databaseManager.getPunishmentCount(playerUUID);
+            int nextPunishmentCount = currentPunishmentCount + 1;
+
+            int highestPunishmentCount = configManager.getHighestPunishmentCount();
+            if (highestPunishmentCount > 0 && currentPunishmentCount >= highestPunishmentCount) {
+                actionsToExecute = configManager.getPunishmentLevels().stream()
+                        .filter(level -> level.getCount() == 1)
+                        .findFirst()
+                        .map(PunishmentLevel::getActions)
+                        .orElse(configManager.getActions());
+
+                databaseManager.resetPunishmentCount(playerUUID);
+
+            } else {
+                List<PunishmentLevel> levels = configManager.getPunishmentLevels();
+                actionsToExecute = configManager.getActions();
+
+                for (PunishmentLevel level : levels) {
+                    if (nextPunishmentCount >= level.getCount()) {
+                        actionsToExecute = level.getActions();
+                        break;
+                    }
+                }
+
+                databaseManager.incrementPunishmentCount(playerUUID);
+            }
+
+        } else if (regionOverride != null) {
+            actionsToExecute = regionOverride.getActions();
+        } else {
+            actionsToExecute = configManager.getActions();
+        }
+
+        executeActions(player, actionsToExecute);
+
+        getState(player).setSystemPunished(true);
+        if (configManager.isRejoinProtectionEnabled()) {
+            rejoinProtectedPlayers.put(playerUUID, System.currentTimeMillis());
         }
     }
 
@@ -237,83 +296,82 @@ public class AFKManager {
      * Sistemi, oyuncuyu otomatik olarak AFK durumuna geçirir.
      */
     private void setAutoAfkStatus(Player player) {
-        if (isEffectivelyAfk(player)) return;
-        autoSetAfkPlayers.add(player.getUniqueId());
-        lang.sendMessage(player, "command.afk.now_afk");
-    }
+        PlayerState state = getState(player);
+        if (state.isEffectivelyAfk()) return;
 
-    /**
-     * Bir oyuncunun AFK sebebini döndürür.
-     * Eğer oyuncu AFK değilse veya sebep belirtilmemişse boş bir string döndürür.
-     * @param player Sebebi öğrenilecek oyuncu.
-     * @return Oyuncunun AFK sebebi.
-     */
-    public String getAfkReason(Player player) {
-        if (!isEffectivelyAfk(player)) {
-            return "";
-        }
-        return afkReasons.getOrDefault(player.getUniqueId(), "");
+        state.setAutoAfk(true);
+        state.setAfkReason("command.afk.auto_afk_reason");
+
+        setPlayerAfk(state);
     }
 
     public void setManualAFK(Player player, String reasonOrKey) {
-        if (isEffectivelyAfk(player)) return;
+        PlayerState state = getState(player);
+        if (state.isEffectivelyAfk()) return;
 
-        manualAFKPlayers.add(player.getUniqueId());
+        state.setManualAfk(true);
 
         if (reasonOrKey.startsWith("behavior.")) {
-            autonomousPlayers.add(player.getUniqueId());
+            state.setAutonomous(true);
         }
 
-        String finalReason;
-        if (reasonOrKey.startsWith("behavior.") || reasonOrKey.startsWith("command.afk")) {
-            finalReason = lang.getMessage(reasonOrKey).replace(lang.getPrefix(), "");
-        } else {
-            finalReason = reasonOrKey;
-        }
+        state.setAfkReason(reasonOrKey);
 
-        afkReasons.put(player.getUniqueId(), finalReason);
-
-        lang.sendMessage(player, "command.afk.now_afk");
+        setPlayerAfk(state);
 
         if (configManager.isBroadcastOnAfkEnabled()) {
-            String broadcastPath = "command.afk.on_afk_broadcast";
-            String rawTemplate = lang.getRawMessage(broadcastPath);
+            String rawTemplate = lang.getRawMessage("command.afk.on_afk_broadcast");
             if (rawTemplate != null && !rawTemplate.isEmpty()) {
-                String messageWithPlayer = rawTemplate.replace("%player_displayname%", player.getDisplayName());
-                String finalMessage = messageWithPlayer.replace("%reason%", finalReason);
-                lang.broadcastFormattedMessage(finalMessage);
+
+                String displayReason;
+                if (reasonOrKey.startsWith("behavior.") || reasonOrKey.startsWith("command.afk")) {
+                    displayReason = lang.getMessage(reasonOrKey).replace(lang.getPrefix(), "");
+                } else {
+                    displayReason = reasonOrKey;
+                }
+
+                String msg = rawTemplate
+                        .replace("%player_displayname%", player.getDisplayName())
+                        .replace("%reason%", displayReason);
+                lang.broadcastFormattedMessage(msg);
+            }
+        }
+    }
+
+    public void unsetAfkStatus(Player player) {
+        PlayerState state = getState(player);
+        if (!state.isEffectivelyAfk()) return;
+
+        saveTotalAfkTime(player);
+
+        boolean wasManual = state.isManualAfk();
+        state.setManualAfk(false);
+        state.setAutoAfk(false);
+        state.setAutonomous(false);
+        state.setSystemPunished(false);
+        state.setAfkReason(null);
+
+        lang.sendMessage(player, "command.afk.not_afk_now");
+
+        if (wasManual && configManager.isBroadcastOnReturnEnabled()) {
+            String rawTemplate = lang.getRawMessage("command.afk.on_return_broadcast");
+            if (rawTemplate != null && !rawTemplate.isEmpty()) {
+                lang.broadcastMessage("command.afk.on_return_broadcast",
+                        "%player_displayname%", player.getDisplayName());
             }
         }
     }
 
     /**
-     * Bir oyuncuyu TÜM AFK durumlarından (manuel, otomatik, sistem) çıkarır.
-     * ÖNEMLİ: Bu metot, oyuncunun "Şüpheli" durumunu ETKİLEMEZ. Bir oyuncu
-     * AFK olmayabilir ama hala şüpheli olabilir.
-     * @param player Durumu kaldırılacak oyuncu.
+     * Bir oyuncunun son AFK periyodunda ne kadar süre kaldığını hesaplar
+     * ve veritabanına ekler.
      */
-    public void unsetAfkStatus(Player player) {
-        UUID uuid = player.getUniqueId();
-        if (!isEffectivelyAfk(player)) return;
-
-        boolean wasManual = manualAFKPlayers.remove(uuid);
-
-        autoSetAfkPlayers.remove(uuid);
-        autonomousPlayers.remove(uuid);
-        systemPunishedPlayers.remove(uuid);
-
-        afkReasons.remove(uuid);
-
-        lang.sendMessage(player, "command.afk.not_afk_now");
-
-        if (wasManual && configManager.isBroadcastOnReturnEnabled()) {
-            String broadcastPath = "command.afk.on_return_broadcast";
-            String rawTemplate = lang.getRawMessage(broadcastPath);
-            if (rawTemplate != null && !rawTemplate.isEmpty()) {
-
-                lang.broadcastMessage(broadcastPath,
-                        "%player_displayname%", player.getDisplayName()
-                );
+    private void saveTotalAfkTime(Player player) {
+        Long startTime = afkStartTime.remove(player.getUniqueId());
+        if (startTime != null) {
+            long afkDurationSeconds = (System.currentTimeMillis() - startTime) / 1000;
+            if (afkDurationSeconds > 0) {
+                databaseManager.updateTotalAfkTime(player.getUniqueId(), afkDurationSeconds);
             }
         }
     }
@@ -344,7 +402,9 @@ public class AFKManager {
     private String applyPlaceholders(Player player, String text, long timeLeft, long maxAfkTime) {
         if (text == null || text.isEmpty()) return "";
 
-        String currentDisplayName = originalDisplayNames.getOrDefault(player.getUniqueId(), player.getDisplayName());
+        String currentDisplayName = getState(player).getOriginalDisplayName() != null
+                ? getState(player).getOriginalDisplayName()
+                : player.getDisplayName();
 
         text = text.replace("%player%", player.getName())
                 .replace("%player_displayname%", currentDisplayName)
@@ -359,13 +419,8 @@ public class AFKManager {
         return text;
     }
 
-    /**
-     * Bir oyuncunun Davranış Analizi tarafından otonom olarak işaretlenip işaretlenmediğini kontrol eder.
-     * @param player Kontrol edilecek oyuncu.
-     * @return Otonom olarak işaretlenmişse true.
-     */
     public boolean isMarkedAsAutonomous(Player player) {
-        return autonomousPlayers.contains(player.getUniqueId());
+        return getState(player).isAutonomous();
     }
 
     public void trackClick(Player player) {
@@ -429,15 +484,10 @@ public class AFKManager {
         botDetectionData.invalidate(uuid);
     }
 
-    /**
-     * Bir oyuncu Turing Testi'ni başarıyla geçtiğinde, onunla ilgili
-     * tüm şüpheye dayalı verileri ve durumları sıfırlar.
-     * @param player Testi geçen oyuncu.
-     */
+
     public void resetSuspicion(Player player) {
-
-        suspiciousPlayers.remove(player.getUniqueId());
-
+        PlayerState state = getState(player);
+        state.setSuspicious(false);
         resetBotDetectionData(player.getUniqueId());
 
         if (plugin.getBehaviorAnalysisManager().isEnabled()) {
@@ -445,27 +495,14 @@ public class AFKManager {
         }
     }
 
-    /**
-     * Bir oyuncunun şüpheli modda olup olmadığını kontrol eder.
-     * @param player Kontrol edilecek oyuncu.
-     * @return Oyuncu şüpheliyse true.
-     */
     public boolean isSuspicious(Player player) {
-        return suspiciousPlayers.contains(player.getUniqueId());
+        return getState(player).isSuspicious();
     }
 
-    /**
-     * Bir oyuncuyu şüpheli moda sokar. Bu, CaptchaManager tarafından çağrılır.
-     * @param player Şüpheli moda sokulacak oyuncu.
-     */
     public void setSuspicious(Player player) {
-        suspiciousPlayers.add(player.getUniqueId());
+        getState(player).setSuspicious(true);
     }
 
-    /**
-     * Sunucudaki AFK olan tüm oyuncuların bir listesini döndürür.
-     * @return AFK olan oyuncuların listesi.
-     */
     public List<Player> getAfkPlayers() {
         return Bukkit.getOnlinePlayers().stream()
                 .filter(this::isEffectivelyAfk)

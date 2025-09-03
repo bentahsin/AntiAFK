@@ -70,7 +70,7 @@ public class ListCommand implements ISubCommand {
             Player afkPlayer = afkPlayers.get(currentIndex);
             String afkTime = TimeUtil.formatTime(afkManager.getAfkTime(afkPlayer));
 
-            sender.sendMessage(lang.getMessage("!command.antiafk.list.entry",
+            sender.sendMessage(lang.getMessage("command.antiafk.list.entry",
                     "%rank%", String.valueOf(currentIndex + 1),
                     "%player%", afkPlayer.getName(),
                     "%afk_time%", afkTime

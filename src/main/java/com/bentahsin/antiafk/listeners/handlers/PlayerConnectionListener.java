@@ -41,5 +41,6 @@ public class PlayerConnectionListener implements Listener {
         plugin.getPlayerMenuUtilityMap().remove(playerUUID);
         plugin.getBookInputManager().ifPresent(manager -> manager.onPlayerQuit(player));
         plugin.getCaptchaManager().ifPresent(manager -> manager.onPlayerQuit(player));
+        plugin.getPlayerStatsManager().onPlayerQuit(player);
     }
 }

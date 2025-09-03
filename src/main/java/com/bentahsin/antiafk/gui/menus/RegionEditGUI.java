@@ -70,7 +70,7 @@ public class RegionEditGUI extends Menu {
                         .stream().map(l -> l.replace("%value%", afkTimeDisplay)).toArray(String[]::new)
         ));
 
-        int actionCount = regionOverride.getActions() == plugin.getConfigManager().getActions() ? 0 : regionOverride.getActions().size();
+        int actionCount = regionOverride.getActions() == configManager.getActions() ? 0 : regionOverride.getActions().size();
 
         actions.put(13, () -> new RegionActionsListGUI(playerMenuUtility, plugin).open());
         inventory.setItem(13, createGuiItem(Material.COMMAND_BLOCK_MINECART,
@@ -111,7 +111,7 @@ public class RegionEditGUI extends Menu {
 
                     plugin.getConfig().set(path + ".max_afk_time", inputText);
                     plugin.saveConfig();
-                    plugin.getConfigManager().loadConfig();
+                    configManager.loadConfig();
 
                     lang.sendMessage(player, "gui.region.time_updated", "%time%", inputText);
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.5f);
@@ -150,7 +150,7 @@ public class RegionEditGUI extends Menu {
 
         plugin.getConfig().set(path, null);
         plugin.saveConfig();
-        plugin.getConfigManager().loadConfig();
+        configManager.loadConfig();
 
         lang.sendMessage(player, "gui.region.rule_deleted", "%region%", regionName);
         player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1f, 1f);

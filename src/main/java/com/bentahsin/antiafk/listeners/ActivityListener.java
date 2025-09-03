@@ -12,6 +12,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -58,7 +59,7 @@ public abstract class ActivityListener {
             return;
         }
 
-        if (afkManager.isMarkedAsAutonomous(player) && !isMovementEvent && !isHighValueActivity(event, false)) {
+        if (afkManager.isMarkedAsAutonomous(player) && !isMovementEvent && !isHighValueActivity(event)) {
             return;
         }
 
@@ -72,7 +73,7 @@ public abstract class ActivityListener {
             if (event instanceof PlayerInteractEvent) {
                 PlayerInteractEvent interactEvent = (PlayerInteractEvent) event;
                 if (interactEvent.hasBlock()) {
-                    interactedBlock = interactEvent.getClickedBlock().getLocation();
+                    interactedBlock = Objects.requireNonNull(interactEvent.getClickedBlock()).getLocation();
                 }
             }
 
@@ -159,12 +160,11 @@ public abstract class ActivityListener {
     /**
      * Bir aktivitenin, şüpheli bir oyuncuyu temize çıkaracak kadar
      * "değerli" olup olmadığını belirler.
+     *
      * @param event Aktiviteyi tetikleyen olay.
-     * @param isMovementEvent Aktivitenin bir hareket olup olmadığı.
      * @return Aktivite yüksek değerli ise true.
      */
-    private boolean isHighValueActivity(org.bukkit.event.Event event, boolean isMovementEvent) {
-        if (isMovementEvent) return false;
+    private boolean isHighValueActivity(Event event) {
         if (event == null) return false;
 
         return event instanceof org.bukkit.event.player.AsyncPlayerChatEvent ||

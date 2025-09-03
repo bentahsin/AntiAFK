@@ -17,12 +17,10 @@ import java.util.stream.Collectors;
 
 public class CheckCommand implements ISubCommand {
 
-    private final AntiAFKPlugin plugin;
     private final LanguageManager lang;
     private final AFKManager afkManager;
 
     public CheckCommand(AntiAFKPlugin plugin) {
-        this.plugin = plugin;
         this.lang = plugin.getLanguageManager();
         this.afkManager = plugin.getAfkManager();
     }

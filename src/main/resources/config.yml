@@ -1,0 +1,234 @@
+# =================================================================== #
+#                  AntiAFK by BenTahsin - Ana Konfigürasyon           #
+# =================================================================== #
+# Plugin ile ilgili tüm mesajları ve metinleri 'messages.yml' dosyasından düzenleyebilirsiniz.
+
+# ================================== #
+#         ANA AFK SİSTEMİ            #
+# ================================== #
+
+# Bir oyuncunun nihai eylemlere maruz kalmadan önce AFK kalabileceği varsayılan maksimum süre.
+# Bu değer, WorldGuard bölge ayarları tarafından ezilebilir.
+# Format: 10s (saniye), 15m (dakika), 1h (saat), 1d (gün). Örn: "30m"
+max_afk_time: "15m"
+
+# Oyuncuya nihai eylemler uygulanmadan önce gönderilecek uyarılar.
+# Uyarılar, 'time' değerine göre büyükten küçüğe doğru kontrol edilir.
+# type: CHAT, ACTION_BAR, TITLE
+warnings:
+  - time: "5m"
+    type: "CHAT"
+    message: "&e[AFK] &7Hareketsiz görünüyorsun. &c%time_left% &7içinde hareket etmezsen cezalandırılacaksın."
+  - time: "1m"
+    type: "TITLE"
+    title: "&c&lDİKKAT"
+    subtitle: "&e1 dakika içinde hareket etmelisin!"
+    sound: "BLOCK_NOTE_BLOCK_PLING" # İsteğe bağlı ses efekti (Bukkit Sound isimleri)
+  - time: "10s"
+    type: "ACTION_BAR"
+    message: "&4&lSunucudan atılıyor: %time_left%"
+    sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+
+# Oyuncu 'max_afk_time' süresini doldurduğunda çalıştırılacak komutlar.
+# type: CONSOLE (konsol tarafından), PLAYER (oyuncu tarafından)
+# Placeholder'lar: %player%, %player_displayname%, %world%
+actions:
+  - type: "CONSOLE"
+    command: "broadcast &e%player_displayname% &6uzun süre AFK kaldığı için lobiye gönderildi."
+  - type: "PLAYER"
+    command: "spawn" # Veya /spawn, /hub vb.
+  #- type: "CONSOLE"
+  #  command: "kick %player% &6Merhaba &c%player_displayname% &6uzun süre AFK kaldığın için sunucudan atıldın. :("
+
+# ================================== #
+#         AKTİVİTE TESPİTİ           #
+# ================================== #
+detection:
+  # Bir oyuncunun bot sayılması için aynı blokta kaç kez
+  # hareket dışı aktivite (eşya atma, eğilme vb.) yapması gerekir?
+  max-pointless-activities: 15
+
+  # Hangi oyuncu eylemlerinin aktivite olarak sayılacağını belirleyin.
+  check_camera_movement: true
+  check_chat_activity: true
+  check_interaction: true         # Blok kırma/koyma
+  check_toggle_sneak: true
+  check_player_attack: true
+  check_item_drop: true
+  check_inventory_activity: true
+  check_item_consume: true
+  # 'check_held_item_change' ve 'check_book_activity' ayarları, basit botları engellemek için
+  # genellikle false olarak bırakılabilir, ancak isteğe bağlı olarak açılabilir.
+  check_held_item_change: false   # Hotbar'da eşya değiştirme
+  check_book_activity: false      # Kitap okuma/yazma
+
+  # Sürekli dünyalar arası geçiş yaparak AFK sistemini istismar etmeyi engeller.
+  check-world-change:
+    enabled: true
+    # İki dünya değişimi arasındaki minimum süre (saniye).
+    # Bundan daha hızlı yapılan geçişler "şüpheli" sayılır.
+    cooldown: 20
+    # Bir oyuncunun bu davranıştan dolayı AFK sayılması için
+    # kaç kez şüpheli dünya değişimi yapması gerekir?
+    max-changes: 5
+
+  # Auto-clicker (tutarlı tıklama aralığı) tespitini yönetir.
+  auto-clicker:
+    enabled: true
+    check-amount: 20
+    max-deviation: 10
+    detections-to-punish: 3
+
+  # Bir oyuncu ne kadar süre hareketsiz kaldıktan sonra otomatik olarak [AFK] tag'ı alacak?
+  # Bu süre, nihai ceza süresinden (max_afk_time) daha kısa olmalıdır.
+  # Devre dışı bırakmak için "disabled" yazın.
+  auto_set_afk_after: "1m"
+
+# ================================== #
+#        YENİDEN GİRİŞ KORUMASI      #
+# ================================== #
+rejoin_protection:
+  enabled: true
+
+  # Sistem tarafından AFK nedeniyle cezalandırılan bir oyuncunun,
+  # ne kadar süre boyunca sunucuya yeniden katıldığında tekrar
+  # cezalandırılacağını belirler.
+  # Bu süre dolmadan girmeye çalışan oyuncu, AFK aksiyonlarına tekrar maruz kalır.
+  # Format: 10s (saniye), 5m (dakika), 1h (saat).
+  cooldown: "5m"
+
+# ================================== #
+#      GELİŞMİŞ DAVRANIŞ ANALİZİ     #
+# ================================== #
+# BU SİSTEM, SÜREKLİ AYNI YÖRÜNGEDE HAREKET EDEN BOTLARI TESPİT EDER.
+behavioral-analysis:
+  enabled: true # Bu sistemi tamamen açar veya kapatır.
+  debug: false   # Geliştiriciler için hata ayıklama mesajlarını açar.
+
+  # Analiz için ne kadarlık bir hareket geçmişi saklanacak? (tick cinsinden, 20 tick = 1 saniye)
+  # Bu değer aynı zamanda bellek sızıntısını önlemek için hareket listesinin maksimum boyutunu da belirler.
+  # Daha yüksek değerler daha uzun süreli döngüleri yakalayabilir ama daha fazla bellek kullanır.
+  history-size-ticks: 600 # 30 saniye
+
+  # Bir hareketin yörünge olarak kabul edilmesi için gereken minimum nokta sayısı.
+  # Çok düşük olması hatalı pozitiflere yol açabilir. (Yaklaşık 1 saniyelik hareket)
+  min-trajectory-points: 20
+
+  # Analiz edilecek bir yörüngenin maksimum uzunluğu (nokta sayısı).
+  # Çok yüksek olması performansı etkileyebilir. (Yaklaşık 15 saniyelik hareket)
+  max-trajectory-points: 300
+
+  # Bir oyuncunun AFK sayılması için aynı hareketi kaç kez art arda tekrarlaması gerekir?
+  max-repeats: 3
+
+  # --- Tolerans Ayarları (Dikkatli değiştirin!) ---
+  # İki yörüngenin karşılaştırılmasında kullanılacak hassasiyet ayarları.
+
+  # İki noktanın aynı kabul edilmesi için aralarındaki maksimum mesafe (blok).
+  location-tolerance: 1.0
+
+  # İki noktanın bakış açısının aynı kabul edilmesi için maksimum açı farkı (derece).
+  direction-tolerance: 25.0
+
+  # Bir yörüngenin diğerine 'benzer' sayılması için gereken minimum eşleşme oranı (% olarak).
+  similarity-threshold: 0.85 # %85 benzerlik
+
+# =================================== #
+#   TURING TESTİ (CAPTCHA) KORUMASI   #
+# =================================== #
+turing_test:
+  enabled: true
+
+  # Oyuncunun soruyu cevaplamak için kaç saniyesi olacağını belirler.
+  answer_timeout_seconds: 20
+
+  # Anlamsız Aktivite (Katman 2) sayacı bu değere ulaştığında test tetiklenir.
+  # 'max-pointless-activities' değerinden küçük olmalıdır. Örn: 15 ise bu 10 olabilir.
+  trigger_on_pointless_activity_count: 10
+
+  # Davranışsal Analiz (Katman 4) tekrar sayacı bu değere ulaştığında test tetiklenir.
+  # 'max-repeats' değerinden küçük olmalıdır. Örn: 3 ise bu 1 olabilir.
+  trigger_on_behavioral_repeat_count: 1
+
+  # Oyuncu testi geçemezse çalıştırılacak komutlar.
+  # Boş bırakılırsa, oyuncu sadece varsayılan olarak AFK yapılır.
+  # type: CONSOLE, PLAYER. Placeholder'lar: %player%
+  on_failure_actions:
+    - type: "CONSOLE"
+      command: "kick %player% &cBot testi başarısız!"
+    #- type: "PLAYER"
+    #  command: "spawn"
+
+# ================================== #
+#      WORLDGUARD ENTEGRASYONU       #
+# ================================== #
+worldguard_integration:
+  enabled: true
+
+  # Bölgelere özel ayarlar. Oyuncu birden fazla bölgedeyse, listedeki İLK eşleşen kural kullanılır.
+  region_overrides:
+    # Örnek 1: pvp_arena bölgesinde AFK süresi 3 dakika ve oyuncu lobiye gönderilir.
+    0:
+      region: "pvp_arena"
+      max_afk_time: "3m"
+      actions:
+        - type: "PLAYER"
+          command: "spawn"
+    # Örnek 2: afk_odasi bölgesinde AFK sistemi tamamen devre dışı.
+    1:
+      region: "afk_odasi"
+      max_afk_time: "disabled"
+    # Örnek 3: ticaret_alani bölgesinde AFK süresi 1 saat, ama varsayılan aksiyonlar kullanılır.
+    2:
+      region: "ticaret_alani"
+      max_afk_time: "1h"
+      # 'actions' belirtilmediği için genel aksiyonlar kullanılır.
+
+# ================================== #
+#          MANUEL /AFK KOMUTU        #
+# ================================== #
+afk_command:
+  enabled: true
+  permission: "antiafk.command.afk"
+
+  # /afk komutu yazıldığında
+  on_afk:
+    # Oyuncu /afk yazdığında bu mesajın tüm sunucuya duyurulup duyurulmayacağı.
+    broadcast: true
+    default_reason: "Sebep belirtilmedi"
+    set_invulnerable: true # Hasar almazlık
+    tag_format: "&7[AFK] "
+
+  # Oyuncu AFK durumundan çıktığında
+  on_return:
+    # Oyuncu aktivite göstererek AFK'dan çıktığında bu mesajın tüm sunucuya duyurulup duyurulmayacağı.
+    broadcast: true
+
+# ================================== #
+#      İSTİSNALAR (EXEMPTIONS)   #
+# ================================== #
+exemptions:
+  # Bu izinlere sahip oyuncular ilgili kontrollerden muaf olur.
+
+  permissions:
+    # ANA BYPASS İZNİ: Bu izne sahip olanlar HİÇBİR AntiAFK kontrolüne takılmaz.
+    bypass_all: "antiafk.bypass.all"
+
+    # DETAYLI BYPASS İZİNLERİ:
+    # Klasik AFK zamanlayıcısından muaf olma (uyarılar, nihai aksiyonlar).
+    bypass_classic: "antiafk.bypass.classic"
+    # Davranışsal analizden (yörünge tekrarı) muaf olma.
+    bypass_behavioral: "antiafk.bypass.behavioral"
+    # Anlamsız aktivite (aynı yerde tıklama/eğilme) tespitinden muaf olma.
+    bypass_pointless: "antiafk.bypass.pointless"
+    # Auto-clicker (tutarlı tıklama aralığı) tespitinden muaf olma.
+    bypass_autoclicker: "antiafk.bypass.autoclicker"
+
+  # AFK sisteminin çalışmayacağı dünyaların listesi.
+  disabled_worlds:
+    - "creative_dunyasi"
+
+  # AFK sisteminden muaf olacak oyun modları.
+  exempt_gamemodes:
+    - "SPECTATOR"
+    - "CREATIVE"

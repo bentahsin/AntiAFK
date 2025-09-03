@@ -1,0 +1,24 @@
+# AntiAFK Turing Testi Soru Havuzu
+# Her bir soru, bir anahtar (örn: 'q1'), bir 'soru' ve bir 'cevap' metninden oluşur.
+# Cevaplar, küçük harfe duyarsızdır (case-insensitive).
+# Placeholder'lar burada çalışmaz.
+
+questions:
+  q1:
+    question: "&fToplama işlemi yap: &e8 + 4 = ?"
+    answer: "12"
+  q2:
+    question: "&fMinecraft'ta kömür ne renktir?"
+    answer: "siyah"
+  q3:
+    question: "&fGüneş nereden doğar?"
+    answer: "doğudan"
+  q4:
+    question: "&f3 x 5 işleminin sonucu kaçtır?"
+    answer: "15"
+  q5:
+    question: "&f'Elma' kelimesinde kaç harf vardır?"
+    answer: "4"
+  q6:
+    question: "&fBuz eriyince neye dönüşür?"
+    answer: "su"

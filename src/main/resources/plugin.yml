@@ -1,0 +1,32 @@
+name: AntiAFK
+version: 1.0.2
+main: com.bentahsin.antiafk.AntiAFKPlugin
+api-version: '1.13'
+author: BenTahsin
+description: Oyuncuların sunucuda AFK kalmasını engeller ve özelleştirilebilir aksiyonlar uygular.
+load: POSTWORLD
+softdepend: [ProtocolLib, PlaceholderAPI, WorldGuard]
+
+commands:
+  antiafk:
+    description: AntiAFK pluginini yönetir.
+    permission: antiafk.admin
+    usage: /antiafk [reload | panel]
+  afk:
+    description: Kendinizi AFK olarak işaretlemenizi sağlar.
+    permission: antiafk.command.afk
+    usage: /afk [sebep]
+  afkcevap:
+    description: AntiAFK bot testini cevaplamanızı sağlar.
+    usage: /afkcevap <cevap>
+
+permissions:
+  antiafk.admin:
+    description: Plugin komutlarını kullanma izni.
+    default: op
+  antiafk.bypass:
+    description: AFK kontrolünden muaf olma izni.
+    default: op
+  antiafk.command.afk:
+    description: /afk komutunu kullanma izni.
+    default: true

@@ -1,0 +1,399 @@
+# AntiAFK Eklentisi Mesaj Dosyası
+# %placeholder% formatındaki değişkenleri kullanabilirsiniz.
+# Mesajın başına '!' koyarsanız, genel önek (plugin_prefix) kullanılmaz.
+
+# Tüm mesajların başına eklenecek genel önek. Boş bırakılabilir.
+plugin_prefix: "&8[&6AntiAFK&8] &r"
+
+# Genel Hata ve Bilgi Mesajları
+error:
+  no_permission: "&cBu komutu kullanmak için yetkiniz yok."
+  player_not_found: "&cOyuncu bulunamadı veya çevrimdışı."
+  must_be_player: "&cBu komutu sadece bir oyuncu kullanabilir."
+  protocollib_disabled: "&cBu özellik için ProtocolLib eklentisi gereklidir."
+  no_actions_defined: "&cConfig dosyasında tanımlı bir AFK aksiyonu bulunamadı."
+  invalid_time_format: "&cGeçersiz zaman formatı! (Örn: 10m, 1h, 30s)"
+
+info:
+  reloaded: "&aEklenti konfigürasyonu ve mesajları başarıyla yeniden yüklendi."
+
+
+# Yeniden Giriş Koruması Mesajı
+rejoin_kick: "&cAFK ceza süreniz henüz dolmadı! Lütfen &e%time_left% &csonra tekrar deneyin."
+
+# Turing Testi (Captcha) Mesajları
+turing_test:
+  header: "&8&m------------------------------------------"
+  instruction: "&fCevaplamak için sohbete &e/afkcevap <cevap> &fyaz. &c(%seconds% saniyen var)"
+  no_active_test: "&cŞu anda cevaplaman gereken bir test bulunmuyor."
+  success: "&aDoğru cevap! Teşekkürler, oyuna devam edebilirsin."
+  failure: "&cYanlış cevap veya süre doldu! Aktivite gösterene kadar AFK olarak işaretlendin."
+
+# /afk Komutu Mesajları
+command:
+  antiafk:
+    usage: "&cKullanım: /%label% <reload|panel>"
+  afk:
+    usage: "&cKullanım: /afk [sebep]"
+    already_afk: "&eZaten AFK durumundasınız."
+    now_afk: "&7Artık AFK olarak işaretlendiniz."
+    not_afk_now: "&7Artık AFK değilsiniz."
+    on_afk_broadcast: "&e%player_displayname% &7artık AFK. (%reason%)"
+    on_return_broadcast: "&e%player_displayname% &7artık AFK değil."
+    command_disabled: "&cAFK komutu şu anda yönetici tarafından devre dışı bırakılmıştır."
+
+# Davranışsal Analiz
+behavior:
+  afk_detected: "Otonom hareket tespiti."
+  pointless_activity_detected: "Tekrarlayan anlamsız aktivite."
+  autoclicker_detected: "Auto-clicker tespiti."
+  rapid_world_change: "Sürekli dünya değiştirme tespiti."
+  turing_test_failed: "Bot testi başarısız."
+  debug:
+    suspicion: "§8[AntiAFK-Debug] Yörünge şüphesi. Analiz başlıyor."
+    repetition: "!§8[AntiAFK-Debug] %time%s'lik yörünge tekrarı! Sayaç: %count%/%max_repeats%"
+    pattern_changed: "§8[AntiAFK-Debug] Yörünge değişti. Analiz sıfırlandı."
+
+# /antiafk GUI ve Yönetim Mesajları
+gui:
+  # Menü Başlıkları
+  menu_titles:
+    admin_panel: "AntiAFK Yönetim Paneli"
+    player_actions: "İşlem: %player%"
+    player_not_found: "Oyuncu Bulunamadı"
+    player_list: "Oyuncu Listesi (Sayfa %page%)"
+    region_action_edit_new: "Yeni Aksiyon Ekle"
+    region_action_edit_existing: "Aksiyonu Düzenle"
+    region_actions_list: "Aksiyonlar: %region%"
+    region_edit: "Düzenle: %region%"
+    anvil_region_time_editor: "Bölge AFK Süresini Ayarla"
+    region_list: "Bölge Kuralları Yönetimi"
+    settings: "Genel Ayarlar"
+    behavioral_analysis: "Davranışsal Analiz Ayarları"
+    anvil_max_afk_time: "Maks. AFK Süresini Ayarla"
+    anvil_auto_afk_time: "Oto. AFK Süresini Ayarla"
+
+  # Admin Paneli Butonları
+  admin_panel:
+    settings_button:
+      name: "&aGenel Ayarlar"
+      lore:
+        - "&7Temel plugin ayarlarını değiştir."
+        - "&7(Tespit yöntemleri, /afk komutu vb.)"
+
+    regions_button:
+      name: "&6Bölge Kurallarını Yönet"
+      lore:
+        - "&7WorldGuard bölgelerine özel"
+        - "&7AFK kuralları tanımla."
+
+    player_management_button:
+      name: "&bOyuncu Yönetimi"
+      lore:
+        - "&7Sunucudaki oyuncuların AFK durumlarını"
+        - "&7görüntüle ve onlara özel işlem yap."
+
+    reload_button:
+      name: "&eEklentiyi Yeniden Yükle"
+      lore:
+        - "&7Config.yml ve messages.yml dosyalarını"
+        - "&7yeniden yükler."
+
+  settings_menu:
+    # Genel Ayar Butonları
+    max_afk_time_button:
+      name: "&eMaksimum AFK Süresi"
+      lore:
+        - "&7Nihai eylemlerin uygulanacağı"
+        - "&7toplam AFK süresi."
+        - ""
+        - "&7Mevcut: &f%value%"
+        - "&8Değiştirmek için tıkla."
+
+    auto_afk_time_button:
+      name: "&eOtomatik AFK Süresi"
+      lore:
+        - "&7Oyuncuya AFK tag'ının verileceği"
+        - "&7süre."
+        - ""
+        - "&7Mevcut: &f%value%"
+        - "&8Değiştirmek için tıkla."
+
+    invulnerable_button:
+      name: "&eAFK Hasar Almazlığı"
+      lore:
+        - "&7Oyuncular AFK iken"
+        - "&7hasar almaz."
+
+    # Tespit Yöntemleri (Toggle Butonları)
+    # Her buton için name ve lore tanımlıyoruz.
+    check_camera:
+      name: "&eKamera Hareketi"
+      lore: [ "&7Kamera oynatma aktivite sayılır." ]
+    check_chat:
+      name: "&eSohbet/Komut"
+      lore: [ "&7Sohbet/komut aktivite sayılır." ]
+    check_interaction:
+      name: "&eBlok Etkileşimi"
+      lore: [ "&7Blok kırma/koyma aktivite sayılır." ]
+    check_toggle_sneak:
+      name: "&eEğilme/Kalkma"
+      lore: [ "&7Eğilip kalkma aktivite sayılır." ]
+    check_player_attack:
+      name: "&eSaldırı"
+      lore: [ "&7Bir varlığa saldırma aktivite sayılır." ]
+    check_item_drop:
+      name: "&eEşya Atma"
+      lore: [ "&7Yere eşya atma aktivite sayılır." ]
+    check_inventory:
+      name: "&eEnvanter Etkileşimi"
+      lore: [ "&7Envanter açma/tıklama aktivite sayılır." ]
+    check_item_consume:
+      name: "&eEşya Tüketme"
+      lore: [ "&7Yemek yeme/iksir içme aktivite sayılır." ]
+    check_item_change:
+      name: "&eEşya Değiştirme"
+      lore: [ "&7Hotbar'da eşya değiştirme aktivite sayılır." ]
+    check_book:
+      name: "&eKitap Etkileşimi"
+      lore: [ "&7Kitap okuma/yazma aktivite sayılır." ]
+
+    # Yeni Davranışsal Analiz Butonu
+    behavioral_analysis_button:
+      name: "&6&lAkıllı Tespit Ayarları"
+      lore:
+        - "&7Gelişmiş davranışsal analiz"
+        - "&7sistemini yönetin."
+        - ""
+        - "&eBu sistem, sürekli aynı"
+        - "&eyörüngede hareket eden"
+        - "&ebotları tespit eder."
+        - ""
+        - "&8Ayarları düzenlemek için tıkla."
+
+    # Genel butonlar
+    back_button:
+      name: "&cGeri Dön"
+
+    # Toggle butonları için ortak metinler
+    toggle_status_lore:
+      - ""
+      - "%status%"
+      - "&8Değiştirmek için tıkla"
+    status_active: "&aDurum: Aktif"
+    status_disabled: "&cDurum: Devre Dışı"
+
+  player_actions_menu:
+    apply_afk_actions_button:
+      name: "&bAFK Aksiyonlarını Uygula"
+      lore:
+        - "&7Oyuncuyu, süresi dolduğunda"
+        - "&7yapılacak işlemlere maruz bırakır."
+        - "&7(Örn: Lobiye gönderme)"
+
+    toggle_manual_afk_button:
+      name: "&eManuel AFK Durumunu Değiştir"
+      lore:
+        - "%status%" # Dinamik olarak doldurulacak
+        - "&8Değiştirmek için tıkla"
+      status_afk: "&7Şu anki durum: &cManuel AFK"
+      status_active: "&7Şu anki durum: &aAktif"
+
+    back_button: "&cGeri Dön (Sayfa %page%)"
+
+  player_list_menu:
+    back_to_main_menu_button:
+      name: "&cAna Menüye Dön"
+      lore: [ ] # Lore istemiyorsak boş bırakabiliriz.
+
+    previous_page_button:
+      name: "&d< Önceki Sayfa"
+      lore: [ ]
+
+    next_page_button:
+      name: "&dSonraki Sayfa >"
+      lore: [ ]
+
+    # Oyuncu kafalarının açıklama formatı
+    player_head_lore:
+      - "&7AFK Süresi: &e%afk_time%"
+      - "&7Durum: %status%"
+      - "&7Dünya: &f%world%"
+      - ""
+      - "&8İşlem yapmak için tıkla."
+
+    # Oyuncu durumu için metinler
+    status_afk: "&cManuel AFK"
+    status_active: "&aAktif"
+
+  region_action_edit_menu:
+    change_type_button:
+      name: "&aAksiyon Tipini Değiştir"
+      lore:
+        - "&7Mevcut Tip: &e%type%"
+        - "&8Değiştirmek için tıkla."
+
+    edit_command_button:
+      name: "&bKomutu Düzenle"
+      lore:
+        - "&7Mevcut Komut: &e%command%"
+        - ""
+        - "&8Gelişmiş düzenleyiciyi açmak için tıkla."
+
+    edit_command_disabled_button:
+      name: "&cKomutu Düzenle (Devre Dışı)"
+      lore:
+        - "&7Bu özelliği kullanmak için sunucuya"
+        - "&eProtocolLib &7eklentisini yüklemeniz"
+        - "&7gerekmektedir."
+
+    delete_action_button:
+      name: "&4Aksiyonu Sil"
+      lore:
+        - "&cBu aksiyonu listeden kalıcı"
+        - "&colarak siler."
+
+    back_button: "&cGeri Dön"
+
+    # Onay Penceresi için
+    delete_confirmation_title: "§4Aksiyonu Sil?"
+    delete_confirmation_item_name: "&cAksiyon Silinecek"
+
+  region_actions_list_menu:
+    # Listelenen her bir aksiyon öğesinin formatı
+    action_item:
+      name: "&aAksiyon Tipi: &f%type%"
+      lore:
+        - "&7Komut: &e%command%"
+        - ""
+        - "&8Düzenlemek için tıkla."
+
+    # Eğer bölgeye özel aksiyon tanımlanmamışsa gösterilecek bilgi
+    using_global_actions_item:
+      name: "&cBu bölge genel aksiyonları kullanıyor."
+      lore:
+        - "&7Özel aksiyon eklemek için aşağıdaki"
+        - "&7'Yeni Aksiyon Ekle' butonuna tıkla."
+
+    # Butonlar
+    add_new_action_button:
+      name: "&aYeni Aksiyon Ekle"
+      lore:
+        - "&7Bu bölgeye özel yeni bir"
+        - "&7aksiyon tanımla."
+
+    back_button:
+      name: "&cGeri Dön"
+      lore: [ ]
+
+  region_edit_menu:
+    edit_time_button:
+      name: "&aAFK Süresini Değiştir"
+      lore:
+        - "&7Bu bölgedeki oyuncular için"
+        - "&7özel AFK süresini ayarla."
+        - "&7'disabled' yazarak kapatabilirsin."
+        - ""
+        - "&7Mevcut Değer: %value%"
+      value_disabled: "&cDevre Dışı"
+      value_active: "&e%time%"
+
+    manage_actions_button:
+      name: "&bÖzel Aksiyonları Yönet"
+      lore:
+        - "&7Bu bölgede AFK kalan oyunculara"
+        - "&7uygulanacak özel komutları düzenle."
+        - ""
+        - "&7Mevcut Özel Aksiyon Sayısı: &e%count%"
+        - "&8Aksiyonları listelemek için tıkla."
+
+    delete_rule_button:
+      name: "&4Bölge Kuralını Sil"
+      lore:
+        - "&cBu bölgeye özel kuralı tamamen"
+        - "&ckaldırır. Bu işlem geri alınamaz!"
+        - ""
+        - "&c&lDİKKAT! Silmek için tıkla."
+
+    back_button:
+      name: "&cGeri Dön"
+      lore: [ ]
+
+    # Onay Penceresi için
+    delete_confirmation_title: "§4Kuralı Silmeyi Onayla"
+    delete_confirmation_item_name: "&6Silinecek Kural: &f%region%"
+    delete_confirmation_item_lore:
+      - "&7Bu bölge kuralı kalıcı"
+      - "&7olarak silinecek."
+
+  region_list_menu:
+    # Listelenen her bir kural öğesinin formatı
+    region_item:
+      name: "&aBölge: &f%region%"
+      lore:
+        - "&7AFK Süresi: %afk_time%"
+        - "&7Özel Aksiyon Sayısı: &e%count%"
+        - ""
+        - "&8Düzenlemek için tıkla."
+
+    # AFK süresi devre dışı olduğunda gösterilecek metin
+    time_disabled: "&cDevre Dışı"
+
+    # Butonlar
+    add_new_rule_button:
+      name: "&aYeni Kural Ekle"
+      lore: [ ]
+
+    back_button:
+      name: "&cGeri Dön"
+      lore: [ ]
+
+  confirmation:
+    confirm_button:
+      name: "&a&lONAYLA"
+      lore:
+        - "&7Bu işlemi yapmak istediğinizden"
+        - "&7emin misiniz? Bu işlem geri"
+        - "&7alınamaz olabilir."
+
+    cancel_button:
+      name: "&c&lİPTAL ET"
+      lore:
+        - "&7İşlemi iptal etmek ve"
+        - "&7önceki menüye dönmek"
+        - "&7için tıklayın."
+
+  # Region Kuralları
+  region:
+    rule_not_found: "&cHata: Bölge kuralı bulunamadı."
+    rule_created: "&a'%region%' için yeni kural başarıyla oluşturuldu. Şimdi düzenleyebilirsiniz."
+    rule_deleted: "&a'%region%' bölge kuralı başarıyla silindi."
+    rule_exists: "&c'%region%' bölgesi için zaten bir kural mevcut."
+    invalid_region: "&c'%region%' adında geçerli bir WorldGuard bölgesi bulunamadı. Lütfen tekrar deneyin veya 'iptal' yazın."
+    input_prompt: "&aYeni bir kural eklemek için sohbete mevcut bir WorldGuard bölgesinin adını yazın."
+    input_cancel_prompt: "&eİşlemi iptal etmek için 'iptal' yazın."
+    input_cancelled: "&cYeni kural ekleme işlemi iptal edildi."
+    time_updated: "&aBölge AFK süresi başarıyla '%time%' olarak güncellendi."
+    action_deleted: "&aAksiyon başarıyla silindi."
+    config_path_error: "&cConfig dosyasında bu bölge için yol bulunamadı. Bir hata oluştu."
+    delete_path_error: "&cSilinecek kural config'de bulunamadı."
+
+  anvil:
+    invalid_format: "Geçersiz Format!"
+
+  # Kitap ile Girdi Alma
+  book_input:
+    prompt: "&eLütfen komutu kitaba yazıp 'İmzala' butonuna tıklayın."
+    prompt_info: "&7(Kitap imzalanmayacak, sadece girdi alınacak.)"
+    command_updated: "&aKomut başarıyla güncellendi."
+
+  # Oyuncu İşlemleri
+  player_actions:
+    actions_applied: "&a%player% oyuncusuna AFK aksiyonları uygulandı."
+    manual_afk_on: "&e%player% &coyuncusu manuel olarak AFK yapıldı."
+    manual_afk_off: "&e%player% &aoyuncusunun manuel AFK durumu kaldırıldı."
+    target_left: "&cİşlem yapmaya çalıştığınız oyuncu sunucudan ayrıldı."
+
+  # Ayarlar
+  settings_updated: "&aAyar başarıyla '%value%' olarak güncellendi."
+  worldguard_disabled: "&cWorldGuard entegrasyonu aktif değil veya sunucuda WorldGuard bulunamadı."

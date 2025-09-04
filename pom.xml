@@ -45,15 +45,6 @@
                                     <shadedPattern>com.bentahsin.antiafk.libs.sqlite</shadedPattern>
                                 </relocation>
                             </relocations>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludeDefaults>false</excludeDefaults>
-                                    <includes>
-                                        <include>net/wesjd/anvilgui/**</include>
-                                    </includes>
-                                </filter>
-                            </filters>
                         </configuration>
                     </execution>
                 </executions>

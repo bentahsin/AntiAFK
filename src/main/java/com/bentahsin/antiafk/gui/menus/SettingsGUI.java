@@ -44,35 +44,35 @@ public class SettingsGUI extends Menu {
 
     @Override
     public void setMenuItems() {
-        addToggleButton(12, "detection.check_camera_movement", configManager.isCheckCamera(), "check_camera");
-        addToggleButton(13, "detection.check_chat_activity", configManager.isCheckChat(), "check_chat");
-        addToggleButton(14, "detection.check_interaction", configManager.isCheckInteraction(), "check_interaction");
-        addToggleButton(15, "detection.check_toggle_sneak", configManager.isCheckToggleSneak(), "check_toggle_sneak");
-        addToggleButton(16, "detection.check_player_attack", configManager.isCheckPlayerAttack(), "check_player_attack");
+        addToggleButton(11, "detection.check_camera_movement", configManager.isCheckCamera(), "check_camera");
+        addToggleButton(12, "detection.check_chat_activity", configManager.isCheckChat(), "check_chat");
+        addToggleButton(13, "detection.check_interaction", configManager.isCheckInteraction(), "check_interaction");
+        addToggleButton(14, "detection.check_toggle_sneak", configManager.isCheckToggleSneak(), "check_toggle_sneak");
+        addToggleButton(15, "detection.check_player_attack", configManager.isCheckPlayerAttack(), "check_player_attack");
 
-        addToggleButton(21, "detection.check_item_drop", configManager.isCheckItemDrop(), "check_item_drop");
-        addToggleButton(22, "detection.check_inventory_activity", configManager.isCheckInventoryActivity(), "check_inventory");
-        addToggleButton(23, "detection.check_item_consume", configManager.isCheckItemConsume(), "check_item_consume");
-        addToggleButton(24, "detection.check_held_item_change", configManager.isCheckHeldItemChange(), "check_item_change");
-        addToggleButton(25, "detection.check_book_activity", configManager.isCheckBookActivity(), "check_book");
+        addToggleButton(20, "detection.check_item_drop", configManager.isCheckItemDrop(), "check_item_drop");
+        addToggleButton(21, "detection.check_inventory_activity", configManager.isCheckInventoryActivity(), "check_inventory");
+        addToggleButton(22, "detection.check_item_consume", configManager.isCheckItemConsume(), "check_item_consume");
+        addToggleButton(23, "detection.check_held_item_change", configManager.isCheckHeldItemChange(), "check_item_change");
+        addToggleButton(24, "detection.check_book_activity", configManager.isCheckBookActivity(), "check_book");
 
-        actions.put(39, this::openMaxAfkTimeEditor);
+        actions.put(38, this::openMaxAfkTimeEditor);
         String maxAfkTime = TimeUtil.formatTime(configManager.getMaxAfkTimeSeconds());
-        inventory.setItem(39, createGuiItem(Material.CLOCK,
+        inventory.setItem(38, createGuiItem(Material.CLOCK,
                 lang.getMessage("gui.settings_menu.max_afk_time_button.name"),
                 lang.getMessageList("gui.settings_menu.max_afk_time_button.lore")
                         .stream().map(l -> l.replace("%value%", maxAfkTime)).toArray(String[]::new)
         ));
 
-        actions.put(40, this::openAutoAfkTimeEditor);
+        actions.put(39, this::openAutoAfkTimeEditor);
         String autoAfkTime = configManager.getAutoSetAfkSeconds() > 0 ? TimeUtil.formatTime(configManager.getAutoSetAfkSeconds()) : lang.getMessage("gui.settings_menu.toggle_status_lore.status_disabled");
-        inventory.setItem(40, createGuiItem(Material.COOKIE,
+        inventory.setItem(39, createGuiItem(Material.COOKIE,
                 lang.getMessage("gui.settings_menu.auto_afk_time_button.name"),
                 lang.getMessageList("gui.settings_menu.auto_afk_time_button.lore")
                         .stream().map(l -> l.replace("%value%", autoAfkTime)).toArray(String[]::new)
         ));
 
-        addToggleButton(42,
+        addToggleButton(41,
                 "afk_command.on_afk.set_invulnerable",
                 configManager.isSetInvulnerable(),
                 "invulnerable_button",
@@ -80,8 +80,8 @@ public class SettingsGUI extends Menu {
                 Material.GLASS_BOTTLE
         );
 
-        actions.put(43, () -> new BehavioralAnalysisGUI(playerMenuUtility, plugin).open());
-        inventory.setItem(43, createGuiItem(Material.OBSERVER,
+        actions.put(42, () -> new BehavioralAnalysisGUI(playerMenuUtility, plugin).open());
+        inventory.setItem(42, createGuiItem(Material.OBSERVER,
                 lang.getMessage("gui.settings_menu.behavioral_analysis_button.name"),
                 lang.getMessageList("gui.settings_menu.behavioral_analysis_button.lore").toArray(new String[0])
         ));

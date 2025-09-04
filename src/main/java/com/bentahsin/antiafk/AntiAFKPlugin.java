@@ -69,14 +69,16 @@ public final class AntiAFKPlugin extends JavaPlugin {
             getLogger().severe("Plugin komutları çalışmayacak. Lütfen plugin.yml dosyanızı kontrol edin.");
         }
 
-        PluginCommand afkCommand = getCommand("afk");
-        if (afkCommand != null) {
-            AFKCommandManager afkCommandHandler = new AFKCommandManager(this);
-            afkCommandHandler.registerMainCommand(new ToggleAFKCommand(this));
-            afkCommand.setExecutor(afkCommandHandler);
-            afkCommand.setTabCompleter(afkCommandHandler);
-        } else {
-            getLogger().severe("/afk komutu plugin.yml'de bulunamadı!");
+        if (configManager.isAfkCommandEnabled()){
+            PluginCommand afkCommand = getCommand("afk");
+            if (afkCommand != null) {
+                AFKCommandManager afkCommandHandler = new AFKCommandManager(this);
+                afkCommandHandler.registerMainCommand(new ToggleAFKCommand(this));
+                afkCommand.setExecutor(afkCommandHandler);
+                afkCommand.setTabCompleter(afkCommandHandler);
+            } else {
+                getLogger().severe("/afk komutu plugin.yml'de bulunamadı!");
+            }
         }
 
         PluginCommand cevapCommand = getCommand("afkcevap");

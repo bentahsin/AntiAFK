@@ -2,33 +2,30 @@ package com.bentahsin.antiafk.turing;
 
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Bir oyuncu için aktif bir Turing Testi'ni temsil eden veri sınıfı.
- * Bu sınıfın sorumluluğu, bir testin verilerini tutmak ve cevap kontrolünü yapmaktır.
- * Soru ve cevap gibi dahili veriler dışarıya açılmaz.
  */
 public class CaptchaChallenge {
 
-    private final String answer;
+    private final List<String> correctAnswers;
     private final BukkitTask timeoutTask;
 
-    public CaptchaChallenge(String answer, BukkitTask timeoutTask) {
-        this.answer = answer.toLowerCase();
+    public CaptchaChallenge(List<String> correctAnswers, BukkitTask timeoutTask) {
+        this.correctAnswers = correctAnswers.stream()
+                .map(String::toLowerCase)
+                .collect(Collectors.toList());
         this.timeoutTask = timeoutTask;
     }
 
-    /**
-     * Zaman aşımı görevini döndürür. Bu, test başarılı olduğunda
-     * veya oyuncu çıktığında görevi iptal etmek için gereklidir.
-     * @return BukkitTask nesnesi.
-     */
     public BukkitTask getTimeoutTask() {
         return timeoutTask;
     }
 
     /**
-     * Verilen bir cevabın doğru olup olmadığını kontrol eder.
-     * Bu metot, null değerlere ve baş/sondaki boşluklara karşı güvenlidir.
+     * Verilen bir cevabın, kabul edilebilir cevaplar listesinde olup olmadığını kontrol eder.
      * @param providedAnswer Oyuncunun verdiği cevap.
      * @return Cevap doğruysa true.
      */
@@ -36,6 +33,7 @@ public class CaptchaChallenge {
         if (providedAnswer == null) {
             return false;
         }
-        return providedAnswer.toLowerCase().trim().equals(this.answer);
+
+        return correctAnswers.contains(providedAnswer.toLowerCase().trim());
     }
 }

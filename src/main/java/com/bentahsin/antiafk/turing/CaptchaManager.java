@@ -21,7 +21,7 @@ public class CaptchaManager {
 
     private final AntiAFKPlugin plugin;
     private final Map<UUID, CaptchaChallenge> activeChallenges = new ConcurrentHashMap<>();
-    private final List<Map.Entry<String, String>> questionPool = new ArrayList<>();
+    private final List<Map.Entry<String, List<String>>> questionPool = new ArrayList<>();
     private final Random random = new Random();
 
     public CaptchaManager(AntiAFKPlugin plugin) {
@@ -40,9 +40,9 @@ public class CaptchaManager {
         if (questionsSection != null) {
             for (String key : questionsSection.getKeys(false)) {
                 String question = questionsSection.getString(key + ".question");
-                String answer = questionsSection.getString(key + ".answer");
-                if (question != null && answer != null) {
-                    questionPool.add(new AbstractMap.SimpleEntry<>(question, answer));
+                List<String> answers = questionsSection.getStringList(key + ".answers");
+                if (question != null && !answers.isEmpty()) {
+                    questionPool.add(new AbstractMap.SimpleEntry<>(question, answers));
                 }
             }
         }
@@ -62,14 +62,14 @@ public class CaptchaManager {
 
         plugin.getAfkManager().setSuspicious(player);
 
-        Map.Entry<String, String> randomEntry = questionPool.get(random.nextInt(questionPool.size()));
+        Map.Entry<String, List<String>> randomEntry = questionPool.get(random.nextInt(questionPool.size()));
         String question = randomEntry.getKey();
-        String answer = randomEntry.getValue();
+        List<String> answers = randomEntry.getValue();
         int timeoutSeconds = plugin.getConfigManager().getAnswerTimeoutSeconds();
 
         BukkitTask timeoutTask = Bukkit.getScheduler().runTaskLater(plugin, () -> failChallenge(player), timeoutSeconds * 20L);
 
-        activeChallenges.put(player.getUniqueId(), new CaptchaChallenge(answer, timeoutTask));
+        activeChallenges.put(player.getUniqueId(), new CaptchaChallenge(answers, timeoutTask));
 
         LanguageManager lang = plugin.getLanguageManager();
         lang.sendMessage(player, "turing_test.header");

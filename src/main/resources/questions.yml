@@ -8,6 +8,8 @@ questions:
     question: "&fToplama işlemi yap: &e8 + 4 = ?"
     answers:
       - "12"
+      - "on iki"
+      - "oniki"
   q2:
     question: "&fMinecraft'ta kömür ne renktir?"
     answers:
@@ -26,11 +28,13 @@ questions:
       - "15"
       - "on beş"
       - "onbes"
+      - "onbeş"
   q5:
     question: "&f'Elma' kelimesinde kaç harf vardır?"
     answers:
       - "4"
       - "dört"
+      - "dort"
   q6:
     question: "&fBuz eriyince neye dönüşür?"
     answers:

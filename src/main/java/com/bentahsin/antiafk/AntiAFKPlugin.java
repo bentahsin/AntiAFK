@@ -25,13 +25,15 @@ import com.bentahsin.antiafk.storage.DatabaseManager;
 import com.bentahsin.antiafk.storage.PlayerStatsManager;
 import com.bentahsin.antiafk.tasks.AFKCheckTask;
 import com.bentahsin.antiafk.turing.CaptchaManager;
-import com.bentahsin.antiafk.utils.CommandUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandMap;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.Field;
 import java.util.*;
+import java.util.logging.Level;
 
 public final class AntiAFKPlugin extends JavaPlugin {
 
@@ -101,18 +103,8 @@ public final class AntiAFKPlugin extends JavaPlugin {
             getLogger().severe(systemLanguageManager.getSystemMessage(Lang.PLUGIN_COMMANDS_WILL_NOT_WORK));
         }
 
-        if (configManager.isAfkCommandEnabled()){
-            PluginCommand afkCommand = getCommand("afk");
-            if (afkCommand != null) {
-                AFKCommandManager afkCommandHandler = new AFKCommandManager(this);
-                afkCommandHandler.registerMainCommand(new ToggleAFKCommand(this));
-                afkCommand.setExecutor(afkCommandHandler);
-                afkCommand.setTabCompleter(afkCommandHandler);
-            } else {
-                getLogger().severe(systemLanguageManager.getSystemMessage(Lang.AFK_COMMAND_NOT_IN_YML));
-            }
-        } else {
-            CommandUtil.unregister(this, "afk");
+        if (configManager.isAfkCommandEnabled()) {
+            registerAfkCommand();
         }
 
         PluginCommand cevapCommand = getCommand("afkcevap");
@@ -158,6 +150,39 @@ public final class AntiAFKPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MenuListener(), this);
 
         getLogger().info(systemLanguageManager.getSystemMessage(Lang.PLUGIN_ENABLED_SUCCESSFULLY));
+    }
+
+    private void registerAfkCommand() {
+        try {
+            PluginCommand afkCommand = this.getCommand("afk");
+            if (afkCommand == null) {
+                afkCommand = Bukkit.getPluginCommand("afk");
+                if (afkCommand == null) {
+                    java.lang.reflect.Constructor<PluginCommand> c = PluginCommand.class.getDeclaredConstructor(String.class, org.bukkit.plugin.Plugin.class);
+                    c.setAccessible(true);
+                    afkCommand = c.newInstance("afk", this);
+                }
+            }
+
+            afkCommand.setDescription("Kendinizi AFK olarak işaretlemenizi sağlar.");
+            afkCommand.setUsage("/afk [sebep]");
+            afkCommand.setPermission(configManager.getPermAfkCommandUse());
+
+            AFKCommandManager afkCommandHandler = new AFKCommandManager(this);
+            afkCommandHandler.registerMainCommand(new ToggleAFKCommand(this));
+            afkCommand.setExecutor(afkCommandHandler);
+            afkCommand.setTabCompleter(afkCommandHandler);
+
+            Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+            bukkitCommandMap.setAccessible(true);
+            CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
+            commandMap.register(this.getDescription().getName(), afkCommand);
+
+            getLogger().info("/afk komutu programatik olarak başarıyla kaydedildi.");
+
+        } catch (Exception e) {
+            getLogger().log(Level.SEVERE, "/afk komutu programatik olarak kaydedilirken bir hata oluştu.", e);
+        }
     }
 
     @Override

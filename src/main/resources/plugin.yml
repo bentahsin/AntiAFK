@@ -12,10 +12,6 @@ commands:
     description: AntiAFK pluginini yönetir.
     permission: antiafk.admin
     usage: /antiafk [reload | panel]
-  afk:
-    description: Kendinizi AFK olarak işaretlemenizi sağlar.
-    permission: antiafk.command.afk
-    usage: /afk [sebep]
   afkcevap:
     description: AntiAFK bot testini cevaplamanızı sağlar.
     usage: /afkcevap <cevap>

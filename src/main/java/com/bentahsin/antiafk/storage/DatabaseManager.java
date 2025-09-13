@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * SQLite veritabanı bağlantısını ve işlemlerini yönetir.
@@ -20,11 +21,13 @@ import java.util.logging.Level;
 public class DatabaseManager {
 
     private final AntiAFKPlugin plugin;
+    private final Logger logger;
     private final SystemLanguageManager sysLang;
     private Connection connection;
 
     public DatabaseManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.logger = plugin.getLogger();
         this.sysLang = plugin.getSystemLanguageManager();
     }
 
@@ -52,9 +55,9 @@ public class DatabaseManager {
                         "most_frequent_reason TEXT" +
                         ");");
             }
-            plugin.getLogger().info(sysLang.getSystemMessage(Lang.DB_CONNECTION_SUCCESS));
+            logger.info(sysLang.getSystemMessage(Lang.DB_CONNECTION_SUCCESS));
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_CONNECTION_ERROR), e);
+            logger.log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_CONNECTION_ERROR), e);
         }
     }
 
@@ -65,10 +68,10 @@ public class DatabaseManager {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
-                plugin.getLogger().info(sysLang.getSystemMessage(Lang.DB_DISCONNECT_SUCCESS));
+                logger.info(sysLang.getSystemMessage(Lang.DB_DISCONNECT_SUCCESS));
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_DISCONNECT_ERROR), e);
+            logger.log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_DISCONNECT_ERROR), e);
         }
     }
 
@@ -94,7 +97,7 @@ public class DatabaseManager {
                 if (resetAfterMillis > 0 && timesPunished > 0 &&
                         (System.currentTimeMillis() - lastPunishmentTime) > resetAfterMillis) {
 
-                    plugin.getLogger().info(sysLang.getSystemMessage(Lang.DB_RESETTING_PUNISHMENT_COUNT_INACTIVITY, playerName));
+                    logger.info(sysLang.getSystemMessage(Lang.DB_RESETTING_PUNISHMENT_COUNT_INACTIVITY, playerName));
                     resetPunishmentCountToZero(playerUUID);
 
                     timesPunished = 0;
@@ -116,7 +119,7 @@ public class DatabaseManager {
                 return PlayerStats.createDefault(playerUUID, playerName);
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_GET_STATS_ERROR, playerUUID.toString()), e);
+            logger.log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_GET_STATS_ERROR, playerUUID.toString()), e);
         }
         return PlayerStats.createDefault(playerUUID, playerName);
     }
@@ -133,7 +136,7 @@ public class DatabaseManager {
                 pstmt.setString(1, uuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_RESET_PUNISHMENT_TO_ZERO_ERROR, uuid.toString()), e);
+                logger.log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_RESET_PUNISHMENT_TO_ZERO_ERROR, uuid.toString()), e);
             }
         }).thenRun(() -> plugin.getPlayerStatsManager().invalidateCache(uuid));
     }
@@ -149,7 +152,7 @@ public class DatabaseManager {
                 pstmt.setString(2, username);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_CREATE_ENTRY_ERROR, uuid.toString()), e);
+                logger.log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_CREATE_ENTRY_ERROR, uuid.toString()), e);
             }
         });
     }
@@ -167,7 +170,7 @@ public class DatabaseManager {
                 return rs.getInt("punishment_count");
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_GET_PUNISHMENT_COUNT_ERROR, uuid.toString()), e);
+            logger.log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_GET_PUNISHMENT_COUNT_ERROR, uuid.toString()), e);
         }
         return 0;
     }
@@ -184,7 +187,7 @@ public class DatabaseManager {
                 pstmt.setString(2, uuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_RESET_PUNISHMENT_COUNT_ERROR, uuid.toString()), e);
+                logger.log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_RESET_PUNISHMENT_COUNT_ERROR, uuid.toString()), e);
             }
         });
     }
@@ -201,7 +204,7 @@ public class DatabaseManager {
                 pstmt.setString(2, uuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_INCREMENT_PUNISHMENT_COUNT_ERROR, uuid.toString()), e);
+                logger.log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_INCREMENT_PUNISHMENT_COUNT_ERROR, uuid.toString()), e);
             }
         }).thenRun(() -> plugin.getPlayerStatsManager().invalidateCache(uuid));
     }
@@ -219,7 +222,7 @@ public class DatabaseManager {
                 pstmt.setString(2, uuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_UPDATE_AFK_TIME_ERROR, uuid.toString()), e);
+                logger.log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_UPDATE_AFK_TIME_ERROR, uuid.toString()), e);
             }
         }).thenRun(() -> plugin.getPlayerStatsManager().invalidateCache(uuid));
     }
@@ -235,7 +238,7 @@ public class DatabaseManager {
                 pstmt.setString(1, uuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_INCREMENT_TESTS_PASSED_ERROR, uuid.toString()), e);
+                logger.log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_INCREMENT_TESTS_PASSED_ERROR, uuid.toString()), e);
             }
         });
     }
@@ -251,7 +254,7 @@ public class DatabaseManager {
                 pstmt.setString(1, uuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_INCREMENT_TESTS_FAILED_ERROR, uuid.toString()), e);
+                logger.log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_INCREMENT_TESTS_FAILED_ERROR, uuid.toString()), e);
             }
         });
     }
@@ -266,7 +269,7 @@ public class DatabaseManager {
         return CompletableFuture.supplyAsync(() -> {
             List<TopEntry> topPlayers = new ArrayList<>();
             if (!orderBy.equals("total_afk_time") && !orderBy.equals("times_punished")) {
-                plugin.getLogger().warning(sysLang.getSystemMessage(Lang.DB_GET_TOP_PLAYERS_INVALID_COLUMN, orderBy));
+                logger.warning(sysLang.getSystemMessage(Lang.DB_GET_TOP_PLAYERS_INVALID_COLUMN, orderBy));
                 return topPlayers;
             }
             String sql = "SELECT username, " + orderBy + " FROM player_stats ORDER BY " + orderBy + " DESC LIMIT ?;";
@@ -277,7 +280,7 @@ public class DatabaseManager {
                     topPlayers.add(new TopEntry(rs.getString("username"), rs.getLong(orderBy)));
                 }
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_GET_TOP_PLAYERS_ERROR, orderBy), e);
+                logger.log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_GET_TOP_PLAYERS_ERROR, orderBy), e);
             }
             return topPlayers;
         });

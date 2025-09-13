@@ -1,6 +1,7 @@
 package com.bentahsin.antiafk.tasks;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.managers.AFKManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -22,7 +23,7 @@ import java.util.List;
  */
 public class AFKCheckTask extends BukkitRunnable {
 
-    private final AntiAFKPlugin plugin;
+    private final AFKManager afkMgr;
     private int playerIndex = 0;
 
     private List<Player> onlinePlayersCache;
@@ -30,7 +31,7 @@ public class AFKCheckTask extends BukkitRunnable {
     private static final int UPDATE_INTERVAL_TICKS = 20;
 
     public AFKCheckTask(AntiAFKPlugin plugin) {
-        this.plugin = plugin;
+        this.afkMgr = plugin.getAfkManager();
         this.onlinePlayersCache = Collections.emptyList();
         this.tickCounter = 0;
     }
@@ -62,7 +63,7 @@ public class AFKCheckTask extends BukkitRunnable {
 
             Player player = onlinePlayersCache.get(playerIndex);
 
-            plugin.getAfkManager().checkPlayer(player);
+            afkMgr.checkPlayer(player);
             playerIndex++;
         }
     }

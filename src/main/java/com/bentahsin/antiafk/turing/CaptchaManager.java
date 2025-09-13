@@ -15,6 +15,7 @@ import org.bukkit.scheduler.BukkitTask;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 /**
  * Turing Testi (Captcha) sistemini yönetir.
@@ -22,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CaptchaManager {
 
     private final AntiAFKPlugin plugin;
+    private final Logger logger;
     private final PlayerLanguageManager plLang;
     private final SystemLanguageManager sysLang;
     private final Map<UUID, CaptchaChallenge> activeChallenges = new ConcurrentHashMap<>();
@@ -30,6 +32,7 @@ public class CaptchaManager {
 
     public CaptchaManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.logger = plugin.getLogger();
         this.plLang = plugin.getPlayerLanguageManager();
         this.sysLang = plugin.getSystemLanguageManager();
         loadQuestions();
@@ -53,7 +56,7 @@ public class CaptchaManager {
             }
         }
         if (questionPool.isEmpty()) {
-            plugin.getLogger().warning(sysLang.getSystemMessage(Lang.CAPTCHA_QUESTIONS_FILE_EMPTY_OR_INVALID));
+            logger.warning(sysLang.getSystemMessage(Lang.CAPTCHA_QUESTIONS_FILE_EMPTY_OR_INVALID));
         }
     }
 

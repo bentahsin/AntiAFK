@@ -22,10 +22,12 @@ import org.bukkit.entity.Player;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class AFKManager {
     private final AntiAFKPlugin plugin;
+    private final Logger logger;
     private final SystemLanguageManager sysLang;
     private final ConfigManager configManager;
     private final PlayerLanguageManager plLang;
@@ -41,6 +43,7 @@ public class AFKManager {
 
     public AFKManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.logger = plugin.getLogger();
         this.sysLang = plugin.getSystemLanguageManager();
         this.configManager = plugin.getConfigManager();
         this.plLang = plugin.getPlayerLanguageManager();
@@ -291,7 +294,7 @@ public class AFKManager {
             try {
                 player.playSound(player.getLocation(), Sound.valueOf(soundName.toUpperCase()), 1.0f, 1.0f);
             } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning(sysLang.getSystemMessage(Lang.INVALID_SOUND_IN_CONFIG, soundName));
+                logger.warning(sysLang.getSystemMessage(Lang.INVALID_SOUND_IN_CONFIG, soundName));
             }
         }
     }

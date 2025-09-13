@@ -7,10 +7,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.PluginManager;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 /**
  * Oyuncu davranışlarını analiz eden modülü yönetir.
@@ -20,6 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BehaviorAnalysisManager implements Listener {
 
     private final AntiAFKPlugin plugin;
+    private final PluginManager plMgr;
+    private final Logger logger;
     private final SystemLanguageManager sysLang;
 
     private final Map<UUID, PlayerBehaviorData> playerDataMap = new ConcurrentHashMap<>();
@@ -30,6 +34,8 @@ public class BehaviorAnalysisManager implements Listener {
 
     public BehaviorAnalysisManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.plMgr = plugin.getServer().getPluginManager();
+        this.logger = plugin.getLogger();
         this.sysLang = plugin.getSystemLanguageManager();
 
         this.historySizeTicks = plugin.getConfig().getInt("behavioral-analysis.history-size-ticks", 600);
@@ -44,12 +50,12 @@ public class BehaviorAnalysisManager implements Listener {
      * Modül etkinse, analiz görevini başlatır ve olay dinleyicisini kaydeder.
      */
     private void initialize() {
-        plugin.getLogger().info(sysLang.getSystemMessage(Lang.BEHAVIOR_ANALYSIS_ENABLED_AND_INIT));
+        logger.info(sysLang.getSystemMessage(Lang.BEHAVIOR_ANALYSIS_ENABLED_AND_INIT));
 
         analysisTask = new BehaviorAnalysisTask(plugin, this);
         analysisTask.runTaskTimerAsynchronously(plugin, 100L, 5L);
 
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        plMgr.registerEvents(this, plugin);
     }
 
     /**
@@ -63,10 +69,10 @@ public class BehaviorAnalysisManager implements Listener {
 
         if (analysisTask != null && !analysisTask.isCancelled()) {
             analysisTask.cancel();
-            plugin.getLogger().info(sysLang.getSystemMessage(Lang.BEHAVIOR_ANALYSIS_TASK_STOPPED));
+            logger.info(sysLang.getSystemMessage(Lang.BEHAVIOR_ANALYSIS_TASK_STOPPED));
         }
         playerDataMap.clear();
-        plugin.getLogger().info(sysLang.getSystemMessage(Lang.BEHAVIOR_ANALYSIS_DATA_CLEARED));
+        logger.info(sysLang.getSystemMessage(Lang.BEHAVIOR_ANALYSIS_DATA_CLEARED));
     }
 
     /**

@@ -21,6 +21,7 @@ import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Logger;
 
 /**
  * Oyuncuların anlık hareketlerini, bilinen bot desenleriyle asenkron olarak karşılaştırır.
@@ -29,6 +30,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class PatternAnalysisTask extends BukkitRunnable {
 
     private final AntiAFKPlugin plugin;
+    private final Logger logger;
     private final SystemLanguageManager sysLang;
     private final PatternManager patternManager;
     private final RecordingManager recordingManager;
@@ -46,6 +48,7 @@ public class PatternAnalysisTask extends BukkitRunnable {
 
     public PatternAnalysisTask(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.logger = plugin.getLogger();
         this.sysLang = plugin.getSystemLanguageManager();
         this.patternManager = plugin.getPatternManager();
         this.recordingManager = plugin.getRecordingManager();
@@ -84,7 +87,7 @@ public class PatternAnalysisTask extends BukkitRunnable {
                 TimeWarpInfo info = FastDTW.getWarpInfoBetween(playerTimeSeries, patternTimeSeries, searchRadius, distanceFunction);
 
                 if (info.getDistance() < similarityThreshold) {
-                    plugin.getLogger().info(sysLang.getSystemMessage(
+                    logger.info(sysLang.getSystemMessage(
                             Lang.PATTERN_MATCH_FOUND,
                             player.getName(),
                             knownPattern.getName(),

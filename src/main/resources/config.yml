@@ -4,6 +4,15 @@
 # Plugin ile ilgili tüm mesajları ve metinleri 'messages.yml' dosyasından düzenleyebilirsiniz.
 
 # ================================== #
+#         DİL AYARLARI             #
+# ================================== #
+# Eklentinin kullanacağı dili belirleyin.
+# Bu ayar hem konsola yazılan sistem mesajlarını (başlatma, hata logları vb.)
+# hem de oyunculara gönderilen varsayılan mesajları etkiler.
+# Mevcut Seçenekler: Turkish, English
+lang: "Turkish"
+
+# ================================== #
 #         ANA AFK SİSTEMİ            #
 # ================================== #
 

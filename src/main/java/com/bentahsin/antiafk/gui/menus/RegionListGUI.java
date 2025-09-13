@@ -3,6 +3,7 @@ package com.bentahsin.antiafk.gui.menus;
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.gui.Menu;
 import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
+import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.models.RegionOverride;
 import com.bentahsin.antiafk.utils.TimeUtil;
@@ -11,16 +12,22 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 public class RegionListGUI extends Menu {
 
     private final AntiAFKPlugin plugin;
     private final PlayerLanguageManager plLang;
+    private final ConfigManager cm;
+    private final Set<UUID> plInChatInput;
 
     public RegionListGUI(PlayerMenuUtility playerMenuUtility, AntiAFKPlugin plugin) {
         super(playerMenuUtility);
         this.plugin = plugin;
         this.plLang = plugin.getPlayerLanguageManager();
+        this.cm = plugin.getConfigManager();
+        this.plInChatInput = plugin.getPlayersInChatInput();
     }
 
     @Override
@@ -35,7 +42,7 @@ public class RegionListGUI extends Menu {
 
     @Override
     public void setMenuItems() {
-        List<RegionOverride> regionOverrides = plugin.getConfigManager().getRegionOverrides();
+        List<RegionOverride> regionOverrides = cm.getRegionOverrides();
 
         if (regionOverrides != null && !regionOverrides.isEmpty()) {
             for (int i = 0; i < regionOverrides.size(); i++) {
@@ -68,7 +75,7 @@ public class RegionListGUI extends Menu {
 
         actions.put(48, () -> {
             Player player = playerMenuUtility.getOwner();
-            plugin.getPlayersInChatInput().add(player.getUniqueId());
+            plInChatInput.add(player.getUniqueId());
             player.closeInventory();
 
             plLang.sendMessage(player, "gui.region.input_prompt");

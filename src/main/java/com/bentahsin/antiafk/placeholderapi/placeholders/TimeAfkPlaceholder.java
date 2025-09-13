@@ -1,6 +1,7 @@
 package com.bentahsin.antiafk.placeholderapi.placeholders;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.placeholderapi.IPlaceholder;
 import com.bentahsin.antiafk.utils.TimeUtil;
 import org.bukkit.OfflinePlayer;
@@ -9,10 +10,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class TimeAfkPlaceholder implements IPlaceholder {
 
-    private final AntiAFKPlugin plugin;
+    private final AFKManager afkMgr;
 
     public TimeAfkPlaceholder(AntiAFKPlugin plugin) {
-        this.plugin = plugin;
+        this.afkMgr = plugin.getAfkManager();
     }
 
     @Override
@@ -27,7 +28,7 @@ public class TimeAfkPlaceholder implements IPlaceholder {
             return "0";
         }
 
-        long afkTime = plugin.getAfkManager().getAfkTime(player);
+        long afkTime = afkMgr.getAfkTime(player);
         return TimeUtil.formatTime(afkTime);
     }
 }

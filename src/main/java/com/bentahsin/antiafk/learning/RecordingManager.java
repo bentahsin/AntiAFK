@@ -18,6 +18,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Oyuncu hareket desenlerini kaydetme sürecini yönetir.
@@ -26,13 +27,13 @@ import java.util.logging.Level;
  */
 public class RecordingManager {
 
-    private final AntiAFKPlugin plugin;
+    private final Logger logger;
     private final SystemLanguageManager sysLang;
     private final Map<UUID, List<MovementVector>> activeRecordings = new ConcurrentHashMap<>();
     private final File recordsDirectory;
 
     public RecordingManager(AntiAFKPlugin plugin) {
-        this.plugin = plugin;
+        this.logger = plugin.getLogger();
         this.sysLang = plugin.getSystemLanguageManager();
         this.recordsDirectory = new File(plugin.getDataFolder(), "records");
         if (!recordsDirectory.exists()) {
@@ -77,13 +78,13 @@ public class RecordingManager {
             File file = new File(recordsDirectory, patternName + "." + serializer.getFileExtension() + ".pattern");
             try (FileOutputStream fos = new FileOutputStream(file)) {
                 serializer.serialize(pattern, fos);
-                plugin.getLogger().info(sysLang.getSystemMessage(
+                logger.info(sysLang.getSystemMessage(
                         Lang.PATTERN_SAVED_SUCCESSFULLY,
                         patternName,
                         file.getName()
                 ));
             } catch (IOException e) {
-                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(
+                logger.log(Level.SEVERE, sysLang.getSystemMessage(
                         Lang.PATTERN_SAVE_ERROR,
                         patternName
                 ), e);

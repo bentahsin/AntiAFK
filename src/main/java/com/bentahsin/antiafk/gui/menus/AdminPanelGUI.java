@@ -3,7 +3,9 @@ package com.bentahsin.antiafk.gui.menus;
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.gui.Menu;
 import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
+import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import jdk.nashorn.internal.runtime.regexp.joni.Config;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -13,11 +15,15 @@ public class AdminPanelGUI extends Menu {
 
     private final AntiAFKPlugin plugin;
     private final PlayerLanguageManager plLang;
+    private final ConfigManager cm;
+    private boolean isWorldGuardHooked;
 
     public AdminPanelGUI(PlayerMenuUtility playerMenuUtility, AntiAFKPlugin plugin) {
         super(playerMenuUtility);
         this.plugin = plugin;
         this.plLang = plugin.getPlayerLanguageManager();
+        this.cm = plugin.getConfigManager();
+        this.isWorldGuardHooked = plugin.isWorldGuardHooked();
     }
 
     @Override
@@ -41,7 +47,7 @@ public class AdminPanelGUI extends Menu {
         ));
 
         actions.put(12, () -> {
-            if (plugin.getConfigManager().isWorldGuardEnabled() && plugin.isWorldGuardHooked()) {
+            if (cm.isWorldGuardEnabled() && isWorldGuardHooked) {
                 new RegionListGUI(playerMenuUtility, plugin).open();
             } else {
                 plLang.sendMessage(player, "gui.worldguard_disabled");
@@ -59,7 +65,7 @@ public class AdminPanelGUI extends Menu {
                 plLang.getMessageList("gui.admin_panel.player_management_button.lore").toArray(new String[0])));
 
         actions.put(15, () -> {
-            plugin.getConfigManager().loadConfig();
+            cm.loadConfig();
             plLang.sendMessage(player, "info.reloaded");
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
             player.closeInventory();

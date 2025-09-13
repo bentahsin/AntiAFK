@@ -9,22 +9,28 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.PluginManager;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class PlayerLanguageManager {
 
     private final AntiAFKPlugin plugin;
+    private final PluginManager plMgr;
+    private final Logger logger;
     private final SystemLanguageManager sysLang;
     private FileConfiguration messagesConfig;
     private String prefix;
 
     public PlayerLanguageManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.plMgr = plugin.getServer().getPluginManager();
+        this.logger = plugin.getLogger();
         this.sysLang = plugin.getSystemLanguageManager();
         loadMessages();
     }
@@ -53,13 +59,13 @@ public class PlayerLanguageManager {
             messagesConfig.load(messagesFile);
 
             prefix = ChatUtil.color(messagesConfig.getString("plugin_prefix", "&8[&6AntiAFK&8] &r"));
-            plugin.getLogger().info(sysLang.getSystemMessage(Lang.MESSAGES_YML_LOADED_SUCCESSFULLY));
+            logger.info(sysLang.getSystemMessage(Lang.MESSAGES_YML_LOADED_SUCCESSFULLY));
 
         } catch (IOException | InvalidConfigurationException e) {
-            plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.MESSAGES_YML_LOAD_ERROR), e);
-            plugin.getLogger().severe(sysLang.getSystemMessage(Lang.PLUGIN_DISABLE_CRITICAL_ERROR));
+            logger.log(Level.SEVERE, sysLang.getSystemMessage(Lang.MESSAGES_YML_LOAD_ERROR), e);
+            logger.severe(sysLang.getSystemMessage(Lang.PLUGIN_DISABLE_CRITICAL_ERROR));
 
-            plugin.getServer().getPluginManager().disablePlugin(plugin);
+            plMgr.disablePlugin(plugin);
         }
     }
 

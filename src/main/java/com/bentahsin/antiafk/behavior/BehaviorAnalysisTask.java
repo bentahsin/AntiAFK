@@ -2,7 +2,10 @@ package com.bentahsin.antiafk.behavior;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.behavior.util.TrajectoryComparator;
+import com.bentahsin.antiafk.managers.AFKManager;
+import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.bentahsin.antiafk.turing.CaptchaManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -11,6 +14,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * DEĞİŞİKLİK: Bu görev artık ağır analizleri asenkron olarak yapar ve sadece sonuçları
@@ -21,6 +25,9 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
     private final AntiAFKPlugin plugin;
     private final BehaviorAnalysisManager analysisManager;
     private final PlayerLanguageManager plLang;
+    private final ConfigManager cm;
+    private final AFKManager afkMgr;
+    private final Optional<CaptchaManager> capm;
 
     private final int minTrajectoryPoints;
     private final int maxTrajectoryPoints;
@@ -34,6 +41,9 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
         this.plugin = plugin;
         this.plLang = plugin.getPlayerLanguageManager();
         this.analysisManager = manager;
+        this.cm = plugin.getConfigManager();
+        this.afkMgr = plugin.getAfkManager();
+        this.capm = plugin.getCaptchaManager();
 
         this.minTrajectoryPoints = plugin.getConfig().getInt("behavioral-analysis.min-trajectory-points", 20);
         this.maxTrajectoryPoints = plugin.getConfig().getInt("behavioral-analysis.max-trajectory-points", 300);
@@ -86,11 +96,11 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
                             data.setLastRepeatTimestamp(now);
 
                             final int repeatCount = data.getConsecutiveRepeatCount();
-                            if (plugin.getConfigManager().isTuringTestEnabled() &&
-                                    plugin.getCaptchaManager().map(manager -> !manager.isBeingTested(player)).orElse(false) &&
-                                    repeatCount == plugin.getConfigManager().getTriggerOnBehavioralRepeatCount()) {
+                            if (cm.isTuringTestEnabled() &&
+                                    capm.map(manager -> !manager.isBeingTested(player)).orElse(false) &&
+                                    repeatCount == cm.getTriggerOnBehavioralRepeatCount()) {
 
-                                Bukkit.getScheduler().runTask(plugin, () -> plugin.getCaptchaManager().ifPresent(manager -> manager.startChallenge(player)));
+                                Bukkit.getScheduler().runTask(plugin, () -> capm.ifPresent(manager -> manager.startChallenge(player)));
                             }
 
                             if (debugEnabled) {
@@ -107,7 +117,7 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
 
                             if (data.getConsecutiveRepeatCount() >= maxRepeats) {
                                 Bukkit.getScheduler().runTask(plugin, () ->
-                                        plugin.getAfkManager().setManualAFK(player, "Otonom hareket tespiti.")
+                                        afkMgr.setManualAFK(player, "Otonom hareket tespiti.")
                                 );
                                 data.reset();
                                 break;

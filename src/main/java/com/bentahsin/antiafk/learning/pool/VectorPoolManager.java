@@ -10,6 +10,7 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 import java.time.Duration;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * MovementVector nesne havuzunu yönetir.
@@ -18,10 +19,12 @@ public class VectorPoolManager {
 
     private final GenericObjectPool<MovementVector> pool;
     private final AntiAFKPlugin plugin;
+    private final Logger logger;
     private final SystemLanguageManager sysLang;
 
     public VectorPoolManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.logger = plugin.getLogger();
         this.sysLang = plugin.getSystemLanguageManager();
 
         GenericObjectPoolConfig<MovementVector> config = new GenericObjectPoolConfig<>();
@@ -45,7 +48,7 @@ public class VectorPoolManager {
             vector.reinitialize(posChange, rotChange, action, durationTicks);
             return vector;
         } catch (Exception e) {
-            plugin.getLogger().log(Level.WARNING, sysLang.getSystemMessage(Lang.VECTOR_POOL_BORROW_ERROR), e);
+            logger.log(Level.WARNING, sysLang.getSystemMessage(Lang.VECTOR_POOL_BORROW_ERROR), e);
             return new MovementVector(posChange, rotChange, action, durationTicks);
         }
     }

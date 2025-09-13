@@ -21,16 +21,19 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class FileManagementPatternCommand implements IPatternSubCommand {
 
     private final AntiAFKPlugin plugin;
+    private final Logger logger;
     private final PlayerLanguageManager plLang;
     private final SystemLanguageManager sysLang;
 
     public FileManagementPatternCommand(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.logger = plugin.getLogger();
         this.plLang = plugin.getPlayerLanguageManager();
         this.sysLang = plugin.getSystemLanguageManager();
     }
@@ -167,7 +170,7 @@ public class FileManagementPatternCommand implements IPatternSubCommand {
                     }
                     convertedCount++;
                 } catch (Exception e) {
-                    plugin.getLogger().log(Level.WARNING, sysLang.getSystemMessage(
+                    logger.log(Level.WARNING, sysLang.getSystemMessage(
                             Lang.PATTERN_TRANSFORM_FILE_ERROR,
                             file.getName()
                     ), e);

@@ -1,6 +1,8 @@
 package com.bentahsin.antiafk.placeholderapi.placeholders;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.managers.AFKManager;
+import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.placeholderapi.IPlaceholder;
 import com.bentahsin.antiafk.utils.ChatUtil;
 import org.bukkit.OfflinePlayer;
@@ -9,10 +11,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class TagPlaceholder implements IPlaceholder {
 
-    private final AntiAFKPlugin plugin;
+    private final AFKManager afkMgr;
+    private final ConfigManager cfgMgr;
 
     public TagPlaceholder(AntiAFKPlugin plugin) {
-        this.plugin = plugin;
+        this.afkMgr = plugin.getAfkManager();
+        this.cfgMgr = plugin.getConfigManager();
     }
 
     @Override
@@ -27,8 +31,8 @@ public class TagPlaceholder implements IPlaceholder {
             return "";
         }
 
-        if (plugin.getAfkManager().isEffectivelyAfk(player)) {
-            return ChatUtil.color(plugin.getConfigManager().getAfkTagFormat());
+        if (afkMgr.isEffectivelyAfk(player)) {
+            return ChatUtil.color(cfgMgr.getAfkTagFormat());
         } else {
             return "";
         }

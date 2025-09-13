@@ -7,24 +7,25 @@ import com.bentahsin.antiafk.language.provider.Turkish;
 import java.util.EnumMap;
 import java.util.IllegalFormatException;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class SystemLanguageManager {
 
-    private final AntiAFKPlugin plugin;
+    private final Logger logger;
+
     private final Map<SupportedLanguage, TranslationProvider> providerMap = new EnumMap<>(SupportedLanguage.class);
     private TranslationProvider activeHardcodedProvider;
-    private SupportedLanguage selectedLanguage;
 
     public SystemLanguageManager(AntiAFKPlugin plugin) {
-        this.plugin = plugin;
+        this.logger = plugin.getLogger();
         providerMap.put(SupportedLanguage.TURKISH, new Turkish());
         providerMap.put(SupportedLanguage.ENGLISH, new English());
         setLanguage(SupportedLanguage.TURKISH);
     }
 
     public void setLanguage(SupportedLanguage language) {
-        this.selectedLanguage = (language != null) ? language : SupportedLanguage.TURKISH;
-        this.activeHardcodedProvider = providerMap.getOrDefault(this.selectedLanguage, providerMap.get(SupportedLanguage.TURKISH));
+        SupportedLanguage selectedLanguage = (language != null) ? language : SupportedLanguage.TURKISH;
+        this.activeHardcodedProvider = providerMap.getOrDefault(selectedLanguage, providerMap.get(SupportedLanguage.TURKISH));
     }
 
     /**
@@ -41,7 +42,7 @@ public class SystemLanguageManager {
             }
             return String.format(message, placeholders);
         } catch (IllegalFormatException e) {
-            plugin.getLogger().warning("Lang format error for key " + key.name() + ": " + e.getMessage());
+            logger.warning("Lang format error for key " + key.name() + ": " + e.getMessage());
             return message;
         }
     }
@@ -59,7 +60,7 @@ public class SystemLanguageManager {
             Lang key = Lang.valueOf(baseKeyName.toUpperCase());
             return getSystemMessage(key, placeholders);
         } catch (IllegalArgumentException e) {
-            plugin.getLogger().severe("CRITICAL: Hard-coded Lang enum constant not found for key: " + baseKeyName);
+            logger.severe("CRITICAL: Hard-coded Lang enum constant not found for key: " + baseKeyName);
             return "[Lang Error: " + baseKeyName + "]";
         }
     }

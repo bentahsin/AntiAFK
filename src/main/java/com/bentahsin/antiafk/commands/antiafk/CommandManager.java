@@ -39,6 +39,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         registerCommand(new ListCommand(plugin));
         registerCommand(new CheckCommand(plugin));
         registerCommand(new TopCommand(plugin));
+        registerCommand(new PatternCommand(plugin));
     }
 
     @Override

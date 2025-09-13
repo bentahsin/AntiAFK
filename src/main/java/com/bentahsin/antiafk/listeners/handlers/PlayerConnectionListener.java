@@ -1,6 +1,9 @@
 package com.bentahsin.antiafk.listeners.handlers;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.learning.PatternAnalysisTask;
+import com.bentahsin.antiafk.learning.RecordingManager;
+import com.bentahsin.antiafk.learning.collector.LearningDataCollectorTask;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -31,8 +34,8 @@ public class PlayerConnectionListener implements Listener {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
 
-        plugin.getConfigManager().clearPlayerCache(player);
         plugin.getAfkManager().removePlayer(player);
+
         if (plugin.getBehaviorAnalysisManager() != null && plugin.getBehaviorAnalysisManager().isEnabled()) {
             plugin.getBehaviorAnalysisManager().removePlayerData(player);
         }
@@ -40,7 +43,25 @@ public class PlayerConnectionListener implements Listener {
         plugin.getPlayersInChatInput().remove(playerUUID);
         plugin.getPlayerMenuUtilityMap().remove(playerUUID);
         plugin.getBookInputManager().ifPresent(manager -> manager.onPlayerQuit(player));
+
+        RecordingManager recordingManager = plugin.getRecordingManager();
+        if (recordingManager != null) {
+            recordingManager.onPlayerQuit(player);
+        }
+
+        PatternAnalysisTask patternAnalysisTask = plugin.getPatternAnalysisTask();
+        if (patternAnalysisTask != null) {
+            patternAnalysisTask.onPlayerQuit(player);
+        }
+
         plugin.getCaptchaManager().ifPresent(manager -> manager.onPlayerQuit(player));
+
+        plugin.getConfigManager().clearPlayerCache(player);
         plugin.getPlayerStatsManager().onPlayerQuit(player);
+
+        LearningDataCollectorTask collectorTask = plugin.getLearningDataCollectorTask();
+        if (collectorTask != null) {
+            collectorTask.onPlayerQuit(player);
+        }
     }
 }

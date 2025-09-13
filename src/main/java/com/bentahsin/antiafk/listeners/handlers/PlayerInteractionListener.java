@@ -16,6 +16,7 @@ import org.bukkit.event.player.PlayerEditBookEvent;
  */
 public class PlayerInteractionListener extends ActivityListener implements org.bukkit.event.Listener {
 
+
     public PlayerInteractionListener(AntiAFKPlugin plugin) {
         super(plugin);
     }
@@ -34,10 +35,16 @@ public class PlayerInteractionListener extends ActivityListener implements org.b
         }
     }
 
+    /**
+     * Oyuncunun eğilip kalkma eylemlerini dinler.
+     * Bu, hem klasik AFK tespiti hem de "Öğrenme Modu" için veri sağlar.
+     */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerToggleSneak(PlayerToggleSneakEvent event) {
+        Player player = event.getPlayer();
+
         if (getConfigManager().isCheckToggleSneak()) {
-            handleActivity(event.getPlayer(), null, false);
+            handleActivity(player, event, false);
         }
     }
 

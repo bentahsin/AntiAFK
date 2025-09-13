@@ -72,6 +72,16 @@ public class ConfigManager {
     private List<PunishmentLevel> punishmentLevels;
     private int highestPunishmentCount;
 
+    private boolean learningModeEnabled;
+    private long analysisTaskPeriodTicks;
+    private double learningSimilarityThreshold;
+    private int learningSearchRadius;
+
+
+    private long maxPatternFileSizeKb;
+    private int maxVectorsPerPattern;
+    private double preFilterSizeRatio;
+
     private final LoadingCache<UUID, Optional<RegionOverride>> regionCache;
 
     public ConfigManager(AntiAFKPlugin plugin) {
@@ -148,6 +158,16 @@ public class ConfigManager {
         answerTimeoutSeconds = config.getInt("turing_test.answer_timeout_seconds", 20);
         triggerOnPointlessActivityCount = config.getInt("turing_test.trigger_on_pointless_activity_count", 10);
         triggerOnBehavioralRepeatCount = config.getInt("turing_test.trigger_on_behavioral_repeat_count", 1);
+
+        learningModeEnabled = config.getBoolean("learning_mode.enabled", true);
+        analysisTaskPeriodTicks = config.getLong("learning_mode.analysis_task_period_ticks", 40L);
+        learningSimilarityThreshold = config.getDouble("learning_mode.similarity_threshold", 25.0);
+        learningSearchRadius = config.getInt("learning_mode.search_radius", 10);
+
+
+        maxPatternFileSizeKb = config.getLong("learning_mode.security.max_pattern_file_size_kb", 1024);
+        maxVectorsPerPattern = config.getInt("learning_mode.security.max_vectors_per_pattern", 12000);
+        preFilterSizeRatio = config.getDouble("learning_mode.security.pre_filter_size_ratio", 0.5);
 
         captchaFailureActions = new ArrayList<>();
         for (Map<?, ?> rawMap : config.getMapList("turing_test.on_failure_actions")) {
@@ -318,4 +338,11 @@ public class ConfigManager {
     public long getPunishmentResetMillis() { return punishmentResetMillis; }
     public int getHighestPunishmentCount() { return highestPunishmentCount; }
     public List<PunishmentLevel> getPunishmentLevels() { return punishmentLevels; }
+    public boolean isLearningModeEnabled() { return learningModeEnabled; }
+    public long getAnalysisTaskPeriodTicks() { return analysisTaskPeriodTicks; }
+    public double getLearningSimilarityThreshold() { return learningSimilarityThreshold; }
+    public int getLearningSearchRadius() { return learningSearchRadius; }
+    public long getMaxPatternFileSizeBytes() { return maxPatternFileSizeKb * 1024; }
+    public int getMaxVectorsPerPattern() { return maxVectorsPerPattern; }
+    public double getPreFilterSizeRatio() { return preFilterSizeRatio; }
 }

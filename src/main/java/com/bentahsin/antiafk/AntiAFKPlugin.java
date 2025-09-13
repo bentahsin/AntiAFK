@@ -9,6 +9,11 @@ import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
 import com.bentahsin.antiafk.gui.listener.MenuListener;
 import com.bentahsin.antiafk.gui.book.BookInputManager;
 import com.bentahsin.antiafk.gui.book.BookInputListener;
+import com.bentahsin.antiafk.learning.PatternAnalysisTask;
+import com.bentahsin.antiafk.learning.PatternManager;
+import com.bentahsin.antiafk.learning.RecordingManager;
+import com.bentahsin.antiafk.learning.collector.LearningDataCollectorTask;
+import com.bentahsin.antiafk.learning.pool.VectorPoolManager;
 import com.bentahsin.antiafk.listeners.ListenerManager;
 import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
@@ -35,6 +40,11 @@ public final class AntiAFKPlugin extends JavaPlugin {
     private CaptchaManager captchaManager;
     private DatabaseManager databaseManager;
     private PlayerStatsManager playerStatsManager;
+    private RecordingManager recordingManager;
+    private PatternManager patternManager;
+    private PatternAnalysisTask patternAnalysisTask;
+    private LearningDataCollectorTask learningDataCollectorTask;
+    private VectorPoolManager vectorPoolManager;
     private boolean placeholderApiEnabled = false;
     private boolean worldGuardHooked = false;
     private boolean protocolLibEnabled = false;
@@ -46,6 +56,21 @@ public final class AntiAFKPlugin extends JavaPlugin {
         saveDefaultConfig();
         languageManager = new LanguageManager(this);
         configManager = new ConfigManager(this);
+
+        vectorPoolManager = new VectorPoolManager(this);
+
+        if (configManager.isLearningModeEnabled()) {
+            recordingManager = new RecordingManager(this);
+            patternManager = new PatternManager(this);
+            patternManager.loadPatterns();
+            patternAnalysisTask = new PatternAnalysisTask(this);
+            learningDataCollectorTask = new LearningDataCollectorTask(this);
+            learningDataCollectorTask.runTaskTimer(this, 100L, 1L);
+
+            long initialDelay = 200L;
+            long period = configManager.getAnalysisTaskPeriodTicks();
+            patternAnalysisTask.runTaskTimerAsynchronously(this, initialDelay, period);
+        }
 
         databaseManager = new DatabaseManager(this);
         databaseManager.connect();
@@ -128,8 +153,14 @@ public final class AntiAFKPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (vectorPoolManager != null) {
+            vectorPoolManager.close();
+        }
         if (behaviorAnalysisManager != null && behaviorAnalysisManager.isEnabled()) {
             behaviorAnalysisManager.shutdown();
+        }
+        if (patternAnalysisTask != null) {
+            patternAnalysisTask.shutdown();
         }
         if (databaseManager != null) {
             databaseManager.disconnect();
@@ -192,5 +223,17 @@ public final class AntiAFKPlugin extends JavaPlugin {
     }
     public PlayerStatsManager getPlayerStatsManager() {
         return playerStatsManager;
+    }
+    public RecordingManager getRecordingManager() {
+        return recordingManager;
+    }
+    public PatternManager getPatternManager() {
+        return patternManager;
+    }
+    public PatternAnalysisTask getPatternAnalysisTask() {
+        return patternAnalysisTask;
+    }
+    public LearningDataCollectorTask getLearningDataCollectorTask() {
+        return learningDataCollectorTask;
     }
 }

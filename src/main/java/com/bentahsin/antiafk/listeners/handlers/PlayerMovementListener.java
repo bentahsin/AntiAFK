@@ -31,15 +31,19 @@ public class PlayerMovementListener extends ActivityListener implements org.bukk
         Location to = event.getTo();
         Location from = event.getFrom();
 
-        boolean hasMovedBlocks = to != null && (from.getBlockX() != to.getBlockX() || from.getBlockY() != to.getBlockY() || from.getBlockZ() != to.getBlockZ());
-        assert to != null;
+        if (to == null) {
+            return;
+        }
+
+
+        boolean hasMovedBlocks = (from.getBlockX() != to.getBlockX() || from.getBlockY() != to.getBlockY() || from.getBlockZ() != to.getBlockZ());
         boolean hasRotatedSignificantly = Math.abs(from.getYaw() - to.getYaw()) >= 1.0F;
 
         if (!hasMovedBlocks && !hasRotatedSignificantly) {
             return;
         }
 
-        handleActivity(player, null, true);
+        handleActivity(player, event, true);
 
         if (hasMovedBlocks) {
             getConfigManager().clearPlayerCache(player);
@@ -48,10 +52,9 @@ public class PlayerMovementListener extends ActivityListener implements org.bukk
         if (analysisManager.isEnabled() && !player.hasPermission(getConfigManager().getPermBypassBehavioral())) {
             PlayerBehaviorData data = analysisManager.getPlayerData(player);
             LinkedList<Location> history = data.getMovementHistory();
-            int maxHistorySize = analysisManager.getHistorySizeTicks();
             synchronized (history) {
                 history.add(to);
-                while (history.size() > maxHistorySize) {
+                while (history.size() > analysisManager.getHistorySizeTicks()) {
                     history.removeFirst();
                 }
             }

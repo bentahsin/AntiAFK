@@ -169,6 +169,43 @@ behavioral-analysis:
   # Bir yörüngenin diğerine 'benzer' sayılması için gereken minimum eşleşme oranı (% olarak).
   similarity-threshold: 0.85 # %85 benzerlik
 
+# ================================== #
+#     ÖĞRENME MODU (DESEN TESPİTİ)     #
+# ================================== #
+learning_mode:
+  enabled: true
+
+  # Asenkron desen analiz görevinin ne sıklıkla çalışacağını belirler (tick cinsinden, 20 tick = 1 saniye).
+  # Daha düşük değerler daha hızlı tepki verir ama CPU kullanımını artırır. 40 (2 saniye) iyi bir başlangıçtır.
+  analysis_task_period_ticks: 40
+
+  # Bir oyuncu hareketinin, bilinen bir desenle "eşleşmiş" sayılması için gereken
+  # maksimum DTW (Dynamic Time Warping) mesafesi.
+  # DÜŞÜK DEĞER = Daha SIKI ve KESİN eşleşme gerektirir (daha az yanlış pozitif).
+  # YÜKSEK DEĞER = Daha ESNEK eşleşmeye izin verir (daha fazla bot yakalayabilir ama yanlış pozitif riski artar).
+  similarity_threshold: 25.0
+
+  # DTW algoritmasının arama yarıçapı. Bu, algoritmanın ne kadar "ileriye bakacağını" belirler.
+  # Bu değeri artırmak doğruluğu bir miktar artırabilir ama performansı önemli ölçüde düşürür.
+  # Genellikle 5 ile 20 arasında bir değer yeterlidir.
+  search_radius: 10
+
+  # --- Güvenlik ve Optimizasyon Limitleri ---
+  security:
+    # Bir desen dosyasının diskte kaplayabileceği maksimum boyut (kilobyte cinsinden).
+    # Bu, sunucunun belleğini tüketebilecek aşırı büyük dosyaların yüklenmesini engeller.
+    max_pattern_file_size_kb: 1024  # 1 MB
+
+    # Bir desenin içerebileceği maksimum hareket vektörü sayısı.
+    # Bu, algoritmayı aşırı yorabilecek çok uzun desenleri engeller. 12000 = 10 dakikalık hareket --> 10 * 60 = 600 saniye * 20 tick = 12000
+    max_vectors_per_pattern: 12000
+
+    # Bir oyuncunun hareket penceresi ile bilinen bir desen arasındaki boyut farkı
+    # bu orandan (% olarak) büyükse, karşılaştırma hiç yapılmaz.
+    # Bu, gereksiz DTW hesaplamalarını engelleyen önemli bir optimizasyondur.
+    # 0.5 = %50. Yani, 1000 vektörlük bir deseni test etmek için oyuncunun en az 500 vektörlük verisi olmalı.
+    pre_filter_size_ratio: 0.5
+
 # =================================== #
 #   TURING TESTİ (CAPTCHA) KORUMASI   #
 # =================================== #

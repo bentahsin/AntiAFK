@@ -9,6 +9,9 @@ import java.util.Map;
 public class Russian implements TranslationProvider {
     private final Map<Lang, String> translations = new EnumMap<>(Lang.class);
     public Russian() {
+        add(Lang.COMMAND_UNREGISTERED_SUCCESS, "Команда /%s была успешно отменена.");
+        add(Lang.COMMAND_UNREGISTER_ERROR, "Произошла ошибка при отмене регистрации команды /%s.");
+
         add(Lang.BEHAVIOR_ANALYSIS_ENABLED_AND_INIT, "Поведенческий анализ АФК включен. Инициализация...");
         add(Lang.BEHAVIOR_ANALYSIS_TASK_STOPPED, "Задача поведенческого анализа АФК была остановлена.");
         add(Lang.BEHAVIOR_ANALYSIS_DATA_CLEARED, "Данные игроков для поведенческого анализа были очищены.");

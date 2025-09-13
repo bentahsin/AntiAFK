@@ -9,6 +9,9 @@ import java.util.Map;
 public class Turkish implements TranslationProvider {
     private final Map<Lang, String> translations = new EnumMap<>(Lang.class);
     public Turkish() {
+        add(Lang.COMMAND_UNREGISTERED_SUCCESS, "/%s komutu başarıyla kayıttan kaldırıldı.");
+        add(Lang.COMMAND_UNREGISTER_ERROR, "/%s komutu kayıttan kaldırılırken bir hata oluştu.");
+
         add(Lang.BEHAVIOR_ANALYSIS_ENABLED_AND_INIT, "Davranışsal AFK Analizi etkinleştirildi. Başlatılıyor...");
         add(Lang.BEHAVIOR_ANALYSIS_TASK_STOPPED, "Davranışsal AFK Analizi görevi durduruldu.");
         add(Lang.BEHAVIOR_ANALYSIS_DATA_CLEARED, "Davranışsal analiz oyuncu verileri temizlendi.");

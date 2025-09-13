@@ -25,6 +25,7 @@ import com.bentahsin.antiafk.storage.DatabaseManager;
 import com.bentahsin.antiafk.storage.PlayerStatsManager;
 import com.bentahsin.antiafk.tasks.AFKCheckTask;
 import com.bentahsin.antiafk.turing.CaptchaManager;
+import com.bentahsin.antiafk.utils.CommandUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
@@ -110,6 +111,8 @@ public final class AntiAFKPlugin extends JavaPlugin {
             } else {
                 getLogger().severe(systemLanguageManager.getSystemMessage(Lang.AFK_COMMAND_NOT_IN_YML));
             }
+        } else {
+            CommandUtil.unregister(this, "afk");
         }
 
         PluginCommand cevapCommand = getCommand("afkcevap");

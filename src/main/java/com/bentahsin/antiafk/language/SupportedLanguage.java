@@ -3,29 +3,23 @@ package com.bentahsin.antiafk.language;
 import java.util.Arrays;
 
 public enum SupportedLanguage {
-    TURKISH("Turkish", "_TR"),
-    ENGLISH("English", "_EN"),
-    SPANISH("Spanish", "_ES"),
-    GERMAN("German", "_DE"),
-    FRENCH("French", "_FR"),
-    RUSSIAN("Russian", "_RU"),
-    POLISH("Polish", "_PL");
+    TURKISH("Turkish"),
+    ENGLISH("English"),
+    SPANISH("Spanish"),
+    GERMAN("German"),
+    FRENCH("French"),
+    RUSSIAN("Russian"),
+    POLISH("Polish");
 
 
     private final String configName;
-    private final String keySuffix;
 
-    SupportedLanguage(String configName, String keySuffix) {
+    SupportedLanguage(String configName) {
         this.configName = configName;
-        this.keySuffix = keySuffix;
     }
 
     public String getConfigName() {
         return configName;
-    }
-
-    public String getKeySuffix() {
-        return keySuffix;
     }
 
     /**

@@ -2,6 +2,7 @@ package com.bentahsin.antiafk.commands.antiafk.subcommands;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.commands.antiafk.ISubCommand;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.models.TopEntry;
 import com.bentahsin.antiafk.utils.TimeUtil;
 import org.bukkit.Bukkit;
@@ -16,9 +17,11 @@ import java.util.List;
 public class TopCommand implements ISubCommand {
 
     private final AntiAFKPlugin plugin;
+    private final PlayerLanguageManager plLang;
 
     public TopCommand(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.plLang = plugin.getPlayerLanguageManager();
     }
 
     @Override
@@ -34,7 +37,7 @@ public class TopCommand implements ISubCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(plugin.getLanguageManager().getPrefix() + "§cKullanım: /afktop <time|punishments>");
+            plLang.sendMessage(sender, "command.antiafk.top.usage");
             return;
         }
 
@@ -42,32 +45,35 @@ public class TopCommand implements ISubCommand {
         if (category.equals("time")) {
             plugin.getDatabaseManager().getTopPlayers("total_afk_time", 10).thenAccept(topPlayers -> {
                 Bukkit.getScheduler().runTask(plugin, () -> {
-                    displayTopList(sender, topPlayers, "En Uzun Süre AFK Kalanlar", true);
+                    displayTopList(sender, topPlayers, "command.antiafk.top.header_time", true);
                 });
             });
         } else if (category.equals("punishments")) {
             plugin.getDatabaseManager().getTopPlayers("times_punished", 10).thenAccept(topPlayers -> {
                 Bukkit.getScheduler().runTask(plugin, () -> {
-                    displayTopList(sender, topPlayers, "En Çok Ceza Alanlar", false);
+                    displayTopList(sender, topPlayers, "command.antiafk.top.header_punishments", false);
                 });
             });
         } else {
-            sender.sendMessage(plugin.getLanguageManager().getPrefix() + "§cGeçersiz kategori. Kullanılabilir: time, punishments");
+            plLang.sendMessage(sender, "command.antiafk.top.invalid_category");
         }
     }
 
-    private void displayTopList(CommandSender sender, List<TopEntry> topPlayers, String title, boolean isTime) {
-
+    private void displayTopList(CommandSender sender, List<TopEntry> topPlayers, String titleKey, boolean isTime) {
         if (topPlayers.isEmpty()) {
-            sender.sendMessage(plugin.getLanguageManager().getPrefix() + "§cGösterilecek veri bulunamadı.");
+            plLang.sendMessage(sender, "command.antiafk.top.no_data");
             return;
         }
 
-        sender.sendMessage("§8§m-------§r §6" + title + " &8&m-------");
+        sender.sendMessage(plLang.getMessage(titleKey));
         int rank = 1;
         for (TopEntry entry : topPlayers) {
             String valueStr = isTime ? TimeUtil.formatTime(entry.getValue()) : String.valueOf(entry.getValue());
-            sender.sendMessage("§e" + rank++ + ". §f" + entry.getUsername() + " §7- §c" + valueStr);
+            sender.sendMessage(plLang.getMessage("command.antiafk.top.entry",
+                    "%rank%", String.valueOf(rank++),
+                    "%player%", entry.getUsername(),
+                    "%value%", valueStr
+            ));
         }
     }
 

@@ -1,6 +1,8 @@
 package com.bentahsin.antiafk.learning;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.language.Lang;
+import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.learning.serialization.KryoPatternSerializer;
 
 import java.io.File;
@@ -17,14 +19,16 @@ import java.util.logging.Level;
 public class PatternManager {
 
     private final AntiAFKPlugin plugin;
+    private final SystemLanguageManager sysLang;
     private final File knownRoutesDirectory;
     private final Map<String, Pattern> knownPatterns = new ConcurrentHashMap<>();
 
     public PatternManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.sysLang = plugin.getSystemLanguageManager();
         this.knownRoutesDirectory = new File(plugin.getDataFolder(), "known_routes");
         if (!knownRoutesDirectory.exists()) {
-            knownRoutesDirectory.mkdirs();
+            boolean ignored = knownRoutesDirectory.mkdirs();
         }
     }
 
@@ -43,19 +47,33 @@ public class PatternManager {
 
         for (File file : files) {
             if (file.length() > maxSize) {
-                plugin.getLogger().warning("Skipping pattern file '" + file.getName() + "' because it exceeds the max file size limit (" + (maxSize / 1024) + " KB).");
+                plugin.getLogger().warning(sysLang.getSystemMessage(
+                        Lang.SKIPPING_PATTERN_FILE_TOO_LARGE,
+                        file.getName(),
+                        (maxSize / 1024)
+                ));
                 continue;
             }
             try (FileInputStream fis = new FileInputStream(file)) {
                 Pattern pattern = serializer.deserialize(fis);
                 if (pattern.getVectors().size() > maxVectors) {
-                    plugin.getLogger().warning("Skipping pattern '" + pattern.getName() + "' because it exceeds the max vector count limit (" + maxVectors + ").");
+                    plugin.getLogger().warning(sysLang.getSystemMessage(
+                            Lang.SKIPPING_PATTERN_TOO_MANY_VECTORS,
+                            pattern.getName(),
+                            maxVectors
+                    ));
                     continue;
                 }
                 knownPatterns.put(pattern.getName(), pattern);
-                plugin.getLogger().info("Loaded known pattern: " + pattern.getName());
+                plugin.getLogger().info(sysLang.getSystemMessage(
+                        Lang.LOADED_KNOWN_PATTERN,
+                        pattern.getName()
+                ));
             } catch (IOException e) {
-                plugin.getLogger().log(Level.WARNING, "Could not load pattern file: " + file.getName(), e);
+                plugin.getLogger().log(Level.WARNING, sysLang.getSystemMessage(
+                        Lang.COULD_NOT_LOAD_PATTERN_FILE,
+                        file.getName()
+                ), e);
             }
         }
     }

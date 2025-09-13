@@ -1,6 +1,8 @@
 package com.bentahsin.antiafk.managers;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.language.Lang;
+import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.models.PlayerState;
 import com.bentahsin.antiafk.models.PunishmentLevel;
 import com.bentahsin.antiafk.models.RegionOverride;
@@ -24,8 +26,9 @@ import java.util.stream.Collectors;
 
 public class AFKManager {
     private final AntiAFKPlugin plugin;
+    private final SystemLanguageManager sysLang;
     private final ConfigManager configManager;
-    private final LanguageManager lang;
+    private final PlayerLanguageManager plLang;
     private final DatabaseManager databaseManager;
 
     private final Cache<UUID, Long> lastActivity;
@@ -38,8 +41,9 @@ public class AFKManager {
 
     public AFKManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.sysLang = plugin.getSystemLanguageManager();
         this.configManager = plugin.getConfigManager();
-        this.lang = plugin.getLanguageManager();
+        this.plLang = plugin.getPlayerLanguageManager();
         this.databaseManager = plugin.getDatabaseManager();
 
         this.lastActivity = buildCache(1, TimeUnit.HOURS);
@@ -96,7 +100,7 @@ public class AFKManager {
     private void setPlayerAfk(PlayerState state) {
         Player player = Bukkit.getPlayer(state.getUuid());
         if (player != null) {
-            lang.sendMessage(player, "command.afk.now_afk");
+            plLang.sendMessage(player, "command.afk.now_afk");
         }
 
         afkStartTime.put(state.getUuid(), System.currentTimeMillis());
@@ -234,7 +238,7 @@ public class AFKManager {
 
             if ((currentTime - punishedTime) < cooldownMillis) {
                 long timeLeftSeconds = (cooldownMillis - (currentTime - punishedTime)) / 1000;
-                String message = lang.getMessage("rejoin_kick", "%time_left%", TimeUtil.formatTime(timeLeftSeconds));
+                String message = plLang.getMessage("rejoin_kick", "%time_left%", TimeUtil.formatTime(timeLeftSeconds));
 
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
                     player.sendMessage(message);
@@ -271,14 +275,14 @@ public class AFKManager {
 
         switch (type.toUpperCase()) {
             case "TITLE":
-                player.sendTitle(lang.getPrefix() + message, lang.getPrefix() + subtitle, 10, 70, 20);
+                player.sendTitle(plLang.getPrefix() + message, plLang.getPrefix() + subtitle, 10, 70, 20);
                 break;
             case "ACTION_BAR":
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(lang.getPrefix() + message));
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(plLang.getPrefix() + message));
                 break;
             case "CHAT":
             default:
-                player.sendMessage(lang.getPrefix() + message);
+                player.sendMessage(plLang.getPrefix() + message);
                 break;
         }
 
@@ -287,7 +291,7 @@ public class AFKManager {
             try {
                 player.playSound(player.getLocation(), Sound.valueOf(soundName.toUpperCase()), 1.0f, 1.0f);
             } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("Invalid sound name in config.yml warnings: " + soundName);
+                plugin.getLogger().warning(sysLang.getSystemMessage(Lang.INVALID_SOUND_IN_CONFIG, soundName));
             }
         }
     }
@@ -320,12 +324,12 @@ public class AFKManager {
         setPlayerAfk(state);
 
         if (configManager.isBroadcastOnAfkEnabled()) {
-            String rawTemplate = lang.getRawMessage("command.afk.on_afk_broadcast");
+            String rawTemplate = plLang.getRawMessage("command.afk.on_afk_broadcast");
             if (rawTemplate != null && !rawTemplate.isEmpty()) {
 
                 String displayReason;
                 if (reasonOrKey.startsWith("behavior.") || reasonOrKey.startsWith("command.afk")) {
-                    displayReason = lang.getMessage(reasonOrKey).replace(lang.getPrefix(), "");
+                    displayReason = plLang.getMessage(reasonOrKey).replace(plLang.getPrefix(), "");
                 } else {
                     displayReason = reasonOrKey;
                 }
@@ -333,7 +337,7 @@ public class AFKManager {
                 String msg = rawTemplate
                         .replace("%player_displayname%", player.getDisplayName())
                         .replace("%reason%", displayReason);
-                lang.broadcastFormattedMessage(msg);
+                plLang.broadcastFormattedMessage(msg);
             }
         }
     }
@@ -351,12 +355,12 @@ public class AFKManager {
         state.setSystemPunished(false);
         state.setAfkReason(null);
 
-        lang.sendMessage(player, "command.afk.not_afk_now");
+        plLang.sendMessage(player, "command.afk.not_afk_now");
 
         if (wasManual && configManager.isBroadcastOnReturnEnabled()) {
-            String rawTemplate = lang.getRawMessage("command.afk.on_return_broadcast");
+            String rawTemplate = plLang.getRawMessage("command.afk.on_return_broadcast");
             if (rawTemplate != null && !rawTemplate.isEmpty()) {
-                lang.broadcastMessage("command.afk.on_return_broadcast",
+                plLang.broadcastMessage("command.afk.on_return_broadcast",
                         "%player_displayname%", player.getDisplayName());
             }
         }

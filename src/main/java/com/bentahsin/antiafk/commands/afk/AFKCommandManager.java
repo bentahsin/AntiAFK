@@ -1,6 +1,7 @@
 package com.bentahsin.antiafk.commands.afk;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -15,11 +16,11 @@ import java.util.List;
  */
 public class AFKCommandManager implements CommandExecutor, TabCompleter {
 
-    private final AntiAFKPlugin plugin;
+    private final PlayerLanguageManager plLang;
     private IAFKSubCommand mainCommand;
 
     public AFKCommandManager(AntiAFKPlugin plugin) {
-        this.plugin = plugin;
+        this.plLang = plugin.getPlayerLanguageManager();
     }
 
     /**
@@ -33,13 +34,12 @@ public class AFKCommandManager implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (mainCommand == null) {
-
-            sender.sendMessage("§cAFK komutu düzgün yapılandırılmamış.");
+            plLang.sendMessage(sender, "error.afk_command_misconfigured");
             return true;
         }
 
         if (mainCommand.getPermission() != null && !sender.hasPermission(mainCommand.getPermission())) {
-            plugin.getLanguageManager().sendMessage(sender, "error.no_permission");
+            plLang.sendMessage(sender, "error.no_permission");
             return true;
         }
 

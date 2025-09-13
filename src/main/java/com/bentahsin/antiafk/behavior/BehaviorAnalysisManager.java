@@ -1,6 +1,8 @@
 package com.bentahsin.antiafk.behavior;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.language.Lang;
+import com.bentahsin.antiafk.language.SystemLanguageManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BehaviorAnalysisManager implements Listener {
 
     private final AntiAFKPlugin plugin;
+    private final SystemLanguageManager sysLang;
 
     private final Map<UUID, PlayerBehaviorData> playerDataMap = new ConcurrentHashMap<>();
     private final int historySizeTicks;
@@ -27,6 +30,7 @@ public class BehaviorAnalysisManager implements Listener {
 
     public BehaviorAnalysisManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.sysLang = plugin.getSystemLanguageManager();
 
         this.historySizeTicks = plugin.getConfig().getInt("behavioral-analysis.history-size-ticks", 600);
         this.enabled = plugin.getConfig().getBoolean("behavioral-analysis.enabled", false);
@@ -40,7 +44,7 @@ public class BehaviorAnalysisManager implements Listener {
      * Modül etkinse, analiz görevini başlatır ve olay dinleyicisini kaydeder.
      */
     private void initialize() {
-        plugin.getLogger().info("Behavioral AFK Analysis is enabled. Initializing...");
+        plugin.getLogger().info(sysLang.getSystemMessage(Lang.BEHAVIOR_ANALYSIS_ENABLED_AND_INIT));
 
         analysisTask = new BehaviorAnalysisTask(plugin, this);
         analysisTask.runTaskTimerAsynchronously(plugin, 100L, 5L);
@@ -59,10 +63,10 @@ public class BehaviorAnalysisManager implements Listener {
 
         if (analysisTask != null && !analysisTask.isCancelled()) {
             analysisTask.cancel();
-            plugin.getLogger().info("Behavioral AFK Analysis task has been stopped.");
+            plugin.getLogger().info(sysLang.getSystemMessage(Lang.BEHAVIOR_ANALYSIS_TASK_STOPPED));
         }
         playerDataMap.clear();
-        plugin.getLogger().info("Behavioral analysis player data has been cleared.");
+        plugin.getLogger().info(sysLang.getSystemMessage(Lang.BEHAVIOR_ANALYSIS_DATA_CLEARED));
     }
 
     /**

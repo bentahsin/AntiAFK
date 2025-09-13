@@ -1,6 +1,8 @@
 package com.bentahsin.antiafk.storage;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.language.Lang;
+import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.models.PlayerStats;
 import com.bentahsin.antiafk.models.TopEntry;
 
@@ -18,10 +20,12 @@ import java.util.logging.Level;
 public class DatabaseManager {
 
     private final AntiAFKPlugin plugin;
+    private final SystemLanguageManager sysLang;
     private Connection connection;
 
     public DatabaseManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.sysLang = plugin.getSystemLanguageManager();
     }
 
     /**
@@ -31,7 +35,7 @@ public class DatabaseManager {
         try {
             File dbFile = new File(plugin.getDataFolder(), "playerdata.db");
             if (!dbFile.exists()) {
-                dbFile.createNewFile();
+                boolean ignored = dbFile.createNewFile();
             }
             String url = "jdbc:sqlite:" + dbFile.getAbsolutePath();
             connection = DriverManager.getConnection(url);
@@ -48,9 +52,9 @@ public class DatabaseManager {
                         "most_frequent_reason TEXT" +
                         ");");
             }
-            plugin.getLogger().info("Database connection established and table verified.");
+            plugin.getLogger().info(sysLang.getSystemMessage(Lang.DB_CONNECTION_SUCCESS));
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not connect to the database!", e);
+            plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_CONNECTION_ERROR), e);
         }
     }
 
@@ -61,10 +65,10 @@ public class DatabaseManager {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
-                plugin.getLogger().info("Database connection closed.");
+                plugin.getLogger().info(sysLang.getSystemMessage(Lang.DB_DISCONNECT_SUCCESS));
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not close the database connection!", e);
+            plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_DISCONNECT_ERROR), e);
         }
     }
 
@@ -90,7 +94,7 @@ public class DatabaseManager {
                 if (resetAfterMillis > 0 && timesPunished > 0 &&
                         (System.currentTimeMillis() - lastPunishmentTime) > resetAfterMillis) {
 
-                    plugin.getLogger().info("Resetting punishment count for player " + playerName + " due to inactivity.");
+                    plugin.getLogger().info(sysLang.getSystemMessage(Lang.DB_RESETTING_PUNISHMENT_COUNT_INACTIVITY, playerName));
                     resetPunishmentCountToZero(playerUUID);
 
                     timesPunished = 0;
@@ -112,7 +116,7 @@ public class DatabaseManager {
                 return PlayerStats.createDefault(playerUUID, playerName);
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not retrieve stats for " + playerUUID, e);
+            plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_GET_STATS_ERROR, playerUUID.toString()), e);
         }
         return PlayerStats.createDefault(playerUUID, playerName);
     }
@@ -129,7 +133,7 @@ public class DatabaseManager {
                 pstmt.setString(1, uuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, "Could not reset punishment count to zero for " + uuid, e);
+                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_RESET_PUNISHMENT_TO_ZERO_ERROR, uuid.toString()), e);
             }
         }).thenRun(() -> plugin.getPlayerStatsManager().invalidateCache(uuid));
     }
@@ -145,7 +149,7 @@ public class DatabaseManager {
                 pstmt.setString(2, username);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, "Could not create async entry for " + uuid, e);
+                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_CREATE_ENTRY_ERROR, uuid.toString()), e);
             }
         });
     }
@@ -163,7 +167,7 @@ public class DatabaseManager {
                 return rs.getInt("punishment_count");
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not retrieve punishment count for " + uuid, e);
+            plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_GET_PUNISHMENT_COUNT_ERROR, uuid.toString()), e);
         }
         return 0;
     }
@@ -180,7 +184,7 @@ public class DatabaseManager {
                 pstmt.setString(2, uuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, "Could not reset async punishment count for " + uuid, e);
+                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_RESET_PUNISHMENT_COUNT_ERROR, uuid.toString()), e);
             }
         });
     }
@@ -197,7 +201,7 @@ public class DatabaseManager {
                 pstmt.setString(2, uuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, "Could not increment async punishment count for " + uuid, e);
+                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_INCREMENT_PUNISHMENT_COUNT_ERROR, uuid.toString()), e);
             }
         }).thenRun(() -> plugin.getPlayerStatsManager().invalidateCache(uuid));
     }
@@ -215,7 +219,7 @@ public class DatabaseManager {
                 pstmt.setString(2, uuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, "Could not update async total AFK time for " + uuid, e);
+                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_UPDATE_AFK_TIME_ERROR, uuid.toString()), e);
             }
         }).thenRun(() -> plugin.getPlayerStatsManager().invalidateCache(uuid));
     }
@@ -231,7 +235,7 @@ public class DatabaseManager {
                 pstmt.setString(1, uuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, "Could not increment async tests passed for " + uuid, e);
+                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_INCREMENT_TESTS_PASSED_ERROR, uuid.toString()), e);
             }
         });
     }
@@ -247,7 +251,7 @@ public class DatabaseManager {
                 pstmt.setString(1, uuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, "Could not increment async tests failed for " + uuid, e);
+                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_INCREMENT_TESTS_FAILED_ERROR, uuid.toString()), e);
             }
         });
     }
@@ -262,7 +266,7 @@ public class DatabaseManager {
         return CompletableFuture.supplyAsync(() -> {
             List<TopEntry> topPlayers = new ArrayList<>();
             if (!orderBy.equals("total_afk_time") && !orderBy.equals("times_punished")) {
-                plugin.getLogger().warning("Invalid column name passed to getTopPlayers: " + orderBy);
+                plugin.getLogger().warning(sysLang.getSystemMessage(Lang.DB_GET_TOP_PLAYERS_INVALID_COLUMN, orderBy));
                 return topPlayers;
             }
             String sql = "SELECT username, " + orderBy + " FROM player_stats ORDER BY " + orderBy + " DESC LIMIT ?;";
@@ -273,7 +277,7 @@ public class DatabaseManager {
                     topPlayers.add(new TopEntry(rs.getString("username"), rs.getLong(orderBy)));
                 }
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, "Could not retrieve async top players for " + orderBy, e);
+                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_GET_TOP_PLAYERS_ERROR, orderBy), e);
             }
             return topPlayers;
         });

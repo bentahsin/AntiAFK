@@ -3,6 +3,7 @@ package com.bentahsin.antiafk.commands.antiafk.subcommands;
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.commands.antiafk.ISubCommand;
 import com.bentahsin.antiafk.gui.menus.AdminPanelGUI;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -12,9 +13,11 @@ import java.util.List;
 public class PanelCommand implements ISubCommand {
 
     private final AntiAFKPlugin plugin;
+    private final PlayerLanguageManager plLang;
 
     public PanelCommand(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.plLang = plugin.getPlayerLanguageManager();
     }
 
     @Override
@@ -30,7 +33,7 @@ public class PanelCommand implements ISubCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (!(sender instanceof Player)) {
-            plugin.getLanguageManager().sendMessage(sender, "error.must_be_player");
+            plLang.sendMessage(sender, "error.must_be_player");
             return;
         }
 

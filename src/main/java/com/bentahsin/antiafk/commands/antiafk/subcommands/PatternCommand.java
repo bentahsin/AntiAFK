@@ -7,6 +7,7 @@ import com.bentahsin.antiafk.commands.antiafk.pattern.IPatternSubCommand;
 
 import com.bentahsin.antiafk.commands.antiafk.pattern.ListPatternCommand;
 import com.bentahsin.antiafk.commands.antiafk.pattern.RecordPatternCommand;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
 
@@ -16,10 +17,12 @@ import java.util.stream.Collectors;
 public class PatternCommand implements ISubCommand {
 
     private final AntiAFKPlugin plugin;
+    private final PlayerLanguageManager plLang;
     private final Map<String, IPatternSubCommand> subCommands = new HashMap<>();
 
     public PatternCommand(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.plLang = plugin.getPlayerLanguageManager();
         registerPatternSubCommands();
     }
 
@@ -46,7 +49,7 @@ public class PatternCommand implements ISubCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (plugin.getRecordingManager() == null) {
-            sender.sendMessage("§cÖğrenme Modu bu sunucuda aktif değil (config.yml'de kapalı).");
+            plLang.sendMessage(sender, "command.pattern.learning_mode_disabled");
             return;
         }
 
@@ -64,7 +67,7 @@ public class PatternCommand implements ISubCommand {
         }
 
         if (subCommand.getPermission() != null && !sender.hasPermission(subCommand.getPermission())) {
-            plugin.getLanguageManager().sendMessage(sender, "error.no_permission");
+            plLang.sendMessage(sender, "error.no_permission");
             return;
         }
 
@@ -73,13 +76,13 @@ public class PatternCommand implements ISubCommand {
     }
 
     private void sendHelpMessage(CommandSender sender) {
-        sender.sendMessage("§8§m--------§r §6AntiAFK Desen Yönetimi §8§m--------");
+        sender.sendMessage(plLang.getMessage("command.pattern.help.header"));
         for (IPatternSubCommand cmd : subCommands.values()) {
             if (cmd.getPermission() == null || sender.hasPermission(cmd.getPermission())) {
-                sender.sendMessage("§e/antiafk pattern " + cmd.getUsage());
+                sender.sendMessage(plLang.getMessage("command.pattern.help.entry", "%usage%", cmd.getUsage()));
             }
         }
-        sender.sendMessage("§8§m--------------------------------------------");
+        sender.sendMessage(plLang.getMessage("command.pattern.help.footer"));
     }
 
     @Override

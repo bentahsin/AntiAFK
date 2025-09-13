@@ -3,7 +3,7 @@ package com.bentahsin.antiafk.gui.menus;
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.gui.Menu;
 import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
-import com.bentahsin.antiafk.managers.LanguageManager;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.models.RegionOverride;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
@@ -18,20 +18,20 @@ public class RegionActionsListGUI extends Menu {
     private final String regionName;
     private final RegionOverride regionOverride;
     private final boolean isUsingGlobalActions;
-    private final LanguageManager lang;
+    private final PlayerLanguageManager plLang;
 
     public RegionActionsListGUI(PlayerMenuUtility playerMenuUtility, AntiAFKPlugin plugin) {
         super(playerMenuUtility);
         this.plugin = plugin;
         this.regionName = playerMenuUtility.getRegionToEdit();
-        this.lang = plugin.getLanguageManager();
+        this.plLang = plugin.getPlayerLanguageManager();
 
         Optional<RegionOverride> overrideOpt = plugin.getConfigManager().getRegionOverrides().stream()
                 .filter(ro -> ro.getRegionName().equalsIgnoreCase(this.regionName))
                 .findFirst();
 
         if (!overrideOpt.isPresent()) {
-            lang.sendMessage(playerMenuUtility.getOwner(), "gui.region.rule_not_found");
+            plLang.sendMessage(playerMenuUtility.getOwner(), "gui.region.rule_not_found");
             this.regionOverride = null;
             this.isUsingGlobalActions = true;
             return;
@@ -43,8 +43,8 @@ public class RegionActionsListGUI extends Menu {
 
     @Override
     public String getMenuName() {
-        return lang.getMessage("gui.menu_titles.region_actions_list", "%region%", StringUtils.abbreviate(regionName, 20))
-                .replace(lang.getPrefix(), "");
+        return plLang.getMessage("gui.menu_titles.region_actions_list", "%region%", StringUtils.abbreviate(regionName, 20))
+                .replace(plLang.getPrefix(), "");
     }
 
     @Override
@@ -77,16 +77,16 @@ public class RegionActionsListGUI extends Menu {
 
                 inventory.setItem(i, createGuiItem(
                         type.equalsIgnoreCase("CONSOLE") ? Material.COMMAND_BLOCK : Material.PLAYER_HEAD,
-                        lang.getMessage("gui.region_actions_list_menu.action_item.name", "%type%", type),
-                        lang.getMessageList("gui.region_actions_list_menu.action_item.lore")
+                        plLang.getMessage("gui.region_actions_list_menu.action_item.name", "%type%", type),
+                        plLang.getMessageList("gui.region_actions_list_menu.action_item.lore")
                                 .stream()
                                 .map(line -> line.replace("%command%", StringUtils.abbreviate(command, 40))).toArray(String[]::new)
                 ));
             }
         } else {
             inventory.setItem(22, createGuiItem(Material.BARRIER,
-                    lang.getMessage("gui.region_actions_list_menu.using_global_actions_item.name"),
-                    lang.getMessageList("gui.region_actions_list_menu.using_global_actions_item.lore").toArray(new String[0])
+                    plLang.getMessage("gui.region_actions_list_menu.using_global_actions_item.name"),
+                    plLang.getMessageList("gui.region_actions_list_menu.using_global_actions_item.lore").toArray(new String[0])
             ));
         }
 

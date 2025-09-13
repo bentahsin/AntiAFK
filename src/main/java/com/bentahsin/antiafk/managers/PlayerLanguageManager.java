@@ -1,6 +1,8 @@
 package com.bentahsin.antiafk.managers;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.language.Lang;
+import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.utils.ChatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -14,14 +16,16 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public class LanguageManager {
+public class PlayerLanguageManager {
 
     private final AntiAFKPlugin plugin;
+    private final SystemLanguageManager sysLang;
     private FileConfiguration messagesConfig;
     private String prefix;
 
-    public LanguageManager(AntiAFKPlugin plugin) {
+    public PlayerLanguageManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.sysLang = plugin.getSystemLanguageManager();
         loadMessages();
     }
 
@@ -49,11 +53,11 @@ public class LanguageManager {
             messagesConfig.load(messagesFile);
 
             prefix = ChatUtil.color(messagesConfig.getString("plugin_prefix", "&8[&6AntiAFK&8] &r"));
-            plugin.getLogger().info("messages.yml loaded successfully.");
+            plugin.getLogger().info(sysLang.getSystemMessage(Lang.MESSAGES_YML_LOADED_SUCCESSFULLY));
 
         } catch (IOException | InvalidConfigurationException e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not load messages.yml file! This is a critical error.", e);
-            plugin.getLogger().severe("The plugin will be disabled to prevent further errors.");
+            plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(Lang.MESSAGES_YML_LOAD_ERROR), e);
+            plugin.getLogger().severe(sysLang.getSystemMessage(Lang.PLUGIN_DISABLE_CRITICAL_ERROR));
 
             plugin.getServer().getPluginManager().disablePlugin(plugin);
         }

@@ -4,7 +4,7 @@ import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.gui.Menu;
 import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
 import com.bentahsin.antiafk.managers.AFKManager;
-import com.bentahsin.antiafk.managers.LanguageManager;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -18,23 +18,23 @@ public class PlayerActionGUI extends Menu {
     private final AntiAFKPlugin plugin;
     private final AFKManager afkManager;
     private final Player target;
-    private final LanguageManager lang;
+    private final PlayerLanguageManager plLang;
 
     public PlayerActionGUI(PlayerMenuUtility playerMenuUtility, AntiAFKPlugin plugin) {
         super(playerMenuUtility);
         this.plugin = plugin;
         this.afkManager = plugin.getAfkManager();
         this.target = Bukkit.getPlayer(playerMenuUtility.getTargetPlayerUUID());
-        this.lang = plugin.getLanguageManager();
+        this.plLang = plugin.getPlayerLanguageManager();
     }
 
     @Override
     public String getMenuName() {
         if (target != null) {
-            return lang.getMessage("gui.menu_titles.player_actions", "%player%", target.getName())
-                    .replace(lang.getPrefix(), "");
+            return plLang.getMessage("gui.menu_titles.player_actions", "%player%", target.getName())
+                    .replace(plLang.getPrefix(), "");
         } else {
-            return lang.getMessage("gui.menu_titles.player_not_found").replace(lang.getPrefix(), "");
+            return plLang.getMessage("gui.menu_titles.player_not_found").replace(plLang.getPrefix(), "");
         }
     }
 
@@ -48,7 +48,7 @@ public class PlayerActionGUI extends Menu {
         Player admin = playerMenuUtility.getOwner();
 
         if (target == null || !target.isOnline()) {
-            lang.sendMessage(admin, "gui.player_actions.target_left");
+            plLang.sendMessage(admin, "gui.player_actions.target_left");
             admin.closeInventory();
             return;
         }
@@ -56,16 +56,16 @@ public class PlayerActionGUI extends Menu {
         actions.put(11, () -> {
             if (!plugin.getConfigManager().getActions().isEmpty()) {
                 afkManager.executeActions(target, plugin.getConfigManager().getActions());
-                lang.sendMessage(admin, "gui.player_actions.actions_applied", "%player%", target.getName());
+                plLang.sendMessage(admin, "gui.player_actions.actions_applied", "%player%", target.getName());
                 admin.playSound(admin.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
             } else {
-                lang.sendMessage(admin, "error.no_actions_defined");
+                plLang.sendMessage(admin, "error.no_actions_defined");
             }
             admin.closeInventory();
         });
         inventory.setItem(11, createGuiItem(Material.ENDER_PEARL,
-                lang.getMessage("gui.player_actions_menu.apply_afk_actions_button.name"),
-                lang.getMessageList("gui.player_actions_menu.apply_afk_actions_button.lore").toArray(new String[0])
+                plLang.getMessage("gui.player_actions_menu.apply_afk_actions_button.name"),
+                plLang.getMessageList("gui.player_actions_menu.apply_afk_actions_button.lore").toArray(new String[0])
         ));
 
 
@@ -73,24 +73,24 @@ public class PlayerActionGUI extends Menu {
         actions.put(13, () -> {
             if (isTargetManualAFK) {
                 afkManager.unsetAfkStatus(target);
-                lang.sendMessage(admin, "gui.player_actions.manual_afk_off", "%player%", target.getName());
+                plLang.sendMessage(admin, "gui.player_actions.manual_afk_off", "%player%", target.getName());
             } else {
                 afkManager.setManualAFK(target, "Bir admin tarafından AFK yapıldı.");
-                lang.sendMessage(admin, "gui.player_actions.manual_afk_on", "%player%", target.getName());
+                plLang.sendMessage(admin, "gui.player_actions.manual_afk_on", "%player%", target.getName());
             }
             admin.playSound(admin.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
             new PlayerActionGUI(playerMenuUtility, plugin).open();
         });
 
         String statusKey = isTargetManualAFK ? "gui.player_actions_menu.toggle_manual_afk_button.status_afk" : "gui.player_actions_menu.toggle_manual_afk_button.status_active";
-        String statusText = lang.getMessage(statusKey);
+        String statusText = plLang.getMessage(statusKey);
 
-        List<String> lore = new ArrayList<>(lang.getMessageList("gui.player_actions_menu.toggle_manual_afk_button.lore"));
+        List<String> lore = new ArrayList<>(plLang.getMessageList("gui.player_actions_menu.toggle_manual_afk_button.lore"));
         lore.replaceAll(line -> line.replace("%status%", statusText));
 
         inventory.setItem(13, createGuiItem(
                 isTargetManualAFK ? Material.REDSTONE_BLOCK : Material.EMERALD_BLOCK,
-                lang.getMessage("gui.player_actions_menu.toggle_manual_afk_button.name"),
+                plLang.getMessage("gui.player_actions_menu.toggle_manual_afk_button.name"),
                 lore.toArray(new String[0])
         ));
 

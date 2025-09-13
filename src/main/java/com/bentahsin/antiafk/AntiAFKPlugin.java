@@ -9,6 +9,8 @@ import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
 import com.bentahsin.antiafk.gui.listener.MenuListener;
 import com.bentahsin.antiafk.gui.book.BookInputManager;
 import com.bentahsin.antiafk.gui.book.BookInputListener;
+import com.bentahsin.antiafk.language.Lang;
+import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.learning.PatternAnalysisTask;
 import com.bentahsin.antiafk.learning.PatternManager;
 import com.bentahsin.antiafk.learning.RecordingManager;
@@ -17,7 +19,7 @@ import com.bentahsin.antiafk.learning.pool.VectorPoolManager;
 import com.bentahsin.antiafk.listeners.ListenerManager;
 import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
-import com.bentahsin.antiafk.managers.LanguageManager;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.placeholderapi.AFKPlaceholder;
 import com.bentahsin.antiafk.storage.DatabaseManager;
 import com.bentahsin.antiafk.storage.PlayerStatsManager;
@@ -34,7 +36,8 @@ public final class AntiAFKPlugin extends JavaPlugin {
 
     private ConfigManager configManager;
     private AFKManager afkManager;
-    private LanguageManager languageManager;
+    private PlayerLanguageManager playerLanguageManager;
+    private SystemLanguageManager systemLanguageManager;
     private BehaviorAnalysisManager behaviorAnalysisManager;
     private BookInputManager bookInputManager;
     private CaptchaManager captchaManager;
@@ -54,8 +57,11 @@ public final class AntiAFKPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        languageManager = new LanguageManager(this);
+        systemLanguageManager = new SystemLanguageManager(this);
+        playerLanguageManager = new PlayerLanguageManager(this);
+
         configManager = new ConfigManager(this);
+        systemLanguageManager.setLanguage(configManager.getLang());
 
         vectorPoolManager = new VectorPoolManager(this);
 
@@ -90,8 +96,8 @@ public final class AntiAFKPlugin extends JavaPlugin {
             antiAfkCommand.setExecutor(commandManager);
             antiAfkCommand.setTabCompleter(commandManager);
         } else {
-            getLogger().severe("AntiAFK komutu (antiafk) plugin.yml dosyasında bulunamadı veya hatalı yapılandırıldı!");
-            getLogger().severe("Plugin komutları çalışmayacak. Lütfen plugin.yml dosyanızı kontrol edin.");
+            getLogger().severe(systemLanguageManager.getSystemMessage(Lang.ANTIAFK_COMMAND_NOT_IN_YML));
+            getLogger().severe(systemLanguageManager.getSystemMessage(Lang.PLUGIN_COMMANDS_WILL_NOT_WORK));
         }
 
         if (configManager.isAfkCommandEnabled()){
@@ -102,7 +108,7 @@ public final class AntiAFKPlugin extends JavaPlugin {
                 afkCommand.setExecutor(afkCommandHandler);
                 afkCommand.setTabCompleter(afkCommandHandler);
             } else {
-                getLogger().severe("/afk komutu plugin.yml'de bulunamadı!");
+                getLogger().severe(systemLanguageManager.getSystemMessage(Lang.AFK_COMMAND_NOT_IN_YML));
             }
         }
 
@@ -111,7 +117,7 @@ public final class AntiAFKPlugin extends JavaPlugin {
             cevapCommand.setExecutor(new CevapCommand(this));
             cevapCommand.setTabCompleter(new CevapCommand(this));
         } else {
-            getLogger().severe("/afkcevap komutu plugin.yml'de bulunamadı!");
+            getLogger().severe(systemLanguageManager.getSystemMessage(Lang.AFKCEVAP_COMMAND_NOT_IN_YML));
         }
 
         new AFKCheckTask(this).runTaskTimer(this, 100L, 1L);
@@ -120,26 +126,26 @@ public final class AntiAFKPlugin extends JavaPlugin {
             protocolLibEnabled = true;
             bookInputManager = new BookInputManager(this);
             getServer().getPluginManager().registerEvents(new BookInputListener(bookInputManager), this);
-            getLogger().info("ProtocolLib bulundu, kitap düzenleme özelliği aktif.");
+            getLogger().info(systemLanguageManager.getSystemMessage(Lang.PROTOCOLLIB_FOUND));
         } else {
-            getLogger().warning("ProtocolLib bulunamadı! Bölge aksiyonları için komut düzenleme özelliği devre dışı bırakıldı.");
+            getLogger().warning(systemLanguageManager.getSystemMessage(Lang.PROTOCOLLIB_NOT_FOUND));
         }
 
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new AFKPlaceholder(this).register();
             placeholderApiEnabled = true;
-            getLogger().info("PlaceholderAPI bulundu ve entegrasyon sağlandı.");
+            getLogger().info(systemLanguageManager.getSystemMessage(Lang.PLACEHOLDERAPI_FOUND));
         } else {
-            getLogger().info("PlaceholderAPI bulunamadı, placeholder özellikleri kısıtlı çalışacak.");
+            getLogger().info(systemLanguageManager.getSystemMessage(Lang.PLACEHOLDERAPI_NOT_FOUND));
         }
 
         if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
             worldGuardHooked = true;
-            getLogger().info("WorldGuard bulundu ve entegrasyon sağlandı.");
+            getLogger().info(systemLanguageManager.getSystemMessage(Lang.WORLDGUARD_FOUND));
         } else {
             if (configManager.isWorldGuardEnabled()) {
-                getLogger().warning("Config'de WorldGuard entegrasyonu aktif fakat sunucuda WorldGuard bulunamadı.");
+                getLogger().warning(systemLanguageManager.getSystemMessage(Lang.WORLDGUARD_ENABLED_BUT_NOT_FOUND));
             }
         }
 
@@ -148,7 +154,7 @@ public final class AntiAFKPlugin extends JavaPlugin {
         new ListenerManager(this).registerListeners();
         getServer().getPluginManager().registerEvents(new MenuListener(), this);
 
-        getLogger().info("AntiAFK plugini başarıyla başlatıldı!");
+        getLogger().info(systemLanguageManager.getSystemMessage(Lang.PLUGIN_ENABLED_SUCCESSFULLY));
     }
 
     @Override
@@ -166,7 +172,7 @@ public final class AntiAFKPlugin extends JavaPlugin {
             databaseManager.disconnect();
         }
         Bukkit.getScheduler().cancelTasks(this);
-        getLogger().info("AntiAFK plugini devre dışı bırakıldı.");
+        getLogger().info(systemLanguageManager.getSystemMessage(Lang.PLUGIN_DISABLED));
     }
 
     public ConfigManager getConfigManager() {
@@ -213,8 +219,8 @@ public final class AntiAFKPlugin extends JavaPlugin {
         return Optional.ofNullable(bookInputManager);
     }
 
-    public LanguageManager getLanguageManager() { return languageManager; }
-
+    public PlayerLanguageManager getPlayerLanguageManager() { return playerLanguageManager; }
+    public SystemLanguageManager getSystemLanguageManager() { return systemLanguageManager; }
     public Optional<CaptchaManager> getCaptchaManager() {
         return Optional.ofNullable(captchaManager);
     }

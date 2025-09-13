@@ -4,7 +4,7 @@ import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.data.PointlessActivityData;
 import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
-import com.bentahsin.antiafk.managers.LanguageManager;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -24,7 +24,7 @@ public abstract class ActivityListener {
     private final AntiAFKPlugin plugin;
     private final AFKManager afkManager;
     private final ConfigManager configManager;
-    private final LanguageManager languageManager;
+    private final PlayerLanguageManager languageManager;
 
     private static final Map<UUID, Long> lastWorldChangeTime = new HashMap<>();
     private static final Map<UUID, Integer> worldChangeCounts = new HashMap<>();
@@ -33,7 +33,7 @@ public abstract class ActivityListener {
         this.plugin = plugin;
         this.afkManager = plugin.getAfkManager();
         this.configManager = plugin.getConfigManager();
-        this.languageManager = plugin.getLanguageManager();
+        this.languageManager = plugin.getPlayerLanguageManager();
     }
 
     /**
@@ -175,5 +175,5 @@ public abstract class ActivityListener {
     protected AntiAFKPlugin getPlugin() { return plugin; }
     protected AFKManager getAfkManager() { return afkManager; }
     protected ConfigManager getConfigManager() { return configManager; }
-    protected LanguageManager getLanguageManager() { return languageManager; }
+    protected PlayerLanguageManager getLanguageManager() { return languageManager; }
 }

@@ -2,6 +2,7 @@ package com.bentahsin.antiafk.behavior;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.behavior.util.TrajectoryComparator;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -19,6 +20,7 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
 
     private final AntiAFKPlugin plugin;
     private final BehaviorAnalysisManager analysisManager;
+    private final PlayerLanguageManager plLang;
 
     private final int minTrajectoryPoints;
     private final int maxTrajectoryPoints;
@@ -30,6 +32,7 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
 
     public BehaviorAnalysisTask(AntiAFKPlugin plugin, BehaviorAnalysisManager manager) {
         this.plugin = plugin;
+        this.plLang = plugin.getPlayerLanguageManager();
         this.analysisManager = manager;
 
         this.minTrajectoryPoints = plugin.getConfig().getInt("behavioral-analysis.min-trajectory-points", 20);
@@ -94,7 +97,7 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
                                 final int count = data.getConsecutiveRepeatCount();
                                 final double time = (double) currentLength / 20.0;
                                 Bukkit.getScheduler().runTask(plugin, () ->
-                                        plugin.getLanguageManager().sendMessage(player, "behavior.debug.repetition",
+                                        plLang.sendMessage(player, "behavior.debug.repetition",
                                                 "%time%", String.format("%.1f", time),
                                                 "%count%", String.valueOf(count),
                                                 "%max_repeats%", String.valueOf(maxRepeats)

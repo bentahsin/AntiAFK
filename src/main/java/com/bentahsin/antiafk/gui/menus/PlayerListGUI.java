@@ -4,7 +4,7 @@ import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.gui.Menu;
 import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
 import com.bentahsin.antiafk.managers.AFKManager;
-import com.bentahsin.antiafk.managers.LanguageManager;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.utils.TimeUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -20,14 +20,14 @@ public class PlayerListGUI extends Menu {
 
     private final AntiAFKPlugin plugin;
     private final AFKManager afkManager;
-    private final LanguageManager lang;
+    private final PlayerLanguageManager lang;
     private final int page;
 
     public PlayerListGUI(PlayerMenuUtility playerMenuUtility, AntiAFKPlugin plugin, int page) {
         super(playerMenuUtility);
         this.plugin = plugin;
         this.afkManager = plugin.getAfkManager();
-        this.lang = plugin.getLanguageManager();
+        this.lang = plugin.getPlayerLanguageManager();
         this.page = page;
     }
 

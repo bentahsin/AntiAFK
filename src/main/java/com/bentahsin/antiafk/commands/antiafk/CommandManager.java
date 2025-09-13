@@ -2,6 +2,7 @@ package com.bentahsin.antiafk.commands.antiafk;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.commands.antiafk.subcommands.*;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -18,10 +19,12 @@ import java.util.stream.Collectors;
 public class CommandManager implements CommandExecutor, TabCompleter {
 
     private final AntiAFKPlugin plugin;
+    private final PlayerLanguageManager plLang;
     private final Map<String, ISubCommand> subCommands = new HashMap<>();
 
     public CommandManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.plLang = plugin.getPlayerLanguageManager();
         registerSubCommands();
     }
 
@@ -45,7 +48,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         if (args.length == 0) {
-            plugin.getLanguageManager().sendMessage(sender, "command.antiafk.usage", "%label%", label);
+            plLang.sendMessage(sender, "command.antiafk.usage", "%label%", label);
             return true;
         }
 
@@ -53,12 +56,12 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         ISubCommand subCommand = subCommands.get(subCommandName);
 
         if (subCommand == null) {
-            plugin.getLanguageManager().sendMessage(sender, "command.antiafk.usage", "%label%", label);
+            plLang.sendMessage(sender, "command.antiafk.usage", "%label%", label);
             return true;
         }
 
         if (subCommand.getPermission() != null && !sender.hasPermission(subCommand.getPermission())) {
-            plugin.getLanguageManager().sendMessage(sender, "error.no_permission");
+            plLang.sendMessage(sender, "error.no_permission");
             return true;
         }
 

@@ -3,7 +3,7 @@ package com.bentahsin.antiafk.gui.menus;
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.gui.Menu;
 import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
-import com.bentahsin.antiafk.managers.LanguageManager;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
@@ -20,7 +20,7 @@ public class ConfirmationGUI extends Menu {
     private final ItemStack confirmationItem;
     private final Consumer<InventoryClickEvent> onConfirm;
     private final Consumer<InventoryClickEvent> onCancel;
-    private final LanguageManager lang;
+    private final PlayerLanguageManager lang;
 
     /**
      * Yeni bir onay menüsü oluşturur.
@@ -37,7 +37,7 @@ public class ConfirmationGUI extends Menu {
         this.confirmationItem = confirmationItem;
         this.onConfirm = onConfirm;
         this.onCancel = onCancel;
-        this.lang = plugin.getLanguageManager();
+        this.lang = plugin.getPlayerLanguageManager();
     }
 
     @Override

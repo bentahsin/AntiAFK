@@ -2,7 +2,7 @@ package com.bentahsin.antiafk.commands.afk;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.managers.AFKManager;
-import com.bentahsin.antiafk.managers.LanguageManager;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -16,12 +16,12 @@ public class ToggleAFKCommand implements IAFKSubCommand {
 
     private final AntiAFKPlugin plugin;
     private final AFKManager afkManager;
-    private final LanguageManager lang;
+    private final PlayerLanguageManager plLang;
 
     public ToggleAFKCommand(AntiAFKPlugin plugin) {
         this.plugin = plugin;
         this.afkManager = plugin.getAfkManager();
-        this.lang = plugin.getLanguageManager();
+        this.plLang = plugin.getPlayerLanguageManager();
     }
 
     @Override
@@ -37,14 +37,14 @@ public class ToggleAFKCommand implements IAFKSubCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (!(sender instanceof Player)) {
-            lang.sendMessage(sender, "error.must_be_player");
+            plLang.sendMessage(sender, "error.must_be_player");
             return;
         }
 
         Player player = (Player) sender;
 
         if (!plugin.getConfigManager().isAfkCommandEnabled()) {
-            lang.sendMessage(player, "command.afk.command_disabled");
+            plLang.sendMessage(player, "command.afk.command_disabled");
             return;
         }
 

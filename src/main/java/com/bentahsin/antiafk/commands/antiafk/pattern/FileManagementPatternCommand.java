@@ -1,10 +1,13 @@
 package com.bentahsin.antiafk.commands.antiafk.pattern;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.language.Lang;
+import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.learning.Pattern;
 import com.bentahsin.antiafk.learning.serialization.ISerializer;
 import com.bentahsin.antiafk.learning.serialization.JsonPatternSerializer;
 import com.bentahsin.antiafk.learning.serialization.KryoPatternSerializer;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
 
@@ -23,9 +26,13 @@ import java.util.stream.Collectors;
 public class FileManagementPatternCommand implements IPatternSubCommand {
 
     private final AntiAFKPlugin plugin;
+    private final PlayerLanguageManager plLang;
+    private final SystemLanguageManager sysLang;
 
     public FileManagementPatternCommand(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.plLang = plugin.getPlayerLanguageManager();
+        this.sysLang = plugin.getSystemLanguageManager();
     }
 
     @Override
@@ -46,7 +53,7 @@ public class FileManagementPatternCommand implements IPatternSubCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (args.length < 1) {
-            sender.sendMessage("§cKullanım: /antiafk pattern " + getUsage());
+            plLang.sendMessage(sender, "command.pattern.manage.usage");
             return;
         }
 
@@ -55,7 +62,7 @@ public class FileManagementPatternCommand implements IPatternSubCommand {
         switch (action) {
             case "transform":
                 if (args.length < 2) {
-                    sender.sendMessage("§cKullanım: /antiafk pattern manage transform <hedef_format> [klasör]");
+                    plLang.sendMessage(sender, "command.pattern.manage.transform.usage");
                     return;
                 }
                 handleTransform(sender, Arrays.copyOfRange(args, 1, args.length));
@@ -64,7 +71,7 @@ public class FileManagementPatternCommand implements IPatternSubCommand {
             case "delete":
             case "move":
                 if (args.length < 3) {
-                    sender.sendMessage("§cKullanım: /antiafk pattern manage " + action + " <klasör> <desen_adı>");
+                    plLang.sendMessage(sender, "command.pattern.manage.action.usage", "%action%", action);
                     return;
                 }
 
@@ -77,13 +84,13 @@ public class FileManagementPatternCommand implements IPatternSubCommand {
                 } else if (folderName.equals("known_routes")) {
                     sourceDir = new File(plugin.getDataFolder(), "known_routes");
                 } else {
-                    sender.sendMessage("§cGeçersiz klasör. Kullanılabilir: records, known_routes");
+                    plLang.sendMessage(sender, "command.pattern.manage.invalid_folder");
                     return;
                 }
 
                 File patternFile = findPatternFile(sourceDir, patternName);
                 if (patternFile == null) {
-                    sender.sendMessage("§c'" + patternName + "' adında bir desen '" + folderName + "' klasöründe bulunamadı.");
+                    plLang.sendMessage(sender, "command.pattern.manage.pattern_not_found", "%pattern%", patternName, "%folder%", folderName);
                     return;
                 }
 
@@ -95,34 +102,34 @@ public class FileManagementPatternCommand implements IPatternSubCommand {
                 break;
 
             default:
-                sender.sendMessage("§cGeçersiz eylem. Kullanılabilir: delete, move, transform");
+                plLang.sendMessage(sender, "command.pattern.manage.invalid_action");
                 break;
         }
     }
 
     private void handleTransform(CommandSender sender, String[] args) {
         if (args.length < 1) {
-            sender.sendMessage("§cKullanım: /antiafk pattern manage transform <hedef_format> [klasör]");
+            plLang.sendMessage(sender, "command.pattern.manage.transform.usage");
             return;
         }
 
         String targetFormat = args[0].toLowerCase();
         if (!targetFormat.equals("json") && !targetFormat.equals("kryo")) {
-            sender.sendMessage("§cGeçersiz hedef format. Kullanılabilir: json, kryo");
+            plLang.sendMessage(sender, "command.pattern.manage.transform.invalid_format");
             return;
         }
 
         String folderName = (args.length > 1) ? args[1].toLowerCase() : "records";
         File directory = new File(plugin.getDataFolder(), folderName);
 
-        sender.sendMessage("§e'" + folderName + "' klasöründeki desenler '" + targetFormat + "' formatına dönüştürülüyor...");
+        plLang.sendMessage(sender, "command.pattern.manage.transform.in_progress", "%folder%", folderName, "%format%", targetFormat);
 
         transformAll(directory, targetFormat).whenComplete((count, ex) -> {
             if (ex != null) {
-                sender.sendMessage("§cDönüştürme sırasında bir hata oluştu: " + ex.getMessage());
+                plLang.sendMessage(sender, "command.pattern.manage.transform.error", "%error%", ex.getMessage());
             } else {
-                sender.sendMessage("§aBaşarılı! " + count + " adet desen dosyası dönüştürüldü.");
-                sender.sendMessage("§eDeğişikliklerin etkili olması için '/antiafk reload' kullanın.");
+                plLang.sendMessage(sender, "command.pattern.manage.transform.success", "%count%", String.valueOf(count));
+                plLang.sendMessage(sender, "command.pattern.reload_required");
             }
         });
     }
@@ -156,11 +163,14 @@ public class FileManagementPatternCommand implements IPatternSubCommand {
                     }
 
                     if (!file.equals(newFile)) {
-                        file.delete();
+                        boolean ignored = file.delete();
                     }
                     convertedCount++;
                 } catch (Exception e) {
-                    plugin.getLogger().log(Level.WARNING, "Could not transform pattern file: " + file.getName(), e);
+                    plugin.getLogger().log(Level.WARNING, sysLang.getSystemMessage(
+                            Lang.PATTERN_TRANSFORM_FILE_ERROR,
+                            file.getName()
+                    ), e);
                 }
             }
             return convertedCount;
@@ -169,9 +179,9 @@ public class FileManagementPatternCommand implements IPatternSubCommand {
 
     private void handleDelete(CommandSender sender, File file) {
         if (file.delete()) {
-            sender.sendMessage("§a'" + file.getName() + "' deseni başarıyla silindi.");
+            plLang.sendMessage(sender, "command.pattern.manage.delete.success", "%filename%", file.getName());
         } else {
-            sender.sendMessage("§c'" + file.getName() + "' deseni silinirken bir hata oluştu.");
+            plLang.sendMessage(sender, "command.pattern.manage.delete.error", "%filename%", file.getName());
         }
     }
 
@@ -182,16 +192,16 @@ public class FileManagementPatternCommand implements IPatternSubCommand {
         } else {
             targetDir = new File(plugin.getDataFolder(), "records");
         }
-        if (!targetDir.exists()) targetDir.mkdirs();
+        if (!targetDir.exists()) { boolean ignored = targetDir.mkdirs(); }
 
         File destFile = new File(targetDir, sourceFile.getName());
 
         try {
             Files.move(sourceFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            sender.sendMessage("§a'" + sourceFile.getName() + "' deseni '" + targetDir.getName() + "' klasörüne taşındı.");
-            sender.sendMessage("§eDeğişikliklerin etkili olması için '/antiafk reload' kullanın.");
+            plLang.sendMessage(sender, "command.pattern.manage.move.success", "%filename%", sourceFile.getName(), "%target_folder%", targetDir.getName());
+            plLang.sendMessage(sender, "command.pattern.reload_required");
         } catch (Exception e) {
-            sender.sendMessage("§cDosya taşınırken bir hata oluştu: " + e.getMessage());
+            plLang.sendMessage(sender, "command.pattern.manage.move.error", "%error%", e.getMessage());
         }
     }
 

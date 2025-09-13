@@ -13,6 +13,7 @@ error:
   protocollib_disabled: "&cBu özellik için ProtocolLib eklentisi gereklidir."
   no_actions_defined: "&cConfig dosyasında tanımlı bir AFK aksiyonu bulunamadı."
   invalid_time_format: "&cGeçersiz zaman formatı! (Örn: 10m, 1h, 30s)"
+  afk_command_misconfigured: "&cAFK komutu düzgün yapılandırılmamış."
 
 info:
   reloaded: "&aEklenti konfigürasyonu ve mesajları başarıyla yeniden yüklendi."
@@ -40,6 +41,7 @@ command:
       no_afk_players: "&aŞu anda sunucuda AFK olan oyuncu bulunmuyor."
       invalid_page: "&cGeçersiz sayfa numarası."
     check:
+      usage: "&cKullanım: /antiafk check <oyuncu>"
       header: "!&8&m----------&r &6AntiAFK Durumu: %player% &8&m----------"
       status_afk: "!&fMevcut Durum: &cAFK"
       status_suspicious: "!&fMevcut Durum: &eŞüpheli (Captcha Bekleniyor)"
@@ -49,11 +51,11 @@ command:
       boolean_yes: "!&aEvet"
       boolean_no: "!&cHayır"
     top:
-      usage: "&cKullanım: /%label% top <time|punishments>"
+      usage: "&cKullanım: /antiafk top <time|punishments>"
       invalid_category: "&cGeçersiz kategori. Kullanılabilir: time, punishments"
       no_data: "&cGösterilecek veri bulunamadı."
-      header_time: "!&8&m----&r &6En Uzun Süre AFK Kalanlar &8&m----"
-      header_punishments: "!&8&m----&r &6En Çok Ceza Alanlar &8&m----"
+      header_time: "!&8&m-------&r &6En Uzun Süre AFK Kalanlar &8&m-------"
+      header_punishments: "!&8&m-------&r &6En Çok Ceza Alanlar &8&m-------"
       entry: "!&e%rank%. &f%player% &7- &c%value%"
   afk:
     usage: "&cKullanım: /afk [sebep]"
@@ -63,6 +65,56 @@ command:
     on_afk_broadcast: "&e%player_displayname% &7artık AFK. (%reason%)"
     on_return_broadcast: "&e%player_displayname% &7artık AFK değil."
     command_disabled: "&cAFK komutu şu anda yönetici tarafından devre dışı bırakılmıştır."
+  afkcevap:
+    usage: "&cKullanım: /afkcevap <cevap>"
+  pattern:
+    learning_mode_disabled: "&cÖğrenme Modu bu sunucuda aktif değil (config.yml'de kapalı)."
+    help:
+      header: "!&8&m--------&r &6AntiAFK Desen Yönetimi &8&m--------"
+      entry: "!&e/antiafk pattern %usage%"
+      footer: "!&8&m--------------------------------------------"
+    reload_required: "&eDeğişikliklerin etkili olması için '/antiafk reload' kullanın."
+    manage:
+      usage: "&cKullanım: /antiafk pattern manage <delete|move|transform> ..."
+      action:
+        usage: "&cKullanım: /antiafk pattern manage %action% <klasör> <desen_adı>"
+      invalid_folder: "&cGeçersiz klasör. Kullanılabilir: records, known_routes"
+      pattern_not_found: "&c'%pattern%' adında bir desen '%folder%' klasöründe bulunamadı."
+      invalid_action: "&cGeçersiz eylem. Kullanılabilir: delete, move, transform"
+      transform:
+        usage: "&cKullanım: /antiafk pattern manage transform <hedef_format> [klasör]"
+        invalid_format: "&cGeçersiz hedef format. Kullanılabilir: json, kryo"
+        in_progress: "&e'%folder%' klasöründeki desenler '%format%' formatına dönüştürülüyor..."
+        success: "&aBaşarılı! %count% adet desen dosyası dönüştürüldü."
+        error: "&cDönüştürme sırasında bir hata oluştu: %error%"
+      delete:
+        success: "&a'%filename%' deseni başarıyla silindi."
+        error: "&c'%filename%' deseni silinirken bir hata oluştu."
+      move:
+        success: "&a'%filename%' deseni '%target_folder%' klasörüne taşındı."
+        error: "&cDosya taşınırken bir hata oluştu: %error%"
+    list:
+      folder_empty_or_not_found: "&e'%folder%' klasörü boş veya bulunamadı."
+      no_patterns_found: "&e'%folder%' klasöründe hiç desen bulunamadı."
+      header: "!&8&m----&r &6Desenler (%folder%) &8&m----"
+      entry: "!&e- %pattern_name% &7(Format: %format%, Boyut: %size% KB)"
+    record:
+      usage: "&cKullanım: /antiafk pattern record <oyuncu> <start|save|cancel> [desen_adı] [format]"
+      usage_save: "&cKullanım: /antiafk pattern record <oyuncu> save <desen_adı> [format]"
+      invalid_action: "&cGeçersiz eylem. Kullanılabilir: start, save, cancel"
+      start:
+        success: "&a%player% için desen kaydı başarıyla başlatıldı."
+        already_recording: "&c%player% zaten kaydediliyor."
+        notify_player: "&e[AntiAFK] Bir yönetici hareketlerinizi kaydetmeye başladı."
+      save:
+        invalid_format: "&cGeçersiz format. Kullanılabilir: json, kryo"
+        success: "&aDesen '%pattern_name%' başarıyla kaydedilmek üzere sıraya alındı."
+        not_recording_or_no_data: "&c%player% kaydedilmiyordu veya hiç hareket etmedi."
+        notify_player: "&e[AntiAFK] Hareket kaydınız durduruldu ve kaydedildi."
+      cancel:
+        success: "&a%player% için desen kaydı iptal edildi."
+        not_recording: "&c%player% zaten kaydedilmiyordu."
+        notify_player: "&e[AntiAFK] Hareket kaydınız iptal edildi."
 
 # Sabıka Sistemi Mesajları (/antiafk check komutu için)
 sabika_system:

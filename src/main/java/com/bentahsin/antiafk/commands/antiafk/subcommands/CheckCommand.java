@@ -3,7 +3,7 @@ package com.bentahsin.antiafk.commands.antiafk.subcommands;
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.commands.antiafk.ISubCommand;
 import com.bentahsin.antiafk.managers.AFKManager;
-import com.bentahsin.antiafk.managers.LanguageManager;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.models.PlayerStats;
 import com.bentahsin.antiafk.utils.TimeUtil;
 import org.bukkit.Bukkit;
@@ -26,12 +26,12 @@ import java.util.stream.Collectors;
 public class CheckCommand implements ISubCommand {
 
     private final AntiAFKPlugin plugin;
-    private final LanguageManager lang;
+    private final PlayerLanguageManager plLang;
     private final AFKManager afkManager;
 
     public CheckCommand(AntiAFKPlugin plugin) {
         this.plugin = plugin;
-        this.lang = plugin.getLanguageManager();
+        this.plLang = plugin.getPlayerLanguageManager();
         this.afkManager = plugin.getAfkManager();
     }
 
@@ -48,7 +48,7 @@ public class CheckCommand implements ISubCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(lang.getPrefix() + "§cKullanım: /antiafk check <oyuncu>");
+            plLang.sendMessage(sender, "command.antiafk.check.usage");
             return;
         }
 
@@ -57,7 +57,7 @@ public class CheckCommand implements ISubCommand {
         findOfflinePlayerAsync(playerName).thenAcceptAsync(target -> {
 
             if (target == null || (!target.hasPlayedBefore() && !target.isOnline())) {
-                lang.sendMessage(sender, "error.player_not_found");
+                plLang.sendMessage(sender, "error.player_not_found");
                 return;
             }
 
@@ -79,31 +79,31 @@ public class CheckCommand implements ISubCommand {
      * @param onlineTarget Eğer oyuncu online ise Player nesnesi, değilse null.
      */
     private void displayPlayerStats(CommandSender sender, OfflinePlayer target, PlayerStats stats, Player onlineTarget) {
-        lang.sendMessage(sender, "command.antiafk.check.header", "%player%", target.getName());
+        plLang.sendMessage(sender, "command.antiafk.check.header", "%player%", target.getName());
 
         String statusMessage;
         if (onlineTarget != null && afkManager.isEffectivelyAfk(onlineTarget)) {
-            statusMessage = lang.getMessage("command.antiafk.check.status_afk");
+            statusMessage = plLang.getMessage("command.antiafk.check.status_afk");
         } else if (onlineTarget != null && afkManager.isSuspicious(onlineTarget)) {
-            statusMessage = lang.getMessage("command.antiafk.check.status_suspicious");
+            statusMessage = plLang.getMessage("command.antiafk.check.status_suspicious");
         } else {
-            statusMessage = lang.getMessage("command.antiafk.check.status_active");
+            statusMessage = plLang.getMessage("command.antiafk.check.status_active");
         }
         sender.sendMessage(statusMessage);
 
-        sender.sendMessage(lang.getMessage("sabika_system.total_afk_time",
+        sender.sendMessage(plLang.getMessage("sabika_system.total_afk_time",
                 "%time%", TimeUtil.formatTime(stats.getTotalAfkTime())));
 
-        sender.sendMessage(lang.getMessage("sabika_system.times_punished",
+        sender.sendMessage(plLang.getMessage("sabika_system.times_punished",
                 "%count%", String.valueOf(stats.getTimesPunished())));
 
         if (stats.getLastPunishmentTime() > 0) {
             long timeSince = (System.currentTimeMillis() - stats.getLastPunishmentTime()) / 1000;
-            sender.sendMessage(lang.getMessage("sabika_system.last_punishment",
+            sender.sendMessage(plLang.getMessage("sabika_system.last_punishment",
                     "%time%", TimeUtil.formatTime(timeSince) + " önce"));
         }
 
-        sender.sendMessage(lang.getMessage("sabika_system.captcha_stats",
+        sender.sendMessage(plLang.getMessage("sabika_system.captcha_stats",
                 "%passed%", String.valueOf(stats.getTuringTestsPassed()),
                 "%failed%", String.valueOf(stats.getTuringTestsFailed())));
 
@@ -112,19 +112,19 @@ public class CheckCommand implements ISubCommand {
             String displayReason;
 
             if (rawReason != null && (rawReason.startsWith("behavior.") || rawReason.startsWith("command.afk"))) {
-                displayReason = lang.getMessage(rawReason).replace(lang.getPrefix(), "");
+                displayReason = plLang.getMessage(rawReason).replace(plLang.getPrefix(), "");
             } else {
                 displayReason = rawReason;
             }
 
-            sender.sendMessage(lang.getMessage("command.antiafk.check.reason",
+            sender.sendMessage(plLang.getMessage("command.antiafk.check.reason",
                     "%reason%", displayReason));
         }
 
-        String yes = lang.getMessage("command.antiafk.check.boolean_yes");
-        String no = lang.getMessage("command.antiafk.check.boolean_no");
+        String yes = plLang.getMessage("command.antiafk.check.boolean_yes");
+        String no = plLang.getMessage("command.antiafk.check.boolean_no");
 
-        sender.sendMessage(lang.getMessage("command.antiafk.check.is_autonomous",
+        sender.sendMessage(plLang.getMessage("command.antiafk.check.is_autonomous",
                 "%value%", (onlineTarget != null && afkManager.isMarkedAsAutonomous(onlineTarget)) ? yes : no));
     }
 

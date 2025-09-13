@@ -3,7 +3,7 @@ package com.bentahsin.antiafk.gui.menus;
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.gui.Menu;
 import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
-import com.bentahsin.antiafk.managers.LanguageManager;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 
@@ -14,12 +14,12 @@ import java.util.List;
 public class BehavioralAnalysisGUI extends Menu {
 
     private final AntiAFKPlugin plugin;
-    private final LanguageManager lang;
+    private final PlayerLanguageManager lang;
 
     public BehavioralAnalysisGUI(PlayerMenuUtility playerMenuUtility, AntiAFKPlugin plugin) {
         super(playerMenuUtility);
         this.plugin = plugin;
-        this.lang = plugin.getLanguageManager();
+        this.lang = plugin.getPlayerLanguageManager();
     }
 
     @Override

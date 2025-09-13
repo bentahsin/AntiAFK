@@ -1,6 +1,8 @@
 package com.bentahsin.antiafk.learning;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.language.Lang;
+import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.learning.serialization.JsonPatternSerializer;
 import com.bentahsin.antiafk.learning.serialization.KryoPatternSerializer;
 import com.bentahsin.antiafk.learning.serialization.ISerializer;
@@ -25,14 +27,16 @@ import java.util.logging.Level;
 public class RecordingManager {
 
     private final AntiAFKPlugin plugin;
+    private final SystemLanguageManager sysLang;
     private final Map<UUID, List<MovementVector>> activeRecordings = new ConcurrentHashMap<>();
     private final File recordsDirectory;
 
     public RecordingManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.sysLang = plugin.getSystemLanguageManager();
         this.recordsDirectory = new File(plugin.getDataFolder(), "records");
         if (!recordsDirectory.exists()) {
-            recordsDirectory.mkdirs();
+            boolean ignored = recordsDirectory.mkdirs();
         }
     }
 
@@ -73,9 +77,16 @@ public class RecordingManager {
             File file = new File(recordsDirectory, patternName + "." + serializer.getFileExtension() + ".pattern");
             try (FileOutputStream fos = new FileOutputStream(file)) {
                 serializer.serialize(pattern, fos);
-                plugin.getLogger().info("Pattern '" + patternName + "' successfully saved to " + file.getName());
+                plugin.getLogger().info(sysLang.getSystemMessage(
+                        Lang.PATTERN_SAVED_SUCCESSFULLY,
+                        patternName,
+                        file.getName()
+                ));
             } catch (IOException e) {
-                plugin.getLogger().log(Level.SEVERE, "Could not save pattern '" + patternName + "'", e);
+                plugin.getLogger().log(Level.SEVERE, sysLang.getSystemMessage(
+                        Lang.PATTERN_SAVE_ERROR,
+                        patternName
+                ), e);
             }
         });
 

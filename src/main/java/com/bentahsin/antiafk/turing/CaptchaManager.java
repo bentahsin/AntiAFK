@@ -1,7 +1,9 @@
 package com.bentahsin.antiafk.turing;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
-import com.bentahsin.antiafk.managers.LanguageManager;
+import com.bentahsin.antiafk.language.Lang;
+import com.bentahsin.antiafk.language.SystemLanguageManager;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.utils.ChatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -20,12 +22,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CaptchaManager {
 
     private final AntiAFKPlugin plugin;
+    private final PlayerLanguageManager plLang;
+    private final SystemLanguageManager sysLang;
     private final Map<UUID, CaptchaChallenge> activeChallenges = new ConcurrentHashMap<>();
     private final List<Map.Entry<String, List<String>>> questionPool = new ArrayList<>();
     private final Random random = new Random();
 
     public CaptchaManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.plLang = plugin.getPlayerLanguageManager();
+        this.sysLang = plugin.getSystemLanguageManager();
         loadQuestions();
     }
 
@@ -47,7 +53,7 @@ public class CaptchaManager {
             }
         }
         if (questionPool.isEmpty()) {
-            plugin.getLogger().warning("questions.yml dosyası boş veya hatalı! Turing Testi çalışmayacak.");
+            plugin.getLogger().warning(sysLang.getSystemMessage(Lang.CAPTCHA_QUESTIONS_FILE_EMPTY_OR_INVALID));
         }
     }
 
@@ -71,10 +77,9 @@ public class CaptchaManager {
 
         activeChallenges.put(player.getUniqueId(), new CaptchaChallenge(answers, timeoutTask));
 
-        LanguageManager lang = plugin.getLanguageManager();
-        lang.sendMessage(player, "turing_test.header");
+        plLang.sendMessage(player, "turing_test.header");
         player.sendMessage(ChatUtil.color("  " + question));
-        lang.sendMessage(player, "turing_test.instruction", "%seconds%", String.valueOf(timeoutSeconds));
+        plLang.sendMessage(player, "turing_test.instruction", "%seconds%", String.valueOf(timeoutSeconds));
     }
 
     /**
@@ -85,7 +90,7 @@ public class CaptchaManager {
     public void submitAnswer(Player player, String answer) {
         CaptchaChallenge challenge = activeChallenges.get(player.getUniqueId());
         if (challenge == null) {
-            plugin.getLanguageManager().sendMessage(player, "turing_test.no_active_test");
+            plLang.sendMessage(player, "turing_test.no_active_test");
             return;
         }
 
@@ -105,7 +110,7 @@ public class CaptchaManager {
         plugin.getDatabaseManager().incrementTestsPassed(player.getUniqueId());
 
         plugin.getAfkManager().resetSuspicion(player);
-        plugin.getLanguageManager().sendMessage(player, "turing_test.success");
+        plLang.sendMessage(player, "turing_test.success");
     }
 
     private void failChallenge(Player player) {
@@ -124,7 +129,7 @@ public class CaptchaManager {
             plugin.getAfkManager().setManualAFK(player, "behavior.turing_test_failed");
         }
 
-        plugin.getLanguageManager().sendMessage(player, "turing_test.failure");
+        plLang.sendMessage(player, "turing_test.failure");
     }
 
     public boolean isBeingTested(Player player) {

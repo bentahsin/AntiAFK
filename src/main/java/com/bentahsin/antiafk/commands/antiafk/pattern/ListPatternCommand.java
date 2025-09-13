@@ -1,6 +1,7 @@
 package com.bentahsin.antiafk.commands.antiafk.pattern;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
 
@@ -13,9 +14,11 @@ import java.util.List;
 public class ListPatternCommand implements IPatternSubCommand {
 
     private final AntiAFKPlugin plugin;
+    private final PlayerLanguageManager plLang;
 
     public ListPatternCommand(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.plLang = plugin.getPlayerLanguageManager();
     }
 
     @Override
@@ -43,28 +46,32 @@ public class ListPatternCommand implements IPatternSubCommand {
         } else if (folderName.equals("known_routes")) {
             directory = new File(plugin.getDataFolder(), "known_routes");
         } else {
-            sender.sendMessage("§cGeçersiz klasör. Kullanılabilir: records, known_routes");
+            plLang.sendMessage(sender, "command.pattern.manage.invalid_folder");
             return;
         }
 
         if (!directory.exists() || !directory.isDirectory()) {
-            sender.sendMessage("§e'" + folderName + "' klasörü boş veya bulunamadı.");
+            plLang.sendMessage(sender, "command.pattern.list.folder_empty_or_not_found", "%folder%", folderName);
             return;
         }
 
         File[] files = directory.listFiles(f -> f.getName().endsWith(".pattern"));
         if (files == null || files.length == 0) {
-            sender.sendMessage("§e'" + folderName + "' klasöründe hiç desen bulunamadı.");
+            plLang.sendMessage(sender, "command.pattern.list.no_patterns_found", "%folder%", folderName);
             return;
         }
 
-        sender.sendMessage("§8§m----§r §6Desenler (" + folderName + ") §8§m----");
+        sender.sendMessage(plLang.getMessage("command.pattern.list.header", "%folder%", folderName));
         for (File file : files) {
             String fileName = file.getName().replace(".pattern", "");
             String format = fileName.endsWith(".json") ? "JSON" : (fileName.endsWith(".kryo") ? "Kryo" : "Bilinmiyor");
             String patternName = fileName.replace(".json", "").replace(".kryo", "");
 
-            sender.sendMessage("§e- " + patternName + " §7(Format: " + format + ", Boyut: " + (file.length() / 1024) + " KB)");
+            sender.sendMessage(plLang.getMessage("command.pattern.list.entry",
+                    "%pattern_name%", patternName,
+                    "%format%", format,
+                    "%size%", String.valueOf(file.length() / 1024)
+            ));
         }
     }
 

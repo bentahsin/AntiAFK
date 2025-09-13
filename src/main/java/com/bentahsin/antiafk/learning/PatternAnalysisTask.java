@@ -1,6 +1,8 @@
 package com.bentahsin.antiafk.learning;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.language.Lang;
+import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.learning.dtw.MovementVectorDistanceFn;
 import com.bentahsin.antiafk.learning.pool.VectorPoolManager;
 import com.bentahsin.antiafk.learning.util.LimitedQueue;
@@ -27,6 +29,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class PatternAnalysisTask extends BukkitRunnable {
 
     private final AntiAFKPlugin plugin;
+    private final SystemLanguageManager sysLang;
     private final PatternManager patternManager;
     private final RecordingManager recordingManager;
     private final VectorPoolManager vectorPoolManager;
@@ -43,6 +46,7 @@ public class PatternAnalysisTask extends BukkitRunnable {
 
     public PatternAnalysisTask(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.sysLang = plugin.getSystemLanguageManager();
         this.patternManager = plugin.getPatternManager();
         this.recordingManager = plugin.getRecordingManager();
         this.observationWindows = new ConcurrentHashMap<>();
@@ -80,7 +84,12 @@ public class PatternAnalysisTask extends BukkitRunnable {
                 TimeWarpInfo info = FastDTW.getWarpInfoBetween(playerTimeSeries, patternTimeSeries, searchRadius, distanceFunction);
 
                 if (info.getDistance() < similarityThreshold) {
-                    plugin.getLogger().info("Pattern match found for player " + player.getName() + " with pattern '" + knownPattern.getName() + "'. Distance: " + info.getDistance());
+                    plugin.getLogger().info(sysLang.getSystemMessage(
+                            Lang.PATTERN_MATCH_FOUND,
+                            player.getName(),
+                            knownPattern.getName(),
+                            info.getDistance()
+                    ));
                     Bukkit.getScheduler().runTask(plugin, () -> plugin.getAfkManager().setManualAFK(player, "Öğrenilmiş bot deseni tespiti (" + knownPattern.getName() + ")"));
                     break;
                 }

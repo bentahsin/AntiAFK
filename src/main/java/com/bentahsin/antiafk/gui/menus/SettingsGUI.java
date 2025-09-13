@@ -4,7 +4,7 @@ import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.gui.Menu;
 import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
 import com.bentahsin.antiafk.managers.ConfigManager;
-import com.bentahsin.antiafk.managers.LanguageManager;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.utils.TimeUtil;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
@@ -23,13 +23,13 @@ public class SettingsGUI extends Menu {
 
     private final AntiAFKPlugin plugin;
     private final ConfigManager configManager;
-    private final LanguageManager lang;
+    private final PlayerLanguageManager lang;
 
     public SettingsGUI(PlayerMenuUtility playerMenuUtility, AntiAFKPlugin plugin) {
         super(playerMenuUtility);
         this.plugin = plugin;
         this.configManager = plugin.getConfigManager();
-        this.lang = plugin.getLanguageManager();
+        this.lang = plugin.getPlayerLanguageManager();
     }
 
     @Override

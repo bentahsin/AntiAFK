@@ -1,6 +1,7 @@
 package com.bentahsin.antiafk.managers;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.language.SupportedLanguage;
 import com.bentahsin.antiafk.models.PunishmentLevel;
 import com.bentahsin.antiafk.models.RegionOverride;
 import com.bentahsin.antiafk.utils.TimeUtil;
@@ -23,6 +24,8 @@ import java.util.concurrent.TimeUnit;
 public class ConfigManager {
 
     private final AntiAFKPlugin plugin;
+
+    private SupportedLanguage language;
 
     private long maxAfkTimeSeconds;
     private boolean checkCamera, checkChat, checkInteraction, checkToggleSneak, checkItemDrop;
@@ -86,7 +89,6 @@ public class ConfigManager {
 
     public ConfigManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
-
         this.regionCache = Caffeine.newBuilder()
                 .maximumSize(1000)
                 .expireAfterAccess(5, TimeUnit.MINUTES)
@@ -126,6 +128,9 @@ public class ConfigManager {
     public void loadConfig() {
         plugin.reloadConfig();
         FileConfiguration config = plugin.getConfig();
+
+        String langFrConf = config.getString("lang", "Turkish");
+        this.language = SupportedLanguage.fromConfigName(langFrConf);
 
         rejoinProtectionEnabled = config.getBoolean("rejoin_protection.enabled", true);
         rejoinCooldownSeconds = TimeUtil.parseTime(config.getString("rejoin_protection.cooldown", "5m"));
@@ -345,4 +350,5 @@ public class ConfigManager {
     public long getMaxPatternFileSizeBytes() { return maxPatternFileSizeKb * 1024; }
     public int getMaxVectorsPerPattern() { return maxVectorsPerPattern; }
     public double getPreFilterSizeRatio() { return preFilterSizeRatio; }
+    public SupportedLanguage getLang() { return language; }
 }

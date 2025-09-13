@@ -1,6 +1,8 @@
 package com.bentahsin.antiafk.learning.pool;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.language.Lang;
+import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.learning.MovementVector;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.pool2.impl.GenericObjectPool;
@@ -16,9 +18,11 @@ public class VectorPoolManager {
 
     private final GenericObjectPool<MovementVector> pool;
     private final AntiAFKPlugin plugin;
+    private final SystemLanguageManager sysLang;
 
     public VectorPoolManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.sysLang = plugin.getSystemLanguageManager();
 
         GenericObjectPoolConfig<MovementVector> config = new GenericObjectPoolConfig<>();
         config.setMaxTotal(500);
@@ -41,7 +45,7 @@ public class VectorPoolManager {
             vector.reinitialize(posChange, rotChange, action, durationTicks);
             return vector;
         } catch (Exception e) {
-            plugin.getLogger().log(Level.WARNING, "Could not borrow MovementVector from pool. Creating a new instance as a fallback.", e);
+            plugin.getLogger().log(Level.WARNING, sysLang.getSystemMessage(Lang.VECTOR_POOL_BORROW_ERROR), e);
             return new MovementVector(posChange, rotChange, action, durationTicks);
         }
     }

@@ -1,0 +1,481 @@
+# Este es el archivo de mensajes en Español
+# Si quieres usar Español en lugar de otro idioma, reemplaza el contenido de AntiAFK/messages.yml con este.
+
+# Archivo de Mensajes del Plugin AntiAFK
+# Puedes usar placeholders en el formato %placeholder%.
+# Si un mensaje comienza con '!', el prefijo global (plugin_prefix) no será utilizado.
+
+# Prefijo global que se añade antes de todos los mensajes. Puede dejarse vacío.
+plugin_prefix: "&8[&6AntiAFK&8] &r"
+
+# Mensajes Generales de Error e Información
+error:
+  no_permission: "&cNo tienes permiso para usar este comando."
+  player_not_found: "&cJugador no encontrado o está desconectado."
+  must_be_player: "&cEste comando solo puede ser usado por un jugador."
+  protocollib_disabled: "&cEsta función requiere el plugin ProtocolLib."
+  no_actions_defined: "&cNo hay acciones de AFK definidas en el archivo de configuración."
+  invalid_time_format: "&c¡Formato de tiempo inválido! (ej., 10m, 1h, 30s)"
+  afk_command_misconfigured: "&cEl comando AFK no está configurado correctamente."
+
+info:
+  reloaded: "&aLa configuración y los mensajes del plugin han sido recargados exitosamente."
+
+
+# Mensaje de Protección al Reconectar
+rejoin_kick: "&c¡Tu penalización de AFK aún no ha expirado! Por favor, inténtalo de nuevo en &e%time_left%&c."
+
+# Mensajes de Prueba de Turing (Captcha)
+turing_test:
+  header: "!&8&m------------------------------------------"
+  instruction: "&fPara responder, escribe &e/afkcevap <respuesta> &fen el chat. &c(Tienes %seconds% segundos)"
+  no_active_test: "&cNo tienes una prueba activa para responder en este momento."
+  success: "&a¡Respuesta correcta! Gracias, puedes seguir jugando."
+  failure: "&c¡Respuesta incorrecta o tiempo agotado! Has sido marcado como AFK hasta que muestres actividad."
+
+# Mensajes de Comandos
+command:
+  antiafk:
+    usage: "&cUso: /%label% <reload|panel>"
+    list:
+      header: "!&8&m-------&r &6Jugadores AFK (Página %page%/%max_pages%) &8&m-------"
+      footer: "!&8&m--------------------------------------------------"
+      entry: "!&e%rank%. &f%player% &7- &c%afk_time%"
+      no_afk_players: "&aActualmente no hay jugadores AFK en el servidor."
+      invalid_page: "&cNúmero de página inválido."
+    check:
+      usage: "&cUso: /antiafk check <jugador>"
+      header: "!&8&m----------&r &6Estado AntiAFK: %player% &8&m----------"
+      status_afk: "!&fEstado Actual: &cAFK"
+      status_suspicious: "!&fEstado Actual: &eSospechoso (Esperando Captcha)"
+      status_active: "!&fEstado Actual: &aActivo"
+      reason: "!&fRazón de AFK: &7%reason%"
+      is_autonomous: "!&fMarcado como Bot: %value%"
+      boolean_yes: "!&aSí"
+      boolean_no: "!&cNo"
+    top:
+      usage: "&cUso: /antiafk top <time|punishments>"
+      invalid_category: "&cCategoría inválida. Disponibles: time, punishments"
+      no_data: "&cNo hay datos para mostrar."
+      header_time: "!&8&m-------&r &6Top Jugadores por Tiempo AFK &8&m-------"
+      header_punishments: "!&8&m-------&r &6Top Jugadores por Sanciones &8&m-------"
+      entry: "!&e%rank%. &f%player% &7- &c%value%"
+  afk:
+    usage: "&cUso: /afk [razón]"
+    already_afk: "&eYa estás en modo AFK."
+    now_afk: "&7Ahora estás marcado como AFK."
+    not_afk_now: "&7Ya no estás en modo AFK."
+    on_afk_broadcast: "&e%player_displayname% &7ahora está AFK. (%reason%)"
+    on_return_broadcast: "&e%player_displayname% &7ya no está AFK."
+    command_disabled: "&cEl comando AFK está actualmente desactivado por un administrador."
+  afkcevap:
+    usage: "&cUso: /afkcevap <respuesta>"
+  pattern:
+    learning_mode_disabled: "&cEl Modo de Aprendizaje no está activo en este servidor (desactivado en config.yml)."
+    help:
+      header: "!&8&m--------&r &6Gestión de Patrones AntiAFK &8&m--------"
+      entry: "!&e/antiafk pattern %usage%"
+      footer: "!&8&m--------------------------------------------"
+    reload_required: "&eUsa '/antiafk reload' para que los cambios surtan efecto."
+    manage:
+      usage: "&cUso: /antiafk pattern manage <delete|move|transform> ..."
+      action:
+        usage: "&cUso: /antiafk pattern manage %action% <carpeta> <nombre_patron>"
+      invalid_folder: "&cCarpeta inválida. Disponibles: records, known_routes"
+      pattern_not_found: "&cEl patrón llamado '%pattern%' no se encontró en la carpeta '%folder%'."
+      invalid_action: "&cAcción inválida. Disponibles: delete, move, transform"
+      transform:
+        usage: "&cUso: /antiafk pattern manage transform <formato_destino> [carpeta]"
+        invalid_format: "&cFormato de destino inválido. Disponibles: json, kryo"
+        in_progress: "&eTransformando patrones en la carpeta '%folder%' al formato '%format%'..."
+        success: "&a¡Éxito! Se transformaron %count% archivos de patrón."
+        error: "&cOcurrió un error durante la transformación: %error%"
+      delete:
+        success: "&aEl patrón '%filename%' fue eliminado exitosamente."
+        error: "&cOcurrió un error al eliminar el patrón '%filename%'."
+      move:
+        success: "&aEl patrón '%filename%' ha sido movido a la carpeta '%target_folder%'."
+        error: "&cOcurrió un error al mover el archivo: %error%"
+    list:
+      folder_empty_or_not_found: "&eLa carpeta '%folder%' está vacía o no se encontró."
+      no_patterns_found: "&eNo se encontraron patrones en la carpeta '%folder%'."
+      header: "!&8&m----&r &6Patrones (%folder%) &8&m----"
+      entry: "!&e- %pattern_name% &7(Formato: %format%, Tamaño: %size% KB)"
+    record:
+      usage: "&cUso: /antiafk pattern record <jugador> <start|save|cancel> [nombre_patron] [formato]"
+      usage_save: "&cUso: /antiafk pattern record <jugador> save <nombre_patron> [formato]"
+      invalid_action: "&cAcción inválida. Disponibles: start, save, cancel"
+      start:
+        success: "&aGrabación de patrón iniciada exitosamente para %player%."
+        already_recording: "&c%player% ya está siendo grabado."
+        notify_player: "&e[AntiAFK] Un administrador ha comenzado a grabar tus movimientos."
+      save:
+        invalid_format: "&cFormato inválido. Disponibles: json, kryo"
+        success: "&aEl patrón '%pattern_name%' ha sido puesto en cola para ser guardado."
+        not_recording_or_no_data: "&c%player% no estaba siendo grabado o no se movió."
+        notify_player: "&e[AntiAFK] La grabación de tus movimientos ha sido detenida y guardada."
+      cancel:
+        success: "&aLa grabación de patrón para %player% ha sido cancelada."
+        not_recording: "&c%player% no estaba siendo grabado."
+        notify_player: "&e[AntiAFK] La grabación de tus movimientos ha sido cancelada."
+
+# Mensajes del Sistema de Historial (para /antiafk check)
+sabika_system:
+  total_afk_time: "!&fTiempo Total AFK: &e%time%"
+  times_punished: "!&fTotal de Sanciones: &6%count%"
+  last_punishment: "!&fÚltima Sanción: &ehace %time%"
+  captcha_stats: "!&fCaptcha (Pasadas/Falladas): &a%passed%&7/&c%failed%"
+
+# Razones del Análisis de Comportamiento
+behavior:
+  afk_detected: "Movimiento autónomo detectado."
+  pointless_activity_detected: "Actividad repetitiva sin sentido."
+  autoclicker_detected: "Auto-clicker detectado."
+  rapid_world_change: "Cambio rápido de mundo detectado."
+  turing_test_failed: "Prueba de bot fallada."
+  debug:
+    suspicion: "!§8[AntiAFK-Debug] Sospecha de trayectoria. Análisis iniciado."
+    repetition: "!§8[AntiAFK-Debug] ¡Repetición de trayectoria de %time%s! Conteo: %count%/%max_repeats%"
+    pattern_changed: "§8[AntiAFK-Debug] Trayectoria cambiada. Análisis reiniciado."
+
+# Mensajes de la GUI y Gestión de /antiafk
+gui:
+  # Títulos de Menú
+  menu_titles:
+    admin_panel: "Panel de Admin AntiAFK"
+    player_actions: "Acciones: %player%"
+    player_not_found: "Jugador No Encontrado"
+    player_list: "Lista de Jugadores (Pág. %page%)"
+    region_action_edit_new: "Añadir Nueva Acción"
+    region_action_edit_existing: "Editar Acción"
+    region_actions_list: "Acciones: %region%"
+    region_edit: "Editar: %region%"
+    anvil_region_time_editor: "Establecer Tiempo AFK de Región"
+    region_list: "Gestión de Reglas de Región"
+    settings: "Ajustes Generales"
+    behavioral_analysis: "Ajustes de Análisis de Comportamiento"
+    anvil_max_afk_time: "Establecer Tiempo Máx. AFK"
+    anvil_auto_afk_time: "Establecer Tiempo Auto AFK"
+
+  # Botones del Panel de Admin
+  admin_panel:
+    settings_button:
+      name: "&aAjustes Generales"
+      lore:
+        - "&7Cambia los ajustes básicos del plugin."
+        - "&7(Métodos de detección, comando /afk, etc.)"
+
+    regions_button:
+      name: "&6Gestionar Reglas de Región"
+      lore:
+        - "&7Define reglas de AFK personalizadas"
+        - "&7para regiones de WorldGuard."
+
+    player_management_button:
+      name: "&bGestión de Jugadores"
+      lore:
+        - "&7Ve el estado AFK de los jugadores"
+        - "&7en el servidor y toma acciones."
+
+    reload_button:
+      name: "&eRecargar Plugin"
+      lore:
+        - "&7Recarga los archivos config.yml y"
+        - "&7messages.yml."
+
+  settings_menu:
+    # Botones de Ajustes Generales
+    max_afk_time_button:
+      name: "&eTiempo Máximo de AFK"
+      lore:
+        - "&7El tiempo total de AFK antes de"
+        - "&7que se apliquen las acciones finales."
+        - ""
+        - "&7Actual: &f%value%"
+        - "&8Clic para cambiar."
+
+    auto_afk_time_button:
+      name: "&eTiempo de AFK Automático"
+      lore:
+        - "&7El tiempo tras el cual un jugador"
+        - "&7recibirá la etiqueta de AFK."
+        - ""
+        - "&7Actual: &f%value%"
+        - "&8Clic para cambiar."
+
+    invulnerable_button:
+      name: "&eInvulnerabilidad AFK"
+      lore:
+        - "&7Los jugadores serán invulnerables"
+        - "&7mientras estén AFK."
+
+    # Métodos de Detección (Botones de activación)
+    check_camera:
+      name: "&eMovimiento de Cámara"
+      lore: [ "&7El movimiento de cámara cuenta como actividad." ]
+    check_chat:
+      name: "&eChat/Comando"
+      lore: [ "&7El uso de chat/comandos cuenta como actividad." ]
+    check_interaction:
+      name: "&eInteracción con Bloques"
+      lore: [ "&7Romper/colocar bloques cuenta como actividad." ]
+    check_toggle_sneak:
+      name: "&eAgacharse/Levantarse"
+      lore: [ "&7Agacharse o levantarse cuenta como actividad." ]
+    check_player_attack:
+      name: "&eAtaque"
+      lore: [ "&7Atacar a una entidad cuenta como actividad." ]
+    check_item_drop:
+      name: "&eSoltar Ítem"
+      lore: [ "&7Soltar un ítem cuenta como actividad." ]
+    check_inventory:
+      name: "&eInteracción con Inventario"
+      lore: [ "&7Abrir/hacer clic en un inventario cuenta como actividad." ]
+    check_item_consume:
+      name: "&eConsumo de Ítem"
+      lore: [ "&7Comer/beber pociones cuenta como actividad." ]
+    check_item_change:
+      name: "&eCambio de Ítem en Mano"
+      lore: [ "&7Cambiar de ítem en la hotbar cuenta como actividad." ]
+    check_book:
+      name: "&eInteracción con Libro"
+      lore: [ "&7Leer/escribir en un libro cuenta como actividad." ]
+
+    # Nuevo Botón de Análisis de Comportamiento
+    behavioral_analysis_button:
+      name: "&6&lAjustes de Detección Inteligente"
+      lore:
+        - "&7Gestiona el sistema avanzado"
+        - "&7de análisis de comportamiento."
+        - ""
+        - "&eEste sistema detecta bots que"
+        - "&ese mueven en trayectorias repetitivas."
+        - ""
+        - "&8Clic para editar los ajustes."
+
+    # Botones Generales
+    back_button:
+      name: "&cVolver Atrás"
+
+    # Textos comunes para botones de activación
+    toggle_status_lore:
+      - ""
+      - "%status%"
+      - "&8Clic para cambiar"
+    status_active: "&aEstado: Activado"
+    status_disabled: "&cEstado: Desactivado"
+
+  player_actions_menu:
+    apply_afk_actions_button:
+      name: "&bAplicar Acciones de AFK"
+      lore:
+        - "&7Somete al jugador a las acciones"
+        - "&7que ocurrirían al expirar su tiempo."
+        - "&7(ej., enviar al lobby)"
+
+    toggle_manual_afk_button:
+      name: "&eActivar/Desactivar AFK Manual"
+      lore:
+        - "%status%" # Rellenado dinámicamente
+        - "&8Clic para cambiar"
+      status_afk: "&7Estado actual: &cManualmente AFK"
+      status_active: "&7Estado actual: &aActivo"
+
+    back_button: "&cVolver Atrás (Pág. %page%)"
+
+  player_list_menu:
+    back_to_main_menu_button:
+      name: "&cVolver al Menú Principal"
+      lore: [ ]
+
+    previous_page_button:
+      name: "&d< Página Anterior"
+      lore: [ ]
+
+    next_page_button:
+      name: "&dPágina Siguiente >"
+      lore: [ ]
+
+    # Formato de la descripción para las cabezas de jugadores
+    player_head_lore:
+      - "&7Tiempo AFK: &e%afk_time%"
+      - "&7Estado: %status%"
+      - "&7Mundo: &f%world%"
+      - ""
+      - "&8Clic para realizar acciones."
+
+    # Textos para el estado del jugador
+    status_afk: "&cManualmente AFK"
+    status_active: "&aActivo"
+
+  region_action_edit_menu:
+    change_type_button:
+      name: "&aCambiar Tipo de Acción"
+      lore:
+        - "&7Tipo Actual: &e%type%"
+        - "&8Clic para cambiar."
+
+    edit_command_button:
+      name: "&bEditar Comando"
+      lore:
+        - "&7Comando Actual: &e%command%"
+        - ""
+        - "&8Clic para abrir el editor avanzado."
+
+    edit_command_disabled_button:
+      name: "&cEditar Comando (Desactivado)"
+      lore:
+        - "&7Para usar esta función, necesitas"
+        - "&einstalar el plugin ProtocolLib"
+        - "&7en tu servidor."
+
+    delete_action_button:
+      name: "&4Eliminar Acción"
+      lore:
+        - "&cElimina permanentemente esta acción"
+        - "&cde la lista."
+
+    back_button: "&cVolver Atrás"
+
+    # Para GUI de Confirmación
+    delete_confirmation_title: "§4¿Eliminar Acción?"
+    delete_confirmation_item_name: "&cLa acción será eliminada"
+
+  region_actions_list_menu:
+    # Formato para cada ítem de acción listado
+    action_item:
+      name: "&aTipo de Acción: &f%type%"
+      lore:
+        - "&7Comando: &e%command%"
+        - ""
+        - "&8Clic para editar."
+
+    # Información mostrada si no hay acciones personalizadas para la región
+    using_global_actions_item:
+      name: "&cEsta región usa las acciones globales."
+      lore:
+        - "&7Para añadir una acción personalizada, haz clic"
+        - "&7en el botón 'Añadir Nueva Acción' abajo."
+
+    # Botones
+    add_new_action_button:
+      name: "&aAñadir Nueva Acción"
+      lore:
+        - "&7Define una nueva acción específica"
+        - "&7para esta región."
+
+    back_button:
+      name: "&cVolver Atrás"
+      lore: [ ]
+
+  region_edit_menu:
+    edit_time_button:
+      name: "&aCambiar Tiempo de AFK"
+      lore:
+        - "&7Establece un tiempo de AFK personalizado"
+        - "&7para jugadores en esta región."
+        - "&7Escribe 'disabled' para desactivar."
+        - ""
+        - "&7Valor Actual: %value%"
+      value_disabled: "&cDesactivado"
+      value_active: "&e%time%"
+
+    manage_actions_button:
+      name: "&bGestionar Acciones Personalizadas"
+      lore:
+        - "&7Edita los comandos personalizados que serán"
+        - "&7aplicados a los jugadores AFK en esta región."
+        - ""
+        - "&7Acciones Personalizadas: &e%count%"
+        - "&8Clic para listar acciones."
+
+    delete_rule_button:
+      name: "&4Eliminar Regla de Región"
+      lore:
+        - "&cElimina completamente la regla personalizada"
+        - "&cpara esta región. ¡Esto es irreversible!"
+        - ""
+        - "&c&l¡ADVERTENCIA! Clic para eliminar."
+
+    back_button:
+      name: "&cVolver Atrás"
+      lore: [ ]
+
+    # Para GUI de Confirmación
+    delete_confirmation_title: "§4Confirmar Eliminación de Regla"
+    delete_confirmation_item_name: "&6Regla a eliminar: &f%region%"
+    delete_confirmation_item_lore:
+      - "&7Esta regla de región será"
+      - "&7eliminada permanentemente."
+
+  region_list_menu:
+    # Formato para cada ítem de regla listado
+    region_item:
+      name: "&aRegión: &f%region%"
+      lore:
+        - "&7Tiempo AFK: %afk_time%"
+        - "&7Acciones Personalizadas: &e%count%"
+        - ""
+        - "&8Clic para editar."
+
+    # Texto a mostrar cuando el tiempo AFK está desactivado
+    time_disabled: "&cDesactivado"
+
+    # Botones
+    add_new_rule_button:
+      name: "&aAñadir Nueva Regla"
+      lore: [ ]
+
+    back_button:
+      name: "&cVolver Atrás"
+      lore: [ ]
+
+  confirmation:
+    confirm_button:
+      name: "&a&lCONFIRMAR"
+      lore:
+        - "&7¿Estás seguro de que quieres"
+        - "&7realizar esta acción? Podría"
+        - "&7ser irreversible."
+
+    cancel_button:
+      name: "&c&lCANCELAR"
+      lore:
+        - "&7Clic para cancelar la acción"
+        - "&7y volver al menú"
+        - "&7anterior."
+
+  # Reglas de Región
+  region:
+    rule_not_found: "&cError: Regla de región no encontrada."
+    rule_created: "&aNueva regla para '%region%' creada exitosamente. Ahora puedes editarla."
+    rule_deleted: "&aLa regla de región para '%region%' fue eliminada exitosamente."
+    rule_exists: "&aYa existe una regla para la región '%region%'."
+    invalid_region: "&cNo se encontró una región de WorldGuard válida llamada '%region%'. Inténtalo de nuevo o escribe 'cancel'."
+    input_prompt: "&aPara añadir una nueva regla, escribe el nombre de una región de WorldGuard existente en el chat."
+    input_cancel_prompt: "&eEscribe 'cancel' para abortar la operación."
+    input_cancelled: "&cEl proceso de creación de nueva regla ha sido cancelado."
+    time_updated: "&aEl tiempo de AFK de la región fue actualizado a '%time%'."
+    action_deleted: "&aAcción eliminada exitosamente."
+    config_path_error: "&cNo se pudo encontrar la ruta para esta región en la configuración. Ocurrió un error."
+    delete_path_error: "&cNo se pudo encontrar la regla a eliminar en la configuración."
+
+  anvil:
+    invalid_format: "¡Formato Inválido!"
+
+  # Entrada por Libro
+  book_input:
+    prompt: "&ePor favor, escribe el comando en el libro y haz clic en 'Firmar'."
+    prompt_info: "&7(El libro no será firmado realmente, es solo para la entrada de texto.)"
+    command_updated: "&aComando actualizado exitosamente."
+
+  # Acciones de Jugador
+  player_actions:
+    actions_applied: "&aLas acciones de AFK han sido aplicadas a %player%."
+    manual_afk_on: "&e%player% &cha sido puesto en modo AFK manualmente."
+    manual_afk_off: "&eEl estado de AFK manual para %player% &aha sido removido."
+    target_left: "&cEl jugador que intentabas gestionar ha abandonado el servidor."
+
+  # Ajustes
+  settings_updated: "&aAjuste actualizado exitosamente a '%value%'."
+  worldguard_disabled: "&cLa integración con WorldGuard no está activada o WorldGuard no se encontró en el servidor."

@@ -4,7 +4,13 @@ import java.util.Arrays;
 
 public enum SupportedLanguage {
     TURKISH("Turkish", "_TR"),
-    ENGLISH("English", "_EN");
+    ENGLISH("English", "_EN"),
+    SPANISH("Spanish", "_ES"),
+    GERMAN("German", "_DE"),
+    FRENCH("French", "_FR"),
+    RUSSIAN("Russian", "_RU"),
+    POLISH("Polish", "_PL");
+
 
     private final String configName;
     private final String keySuffix;

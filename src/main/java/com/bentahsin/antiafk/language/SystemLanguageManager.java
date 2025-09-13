@@ -1,8 +1,7 @@
 package com.bentahsin.antiafk.language;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
-import com.bentahsin.antiafk.language.provider.English;
-import com.bentahsin.antiafk.language.provider.Turkish;
+import com.bentahsin.antiafk.language.provider.*;
 
 import java.util.EnumMap;
 import java.util.IllegalFormatException;
@@ -20,6 +19,11 @@ public class SystemLanguageManager {
         this.logger = plugin.getLogger();
         providerMap.put(SupportedLanguage.TURKISH, new Turkish());
         providerMap.put(SupportedLanguage.ENGLISH, new English());
+        providerMap.put(SupportedLanguage.SPANISH, new Spanish());
+        providerMap.put(SupportedLanguage.GERMAN, new German());
+        providerMap.put(SupportedLanguage.FRENCH, new French());
+        providerMap.put(SupportedLanguage.RUSSIAN, new Russian());
+        providerMap.put(SupportedLanguage.POLISH, new Polish());
         setLanguage(SupportedLanguage.TURKISH);
     }
 

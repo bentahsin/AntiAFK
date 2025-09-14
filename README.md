@@ -2,9 +2,9 @@
 
 **AntiAFK**, modern Minecraft sunucuları için tasarlanmış, AFK (Away From Keyboard) oyuncu yönetimini kapsamlı ve performans odaklı bir yaklaşımla ele alan bir eklentidir. Standart zamanlayıcı tabanlı sistemlerin ötesine geçerek, AFK durumunu atlatmaya yönelik çeşitli pasif ve aktif yöntemleri engellemek için çok katmanlı bir tespit mimarisi kullanır.
 
-[![License: MIT](https://img_shields_io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Java Version](https://img_shields_io/badge/Java-8+-blue.svg)](https://www.java.com)
-[![Spigot API](https://img_shields_io/badge/API-Spigot_1.13+-orange.svg)](https://www.spigotmc.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Java Version](https://img.shields.io/badge/Java-8+-blue.svg)](https://www.java.com)
+[![Spigot API](https://img.shields.io/badge/API-Spigot_1.13+-orange.svg)](https://www.spigotmc.org/)
 
 ---
 

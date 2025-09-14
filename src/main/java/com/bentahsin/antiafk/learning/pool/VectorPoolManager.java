@@ -10,7 +10,6 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 import java.time.Duration;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * MovementVector nesne havuzunu yönetir.
@@ -19,17 +18,16 @@ public class VectorPoolManager {
 
     private final GenericObjectPool<MovementVector> pool;
     private final AntiAFKPlugin plugin;
-    private final Logger logger;
     private final SystemLanguageManager sysLang;
 
     public VectorPoolManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
-        this.logger = plugin.getLogger();
         this.sysLang = plugin.getSystemLanguageManager();
 
         GenericObjectPoolConfig<MovementVector> config = new GenericObjectPoolConfig<>();
-        config.setMaxTotal(500);
-        config.setMaxWait(Duration.ofMillis(10));
+        config.setMaxTotal(2000);
+
+        config.setMaxWait(Duration.ofMillis(100));
 
         this.pool = new GenericObjectPool<>(new MovementVectorFactory(), config);
     }
@@ -48,17 +46,20 @@ public class VectorPoolManager {
             vector.reinitialize(posChange, rotChange, action, durationTicks);
             return vector;
         } catch (Exception e) {
-            logger.log(Level.WARNING, sysLang.getSystemMessage(Lang.VECTOR_POOL_BORROW_ERROR), e);
+            plugin.getLogger().log(Level.WARNING, sysLang.getSystemMessage(Lang.VECTOR_POOL_BORROW_ERROR), e);
             return new MovementVector(posChange, rotChange, action, durationTicks);
         }
     }
 
     /**
      * Kullanımı biten bir MovementVector nesnesini havuza geri bırakır.
+     * @param vector Havuza iade edilecek nesne.
      */
     public void returnVector(MovementVector vector) {
         if (vector != null) {
-            pool.returnObject(vector);
+            try {
+                pool.returnObject(vector);
+            } catch (IllegalStateException ignored) { }
         }
     }
 

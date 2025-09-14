@@ -187,6 +187,9 @@ public final class AntiAFKPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (recordingManager != null) {
+            recordingManager.clearAllRecordings();
+        }
         if (vectorPoolManager != null) {
             vectorPoolManager.close();
         }
@@ -269,5 +272,8 @@ public final class AntiAFKPlugin extends JavaPlugin {
     }
     public LearningDataCollectorTask getLearningDataCollectorTask() {
         return learningDataCollectorTask;
+    }
+    public VectorPoolManager getVectorPoolManager() {
+        return vectorPoolManager;
     }
 }

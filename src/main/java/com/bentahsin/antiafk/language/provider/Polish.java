@@ -9,8 +9,8 @@ import java.util.Map;
 public class Polish implements TranslationProvider {
     private final Map<Lang, String> translations = new EnumMap<>(Lang.class);
     public Polish() {
-        add(Lang.COMMAND_UNREGISTERED_SUCCESS, "Polecenie /%s zostało pomyślnie wyrejestrowane.");
-        add(Lang.COMMAND_UNREGISTER_ERROR, "Wystąpił błąd podczas wyrejestrowywania polecenia /%s.");
+        add(Lang.COMMAND_REGISTERED_SUCCESS, "Polecenie /%s zostało pomyślnie rejestrowane.");
+        add(Lang.COMMAND_REGISTER_ERROR, "Wystąpił błąd podczas rejestrowania polecenia /%s.");
 
         add(Lang.BEHAVIOR_ANALYSIS_ENABLED_AND_INIT, "Behawioralna analiza AFK jest włączona. Inicjalizacja...");
         add(Lang.BEHAVIOR_ANALYSIS_TASK_STOPPED, "Zadanie behawioralnej analizy AFK zostało zatrzymane.");

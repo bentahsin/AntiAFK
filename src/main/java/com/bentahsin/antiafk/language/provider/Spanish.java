@@ -9,8 +9,8 @@ import java.util.Map;
 public class Spanish implements TranslationProvider {
     private final Map<Lang, String> translations = new EnumMap<>(Lang.class);
     public Spanish() {
-        add(Lang.COMMAND_UNREGISTERED_SUCCESS, "El comando /%s se ha desregistrado correctamente.");
-        add(Lang.COMMAND_UNREGISTER_ERROR, "Ocurrió un error al desregistrar el comando /%s.");
+        add(Lang.COMMAND_REGISTERED_SUCCESS, "El comando /%s se ha registrado correctamente.");
+        add(Lang.COMMAND_REGISTER_ERROR, "Ocurrió un error al registrar el comando /%s.");
 
         add(Lang.BEHAVIOR_ANALYSIS_ENABLED_AND_INIT, "El Análisis de Comportamiento AFK está activado. Inicializando...");
         add(Lang.BEHAVIOR_ANALYSIS_TASK_STOPPED, "La tarea de Análisis de Comportamiento AFK ha sido detenida.");

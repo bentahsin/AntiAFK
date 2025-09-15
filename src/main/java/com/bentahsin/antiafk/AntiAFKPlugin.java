@@ -178,10 +178,10 @@ public final class AntiAFKPlugin extends JavaPlugin {
             CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
             commandMap.register(this.getDescription().getName(), afkCommand);
 
-            getLogger().info("/afk komutu programatik olarak başarıyla kaydedildi.");
+            getLogger().info(systemLanguageManager.getSystemMessage(Lang.COMMAND_REGISTERED_SUCCESS, "afk"));
 
         } catch (Exception e) {
-            getLogger().log(Level.SEVERE, "/afk komutu programatik olarak kaydedilirken bir hata oluştu.", e);
+            getLogger().log(Level.SEVERE, systemLanguageManager.getSystemMessage(Lang.COMMAND_REGISTER_ERROR), e);
         }
     }
 

@@ -30,6 +30,7 @@ public class AFKManager {
     private final Logger logger;
     private final SystemLanguageManager sysLang;
     private final ConfigManager configManager;
+    private final DebugManager debugMgr;
     private final PlayerLanguageManager plLang;
     private final DatabaseManager databaseManager;
 
@@ -46,6 +47,7 @@ public class AFKManager {
         this.logger = plugin.getLogger();
         this.sysLang = plugin.getSystemLanguageManager();
         this.configManager = plugin.getConfigManager();
+        this.debugMgr = plugin.getDebugManager();
         this.plLang = plugin.getPlayerLanguageManager();
         this.databaseManager = plugin.getDatabaseManager();
 
@@ -449,7 +451,7 @@ public class AFKManager {
                 if (isConsistentClickPattern(data.getClickIntervals())) {
                     data.incrementAutoClickerDetections();
                     if (data.getAutoClickerDetections() >= configManager.getAutoClickerDetectionsToPunish()) {
-                        setManualAFK(player, "behavior.autoclicker_detected");
+                        triggerSuspicionAndChallenge(player, "behavior.autoclicker_detected");
 
                         data.resetAutoClickerDetections();
                         data.getClickIntervals().clear();
@@ -508,6 +510,27 @@ public class AFKManager {
 
     public void setSuspicious(Player player) {
         getState(player).setSuspicious(true);
+    }
+
+    /**
+     * Bir oyuncuyu şüpheli olarak işaretler ve (eğer aktifse) bir Captcha testi başlatır.
+     * Bu, tüm bot tespit mekanizmaları için merkezi giriş noktasıdır.
+     * @param player Şüpheli bulunan oyuncu.
+     * @param reasonKey Konsola loglanacak olan şüphe sebebi (mesaj anahtarı).
+     */
+    public void triggerSuspicionAndChallenge(Player player, String reasonKey) {
+        if (isSuspicious(player) || player.hasPermission(configManager.getPermBypassAll())) {
+            return;
+        }
+
+        if (!configManager.isTuringTestEnabled() || !plugin.getCaptchaManager().isPresent()) {
+            setManualAFK(player, reasonKey);
+            return;
+        }
+
+        debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Player %s is being marked as suspicious. Reason: %s", player.getName(), reasonKey);
+        setSuspicious(player);
+        plugin.getCaptchaManager().ifPresent(manager -> manager.startChallenge(player));
     }
 
     public List<Player> getAfkPlayers() {

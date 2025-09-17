@@ -67,8 +67,6 @@ public class ConfigManager {
 
     private boolean turingTestEnabled;
     private int answerTimeoutSeconds;
-    private int triggerOnPointlessActivityCount;
-    private int triggerOnBehavioralRepeatCount;
 
     private boolean progressivePunishmentEnabled;
     private long punishmentResetMillis;
@@ -161,8 +159,6 @@ public class ConfigManager {
 
         turingTestEnabled = config.getBoolean("turing_test.enabled", true);
         answerTimeoutSeconds = config.getInt("turing_test.answer_timeout_seconds", 20);
-        triggerOnPointlessActivityCount = config.getInt("turing_test.trigger_on_pointless_activity_count", 10);
-        triggerOnBehavioralRepeatCount = config.getInt("turing_test.trigger_on_behavioral_repeat_count", 1);
 
         learningModeEnabled = config.getBoolean("learning_mode.enabled", true);
         analysisTaskPeriodTicks = config.getLong("learning_mode.analysis_task_period_ticks", 40L);
@@ -334,8 +330,6 @@ public class ConfigManager {
     public long getRejoinCooldownSeconds() { return rejoinCooldownSeconds; }
     public boolean isTuringTestEnabled() { return turingTestEnabled; }
     public int getAnswerTimeoutSeconds() { return answerTimeoutSeconds; }
-    public int getTriggerOnPointlessActivityCount() { return triggerOnPointlessActivityCount; }
-    public int getTriggerOnBehavioralRepeatCount() { return triggerOnBehavioralRepeatCount; }
     public List<Map<String, String>> getCaptchaFailureActions() { return captchaFailureActions; }
     public boolean isBroadcastOnAfkEnabled() { return broadcastOnAfk; }
     public boolean isBroadcastOnReturnEnabled() { return broadcastOnReturn; }

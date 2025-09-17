@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public abstract class Menu implements InventoryHolder {
 
     protected Inventory inventory;
-    protected PlayerMenuUtility playerMenuUtility;
+    protected final PlayerMenuUtility playerMenuUtility;
     protected Map<Integer, Runnable> actions = new HashMap<>();
 
     public Menu(PlayerMenuUtility playerMenuUtility) {

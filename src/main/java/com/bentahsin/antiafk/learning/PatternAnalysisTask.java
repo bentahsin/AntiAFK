@@ -1,11 +1,11 @@
 package com.bentahsin.antiafk.learning;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
-import com.bentahsin.antiafk.language.Lang;
-import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.learning.dtw.MovementVectorDistanceFn;
 import com.bentahsin.antiafk.learning.pool.VectorPoolManager;
 import com.bentahsin.antiafk.learning.util.LimitedQueue;
+import com.bentahsin.antiafk.managers.AFKManager;
+import com.bentahsin.antiafk.managers.DebugManager;
 import com.fastdtw.dtw.FastDTW;
 import com.fastdtw.dtw.TimeWarpInfo;
 import com.fastdtw.timeseries.TimeSeries;
@@ -21,7 +21,6 @@ import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.logging.Logger;
 
 /**
  * Oyuncuların anlık hareketlerini, bilinen bot desenleriyle asenkron olarak karşılaştırır.
@@ -30,8 +29,8 @@ import java.util.logging.Logger;
 public class PatternAnalysisTask extends BukkitRunnable {
 
     private final AntiAFKPlugin plugin;
-    private final Logger logger;
-    private final SystemLanguageManager sysLang;
+    private final AFKManager afkMgr;
+    private final DebugManager debugMgr;
     private final PatternManager patternManager;
     private final RecordingManager recordingManager;
     private final VectorPoolManager vectorPoolManager;
@@ -48,8 +47,8 @@ public class PatternAnalysisTask extends BukkitRunnable {
 
     public PatternAnalysisTask(AntiAFKPlugin plugin) {
         this.plugin = plugin;
-        this.logger = plugin.getLogger();
-        this.sysLang = plugin.getSystemLanguageManager();
+        this.afkMgr = plugin.getAfkManager();
+        this.debugMgr = plugin.getDebugManager();
         this.patternManager = plugin.getPatternManager();
         this.recordingManager = plugin.getRecordingManager();
         this.observationWindows = new ConcurrentHashMap<>();
@@ -76,24 +75,38 @@ public class PatternAnalysisTask extends BukkitRunnable {
                 continue;
             }
 
+            debugMgr.log(DebugManager.DebugModule.LEARNING_MODE,
+                    "Analyzing player %s with an observation window of %d vectors.",
+                    player.getName(), playerWindow.size()
+            );
+
             TimeSeries playerTimeSeries = convertToTimeSeries(playerWindow);
 
             for (Pattern knownPattern : patternManager.getKnownPatterns()) {
                 if (playerWindow.size() < knownPattern.getVectors().size() * preFilterSizeRatio) {
+                    debugMgr.log(DebugManager.DebugModule.LEARNING_MODE,
+                            "Skipping pattern '%s' for %s (Player window too small: %d < %d * %.2f).",
+                            knownPattern.getName(), player.getName(), playerWindow.size(), knownPattern.getVectors().size(), preFilterSizeRatio
+                    );
                     continue;
                 }
 
                 TimeSeries patternTimeSeries = convertToTimeSeries(knownPattern.getVectors());
                 TimeWarpInfo info = FastDTW.getWarpInfoBetween(playerTimeSeries, patternTimeSeries, searchRadius, distanceFunction);
 
+                debugMgr.log(DebugManager.DebugModule.LEARNING_MODE,
+                        "Comparison for %s against pattern '%s': DTW Distance = %.2f (Threshold: %.2f)",
+                        player.getName(), knownPattern.getName(), info.getDistance(), similarityThreshold
+                );
+
                 if (info.getDistance() < similarityThreshold) {
-                    logger.info(sysLang.getSystemMessage(
-                            Lang.PATTERN_MATCH_FOUND,
-                            player.getName(),
-                            knownPattern.getName(),
-                            info.getDistance()
-                    ));
-                    Bukkit.getScheduler().runTask(plugin, () -> plugin.getAfkManager().setManualAFK(player, "Öğrenilmiş bot deseni tespiti (" + knownPattern.getName() + ")"));
+                    debugMgr.log(DebugManager.DebugModule.LEARNING_MODE,
+                            "Pattern match FOUND for %s with '%s'. Distance: %.2f",
+                            player.getName(), knownPattern.getName(), info.getDistance()
+                    );
+                    Bukkit.getScheduler().runTask(plugin, () ->
+                            afkMgr.triggerSuspicionAndChallenge(player, "Öğrenilmiş bot deseni (" + knownPattern.getName() + ")")
+                    );
                     break;
                 }
             }

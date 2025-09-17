@@ -4,6 +4,7 @@ import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.language.Lang;
 import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.learning.MovementVector;
+import com.bentahsin.antiafk.managers.DebugManager;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -19,10 +20,12 @@ public class VectorPoolManager {
     private final GenericObjectPool<MovementVector> pool;
     private final AntiAFKPlugin plugin;
     private final SystemLanguageManager sysLang;
+    private final DebugManager debugMgr;
 
     public VectorPoolManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
         this.sysLang = plugin.getSystemLanguageManager();
+        this.debugMgr = plugin.getDebugManager();
 
         GenericObjectPoolConfig<MovementVector> config = new GenericObjectPoolConfig<>();
         config.setMaxTotal(2000);
@@ -44,6 +47,10 @@ public class VectorPoolManager {
         try {
             MovementVector vector = pool.borrowObject();
             vector.reinitialize(posChange, rotChange, action, durationTicks);
+            debugMgr.log(DebugManager.DebugModule.LEARNING_MODE,
+                    "Borrowed vector from pool. Active: %d, Idle: %d",
+                    pool.getNumActive(), pool.getNumIdle()
+            );
             return vector;
         } catch (Exception e) {
             plugin.getLogger().log(Level.WARNING, sysLang.getSystemMessage(Lang.VECTOR_POOL_BORROW_ERROR), e);
@@ -59,6 +66,10 @@ public class VectorPoolManager {
         if (vector != null) {
             try {
                 pool.returnObject(vector);
+                debugMgr.log(DebugManager.DebugModule.LEARNING_MODE,
+                        "Returned vector to pool. Active: %d, Idle: %d",
+                        pool.getNumActive(), pool.getNumIdle()
+                );
             } catch (IllegalStateException ignored) { }
         }
     }

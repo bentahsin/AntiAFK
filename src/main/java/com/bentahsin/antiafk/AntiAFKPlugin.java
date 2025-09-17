@@ -19,6 +19,7 @@ import com.bentahsin.antiafk.learning.pool.VectorPoolManager;
 import com.bentahsin.antiafk.listeners.ListenerManager;
 import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
+import com.bentahsin.antiafk.managers.DebugManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.placeholderapi.AFKPlaceholder;
 import com.bentahsin.antiafk.storage.DatabaseManager;
@@ -38,6 +39,7 @@ import java.util.logging.Level;
 public final class AntiAFKPlugin extends JavaPlugin {
 
     private ConfigManager configManager;
+    private DebugManager debugManager;
     private AFKManager afkManager;
     private PlayerLanguageManager playerLanguageManager;
     private SystemLanguageManager systemLanguageManager;
@@ -66,6 +68,8 @@ public final class AntiAFKPlugin extends JavaPlugin {
         configManager = new ConfigManager(this);
         systemLanguageManager.setLanguage(configManager.getLang());
 
+        debugManager = new DebugManager(this);
+
         vectorPoolManager = new VectorPoolManager(this);
 
         if (configManager.isLearningModeEnabled()) {
@@ -86,7 +90,7 @@ public final class AntiAFKPlugin extends JavaPlugin {
 
         afkManager = new AFKManager(this);
 
-        playerStatsManager = new PlayerStatsManager( databaseManager);
+        playerStatsManager = new PlayerStatsManager(this, databaseManager);
 
         if (getConfigManager().isTuringTestEnabled()) {
             captchaManager = new CaptchaManager(this);
@@ -178,7 +182,7 @@ public final class AntiAFKPlugin extends JavaPlugin {
             CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
             commandMap.register(this.getDescription().getName(), afkCommand);
 
-            getLogger().info(systemLanguageManager.getSystemMessage(Lang.COMMAND_REGISTERED_SUCCESS, "afk"));
+            debugManager.log(DebugManager.DebugModule.COMMAND_REGISTRATION, systemLanguageManager.getSystemMessage(Lang.COMMAND_REGISTERED_SUCCESS, "afk"));
 
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, systemLanguageManager.getSystemMessage(Lang.COMMAND_REGISTER_ERROR), e);
@@ -275,5 +279,8 @@ public final class AntiAFKPlugin extends JavaPlugin {
     }
     public VectorPoolManager getVectorPoolManager() {
         return vectorPoolManager;
+    }
+    public DebugManager getDebugManager() {
+        return debugManager;
     }
 }

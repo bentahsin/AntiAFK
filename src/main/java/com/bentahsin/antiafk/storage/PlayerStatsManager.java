@@ -1,5 +1,7 @@
 package com.bentahsin.antiafk.storage;
 
+import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.managers.DebugManager;
 import com.bentahsin.antiafk.models.PlayerStats;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -16,11 +18,13 @@ import java.util.concurrent.TimeUnit;
 public class PlayerStatsManager {
 
     private final DatabaseManager databaseManager;
+    private final DebugManager debugMgr;
 
     private final Cache<UUID, PlayerStats> statsCache;
 
-    public PlayerStatsManager(DatabaseManager databaseManager) {
+    public PlayerStatsManager(AntiAFKPlugin plugin, DatabaseManager databaseManager) {
         this.databaseManager = databaseManager;
+        this.debugMgr = plugin.getDebugManager();
 
         this.statsCache = Caffeine.newBuilder()
                 .maximumSize(1000)
@@ -39,12 +43,23 @@ public class PlayerStatsManager {
     public CompletableFuture<PlayerStats> getPlayerStats(UUID uuid, String username) {
         PlayerStats cachedStats = statsCache.getIfPresent(uuid);
         if (cachedStats != null) {
+            debugMgr.log(DebugManager.DebugModule.DATABASE_QUERIES,
+                    "Cache HIT for player stats: %s", username
+            );
             return CompletableFuture.completedFuture(cachedStats);
         }
+
+        debugMgr.log(DebugManager.DebugModule.DATABASE_QUERIES,
+                "Cache MISS for player stats: %s. Querying database...", username
+        );
 
         return CompletableFuture.supplyAsync(() -> {
             PlayerStats dbStats = databaseManager.getPlayerStats(uuid, username);
             statsCache.put(uuid, dbStats);
+
+            debugMgr.log(DebugManager.DebugModule.DATABASE_QUERIES,
+                    "Fetched and cached stats for %s from database.", username
+            );
             return dbStats;
         });
     }
@@ -55,6 +70,9 @@ public class PlayerStatsManager {
      * @param uuid Verisi geçersiz kılınacak oyuncu.
      */
     public void invalidateCache(UUID uuid) {
+        debugMgr.log(DebugManager.DebugModule.DATABASE_QUERIES,
+                "Invalidating stats cache for UUID: %s", uuid.toString()
+        );
         statsCache.invalidate(uuid);
     }
 

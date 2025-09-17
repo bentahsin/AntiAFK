@@ -13,6 +13,37 @@
 lang: "Turkish"
 
 # ================================== #
+#       HATA AYIKLAMA (DEBUG)        #
+# ================================== #
+# Bu bölüm, eklentinin belirli modüllerinden detaylı konsol logları almanızı sağlar.
+# Sorun giderme veya eklentinin iç işleyişini merak ettiğiniz durumlar için kullanışlıdır.
+debug:
+  # Ana şalter: Bu 'false' ise, aşağıdaki hiçbir ayarın önemi kalmaz ve hiç debug mesajı gösterilmez.
+  enabled: false
+
+  # Modül bazında debug ayarları. Sadece 'enabled: true' ise geçerlidir.
+  modules:
+    # Klasik aktivite dinleyicileri (hareket, tıklama, sohbet vb.)
+    # Hangi aktivitenin AFK zamanlayıcısını sıfırladığını görmek için.
+    activity_listener: false
+
+    # Gelişmiş Davranışsal Analiz (Yörünge Tespiti)
+    # Tekrarları, benzerlik puanlarını ve yörünge sıfırlamalarını loglar.
+    behavioral_analysis: false
+
+    # Öğrenme Modu (Desen Tanıma)
+    # Desen eşleşme girişimlerini, DTW mesafelerini ve havuz durumunu loglar.
+    learning_mode: false
+
+    # Komut Yönetimi
+    # Eklenti başlatılırken komutların nasıl kaydedildiğini veya kayıttan kaldırıldığını loglar.
+    command_registration: false
+
+    # Veritabanı İşlemleri
+    # Hangi oyuncu verisinin ne zaman okunduğunu veya yazıldığını loglar (çok detaylı olabilir).
+    database_queries: false
+
+# ================================== #
 #         ANA AFK SİSTEMİ            #
 # ================================== #
 
@@ -148,7 +179,6 @@ rejoin_protection:
 # BU SİSTEM, SÜREKLİ AYNI YÖRÜNGEDE HAREKET EDEN BOTLARI TESPİT EDER.
 behavioral-analysis:
   enabled: true # Bu sistemi tamamen açar veya kapatır.
-  debug: false   # Geliştiriciler için hata ayıklama mesajlarını açar.
 
   # Analiz için ne kadarlık bir hareket geçmişi saklanacak? (tick cinsinden, 20 tick = 1 saniye)
   # Bu değer aynı zamanda bellek sızıntısını önlemek için hareket listesinin maksimum boyutunu da belirler.
@@ -223,14 +253,6 @@ turing_test:
 
   # Oyuncunun soruyu cevaplamak için kaç saniyesi olacağını belirler.
   answer_timeout_seconds: 20
-
-  # Anlamsız Aktivite (Katman 2) sayacı bu değere ulaştığında test tetiklenir.
-  # 'max-pointless-activities' değerinden küçük olmalıdır. Örn: 15 ise bu 10 olabilir.
-  trigger_on_pointless_activity_count: 10
-
-  # Davranışsal Analiz (Katman 4) tekrar sayacı bu değere ulaştığında test tetiklenir.
-  # 'max-repeats' değerinden küçük olmalıdır. Örn: 3 ise bu 1 olabilir.
-  trigger_on_behavioral_repeat_count: 1
 
   # Oyuncu testi geçemezse çalıştırılacak komutlar.
   # Boş bırakılırsa, oyuncu sadece varsayılan olarak AFK yapılır.

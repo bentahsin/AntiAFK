@@ -4,7 +4,7 @@ import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.behavior.util.TrajectoryComparator;
 import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
-import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.bentahsin.antiafk.managers.DebugManager;
 import com.bentahsin.antiafk.turing.CaptchaManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -24,8 +24,8 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
 
     private final AntiAFKPlugin plugin;
     private final BehaviorAnalysisManager analysisManager;
-    private final PlayerLanguageManager plLang;
     private final ConfigManager cm;
+    private final DebugManager debugMgr;
     private final AFKManager afkMgr;
     private final Optional<CaptchaManager> capm;
 
@@ -35,13 +35,12 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
     private final double directionTolerance;
     private final double similarityThreshold;
     private final int maxRepeats;
-    private final boolean debugEnabled;
 
     public BehaviorAnalysisTask(AntiAFKPlugin plugin, BehaviorAnalysisManager manager) {
         this.plugin = plugin;
-        this.plLang = plugin.getPlayerLanguageManager();
         this.analysisManager = manager;
         this.cm = plugin.getConfigManager();
+        this.debugMgr = plugin.getDebugManager();
         this.afkMgr = plugin.getAfkManager();
         this.capm = plugin.getCaptchaManager();
 
@@ -51,7 +50,6 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
         this.directionTolerance = plugin.getConfig().getDouble("behavioral-analysis.direction-tolerance", 25.0);
         this.similarityThreshold = plugin.getConfig().getDouble("behavioral-analysis.similarity-threshold", 0.85);
         this.maxRepeats = plugin.getConfig().getInt("behavioral-analysis.max-repeats", 3);
-        this.debugEnabled = plugin.getConfig().getBoolean("behavioral-analysis.debug", false);
     }
 
     @Override
@@ -95,29 +93,19 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
 
                             data.setLastRepeatTimestamp(now);
 
-                            final int repeatCount = data.getConsecutiveRepeatCount();
-                            if (cm.isTuringTestEnabled() &&
-                                    capm.map(manager -> !manager.isBeingTested(player)).orElse(false) &&
-                                    repeatCount == cm.getTriggerOnBehavioralRepeatCount()) {
-
-                                Bukkit.getScheduler().runTask(plugin, () -> capm.ifPresent(manager -> manager.startChallenge(player)));
-                            }
-
-                            if (debugEnabled) {
+                            if (debugMgr.isEnabled(DebugManager.DebugModule.BEHAVIORAL_ANALYSIS)) {
                                 final int count = data.getConsecutiveRepeatCount();
                                 final double time = (double) currentLength / 20.0;
-                                Bukkit.getScheduler().runTask(plugin, () ->
-                                        plLang.sendMessage(player, "behavior.debug.repetition",
-                                                "%time%", String.format("%.1f", time),
-                                                "%count%", String.valueOf(count),
-                                                "%max_repeats%", String.valueOf(maxRepeats)
-                                        )
+
+                                debugMgr.log(DebugManager.DebugModule.BEHAVIORAL_ANALYSIS,
+                                        "Repetition found for %s. Time: %.1fs, Similarity: high, Count: %d/%d",
+                                        player.getName(), time, count, maxRepeats
                                 );
                             }
 
                             if (data.getConsecutiveRepeatCount() >= maxRepeats) {
                                 Bukkit.getScheduler().runTask(plugin, () ->
-                                        afkMgr.setManualAFK(player, "Otonom hareket tespiti.")
+                                        afkMgr.triggerSuspicionAndChallenge(player, "behavior.afk_detected")
                                 );
                                 data.reset();
                                 break;

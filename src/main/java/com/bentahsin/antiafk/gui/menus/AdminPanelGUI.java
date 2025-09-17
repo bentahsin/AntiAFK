@@ -5,7 +5,6 @@ import com.bentahsin.antiafk.gui.Menu;
 import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
 import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
-import jdk.nashorn.internal.runtime.regexp.joni.Config;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -16,7 +15,7 @@ public class AdminPanelGUI extends Menu {
     private final AntiAFKPlugin plugin;
     private final PlayerLanguageManager plLang;
     private final ConfigManager cm;
-    private boolean isWorldGuardHooked;
+    private final boolean isWorldGuardHooked;
 
     public AdminPanelGUI(PlayerMenuUtility playerMenuUtility, AntiAFKPlugin plugin) {
         super(playerMenuUtility);

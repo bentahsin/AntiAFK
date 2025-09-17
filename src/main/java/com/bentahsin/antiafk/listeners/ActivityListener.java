@@ -4,6 +4,7 @@ import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.data.PointlessActivityData;
 import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
+import com.bentahsin.antiafk.managers.DebugManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -24,6 +25,7 @@ public abstract class ActivityListener {
     private final AntiAFKPlugin plugin;
     private final AFKManager afkManager;
     private final ConfigManager configManager;
+    private final DebugManager debugMgr;
     private final PlayerLanguageManager languageManager;
 
     private static final Map<UUID, Long> lastWorldChangeTime = new HashMap<>();
@@ -33,6 +35,7 @@ public abstract class ActivityListener {
         this.plugin = plugin;
         this.afkManager = plugin.getAfkManager();
         this.configManager = plugin.getConfigManager();
+        this.debugMgr = plugin.getDebugManager();
         this.languageManager = plugin.getPlayerLanguageManager();
     }
 
@@ -46,8 +49,11 @@ public abstract class ActivityListener {
      * @param isMovementEvent Aktivitenin bir hareket olup olmadığı.
      */
     protected void handleActivity(Player player, Event event, boolean isMovementEvent) {
+        final String eventType = event != null ? event.getEventName() : (isMovementEvent ? "PlayerMoveEvent" : "Unknown");
+        debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Activity '%s' detected for player %s.", eventType, player.getName());
 
         if (afkManager.isSuspicious(player)) {
+            debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Activity for %s ignored: Player is suspicious (awaiting captcha).", player.getName());
             return;
         }
 
@@ -56,10 +62,12 @@ public abstract class ActivityListener {
                 afkManager.unsetAfkStatus(player);
             }
             afkManager.updateActivity(player);
+            debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Activity for %s processed with bypass_all permission.", player.getName());
             return;
         }
 
         if (afkManager.isMarkedAsAutonomous(player) && !isMovementEvent && !isHighValueActivity(event)) {
+            debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Low-value activity for %s ignored: Player is marked as autonomous.", player.getName());
             return;
         }
 
@@ -84,15 +92,9 @@ public abstract class ActivityListener {
                 if (isSameTarget) {
                     activityData.incrementPointlessActivityCounter();
 
-                    if (configManager.isTuringTestEnabled() &&
-                            plugin.getCaptchaManager().map(manager -> !manager.isBeingTested(player)).orElse(false) &&
-                            activityData.getPointlessActivityCounter() == configManager.getTriggerOnPointlessActivityCount()) {
-
-                        plugin.getCaptchaManager().ifPresent(manager -> manager.startChallenge(player));
-                    }
-
                     if (activityData.getPointlessActivityCounter() >= maxPointlessActivities) {
-                        afkManager.setManualAFK(player, "behavior.pointless_activity_detected");
+                        debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Pointless activity limit reached for %s. Marking as AFK.", player.getName());
+                        afkManager.triggerSuspicionAndChallenge(player, "behavior.pointless_activity_detected");
                         afkManager.resetBotDetectionData(player.getUniqueId());
                         return;
                     }
@@ -110,13 +112,16 @@ public abstract class ActivityListener {
         }
 
         if (afkManager.isEffectivelyAfk(player)) {
+            debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Player %s is no longer AFK due to '%s'.", player.getName(), eventType);
             afkManager.unsetAfkStatus(player);
         }
 
         afkManager.updateActivity(player);
+        debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "AFK timer reset for %s.", player.getName());
 
         if (!isMovementEvent && plugin.getBehaviorAnalysisManager().isEnabled()) {
             plugin.getBehaviorAnalysisManager().getPlayerData(player).reset();
+            debugMgr.log(DebugManager.DebugModule.BEHAVIORAL_ANALYSIS, "Behavioral analysis data reset for %s due to non-movement activity.", player.getName());
         }
     }
 
@@ -143,7 +148,8 @@ public abstract class ActivityListener {
         lastWorldChangeTime.put(uuid, currentTime);
 
         if (count >= configManager.getMaxWorldChanges()) {
-            afkManager.setManualAFK(player, "behavior.rapid_world_change");
+            debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Rapid world change detected for %s. Marking as AFK.", player.getName());
+            afkManager.triggerSuspicionAndChallenge(player, "behavior.rapid_world_change");
             worldChangeCounts.remove(uuid);
             lastWorldChangeTime.remove(uuid);
         }

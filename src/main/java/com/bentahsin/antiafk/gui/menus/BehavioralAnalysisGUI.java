@@ -48,6 +48,7 @@ public class BehavioralAnalysisGUI extends Menu {
             plugin.getConfig().set(configPath, !currentState);
             plugin.saveConfig();
             plugin.getConfigManager().loadConfig();
+            plugin.getDebugManager().loadConfigSettings(plugin);
             playerMenuUtility.getOwner().playSound(playerMenuUtility.getOwner().getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.2f);
             setMenuItems();
         });

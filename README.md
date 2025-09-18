@@ -23,13 +23,15 @@ AntiAFK, AFK davranışlarını ve bunları taklit eden botları avlamak için d
     * Oyuncu hareketleri, kamera rotasyonu, sohbet, komut kullanımı, envanter etkileşimleri ve dünya ile etkileşimler dahil olmak üzere 10'dan fazla temel eylem türünü izler. Bu eylemler, temel AFK zamanlayıcısını sıfırlar.
 * **Katman 2: Anlamsız Eylem Analizi**
     * Oyuncunun aynı blok koordinatlarında kalarak tekrarladığı hareket dışı eylemleri (örn. aynı bloğa veya havaya tekrar tekrar tıklama, aynı yerde sürekli zıplama/eğilme) sayar. Belirlenen eşik aşıldığında, bu eylemlerin AFK zamanlayıcısını sıfırlaması engellenir.
-    * <img src="https://i.imgur.com/MdHmYiN.gif" alt="Anlamsız Eylem Tespiti" width="400"/> <img src="https://i.imgur.com/1gkH9CF.gif" alt="Anlamsız Eylem Tespiti 2" width="400"/>
+    * <img src="https://i.imgur.com/MdHmYiN.gif" alt="Anlamsız Eylem Tespiti" width="400"/> 
+    * <img src="https://i.imgur.com/1gkH9CF.gif" alt="Anlamsız Eylem Tespiti 2" width="400"/>
 * **Katman 3: Makro ve İstismar Tespiti**
     * **Auto-Clicker Analizi:** Tıklamalar arasındaki zaman aralıklarının istatistiksel tutarlılığını analiz ederek insan dışı tıklama modellerini tespit eder.
     * **Konum Değiştirme İstismarı:** Portallar veya komutlar aracılığıyla yapılan sık ve tekrarlı konum değişikliklerini bir AFK atlatma yöntemi olarak tanımlar.
 * **Katman 4: Asenkron Davranışsal Analiz**
     * Oyuncuların hareket yörüngelerini asenkron bir görevde sürekli olarak kaydeder ve analiz eder. Geçmiş hareket desenleriyle mevcut yörüngeler arasındaki benzerlikleri karşılaştırarak, önceden belirlenmiş rotalarda hareket eden karmaşık botları tespit eder.
-    * <img src="https://i.imgur.com/JfUVizh.gif" alt="Yörüngesel Analiz" width="400"/> <img src="https://i.imgur.com/FeHWuth.gif" alt="Yörüngesel Analiz 2" width="400"/>
+    * <img src="https://i.imgur.com/JfUVizh.gif" alt="Yörüngesel Analiz" width="400"/> 
+    * <img src="https://i.imgur.com/FeHWuth.gif" alt="Yörüngesel Analiz 2" width="400"/>
 
 ### 🧠 "Learning Modu": Akıllı Rota Deseni Tanıma
 Bu sistem, önceden tanımlanmış hareket desenlerini veya rotaları takip eden gelişmiş AFK botlarını tespit etmek için makine öğrenmesi prensiplerinden yararlanır. Sunucu yöneticileri, şüpheli bir botun hareketlerini kaydederek sunucuya özel savunma desenleri oluşturabilir.

@@ -19,6 +19,7 @@ public class English implements TranslationProvider {
         add(Lang.CAPTCHA_QUESTIONS_FILE_EMPTY_OR_INVALID, "questions.yml file is empty or invalid! The Turing Test feature will not work.");
 
         add(Lang.ANTIAFK_COMMAND_NOT_IN_YML, "AntiAFK command (antiafk) not found in plugin.yml or is misconfigured!");
+        add(Lang.AFK_TEST_COMMAND_NOT_IN_YML, "AFKTest command (afktest) was not found in plugin.yml or is configured incorrectly!");
         add(Lang.PLUGIN_COMMANDS_WILL_NOT_WORK, "Plugin commands will not work. Please check your plugin.yml.");
         add(Lang.AFK_COMMAND_NOT_IN_YML, "/afk command not found in plugin.yml!");
         add(Lang.AFKCEVAP_COMMAND_NOT_IN_YML, "/afkcevap command not found in plugin.yml!");

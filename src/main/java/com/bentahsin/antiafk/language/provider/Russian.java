@@ -19,6 +19,7 @@ public class Russian implements TranslationProvider {
         add(Lang.CAPTCHA_QUESTIONS_FILE_EMPTY_OR_INVALID, "Файл questions.yml пуст или некорректен! Функция теста Тьюринга работать не будет.");
 
         add(Lang.ANTIAFK_COMMAND_NOT_IN_YML, "Команда AntiAFK (antiafk) не найдена в plugin.yml или настроена неверно!");
+        add(Lang.AFK_TEST_COMMAND_NOT_IN_YML, "Команда AFKTest (afktest) не найдена в plugin.yml или настроена неправильно!");
         add(Lang.PLUGIN_COMMANDS_WILL_NOT_WORK, "Команды плагина не будут работать. Пожалуйста, проверьте ваш plugin.yml.");
         add(Lang.AFK_COMMAND_NOT_IN_YML, "Команда /afk не найдена в plugin.yml!");
         add(Lang.AFKCEVAP_COMMAND_NOT_IN_YML, "Команда /afkcevap не найдена в plugin.yml!");

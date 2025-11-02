@@ -66,7 +66,13 @@ public class ConfigManager {
     private long rejoinCooldownSeconds;
 
     private boolean turingTestEnabled;
-    private int answerTimeoutSeconds;
+    private int qaCaptchaTimeoutSeconds;
+    private int colorPaletteGuiRows;
+    private int colorPaletteTimeLimit;
+    private int colorPaletteCorrectCount;
+    private int colorPaletteDistractorColorCount;
+    private int colorPaletteDistractorItemCount;
+    private List<String> colorPaletteAvailableColors;
 
     private boolean progressivePunishmentEnabled;
     private long punishmentResetMillis;
@@ -77,7 +83,6 @@ public class ConfigManager {
     private long analysisTaskPeriodTicks;
     private double learningSimilarityThreshold;
     private int learningSearchRadius;
-
 
     private long maxPatternFileSizeKb;
     private int maxVectorsPerPattern;
@@ -158,7 +163,13 @@ public class ConfigManager {
         maxWorldChanges = config.getInt("detection.check-world-change.max-changes", 5);
 
         turingTestEnabled = config.getBoolean("turing_test.enabled", true);
-        answerTimeoutSeconds = config.getInt("turing_test.answer_timeout_seconds", 20);
+        qaCaptchaTimeoutSeconds = config.getInt("turing_test.question_answer.answer_timeout_seconds", 20);
+        colorPaletteGuiRows = config.getInt("turing_test.color_palette.gui_rows", 3);
+        colorPaletteTimeLimit = config.getInt("turing_test.color_palette.time_limit_seconds", 15);
+        colorPaletteCorrectCount = config.getInt("turing_test.color_palette.correct_item_count", 5);
+        colorPaletteDistractorColorCount = config.getInt("turing_test.color_palette.distractor_color_count", 2);
+        colorPaletteDistractorItemCount = config.getInt("turing_test.color_palette.distractor_item_count_per_color", 4);
+        colorPaletteAvailableColors = config.getStringList("turing_test.color_palette.available_colors");
 
         learningModeEnabled = config.getBoolean("learning_mode.enabled", true);
         analysisTaskPeriodTicks = config.getLong("learning_mode.analysis_task_period_ticks", 40L);
@@ -329,7 +340,13 @@ public class ConfigManager {
     public boolean isRejoinProtectionEnabled() { return rejoinProtectionEnabled; }
     public long getRejoinCooldownSeconds() { return rejoinCooldownSeconds; }
     public boolean isTuringTestEnabled() { return turingTestEnabled; }
-    public int getAnswerTimeoutSeconds() { return answerTimeoutSeconds; }
+    public int getQaCaptchaTimeoutSeconds() { return qaCaptchaTimeoutSeconds; }
+    public int getColorPaletteGuiRows() { return colorPaletteGuiRows; }
+    public int getColorPaletteTimeLimit() { return colorPaletteTimeLimit; }
+    public int getColorPaletteCorrectCount() { return colorPaletteCorrectCount; }
+    public int getColorPaletteDistractorColorCount() { return colorPaletteDistractorColorCount; }
+    public int getColorPaletteDistractorItemCount() { return colorPaletteDistractorItemCount; }
+    public List<String> getColorPaletteAvailableColors() { return Collections.unmodifiableList(colorPaletteAvailableColors); }
     public List<Map<String, String>> getCaptchaFailureActions() { return captchaFailureActions; }
     public boolean isBroadcastOnAfkEnabled() { return broadcastOnAfk; }
     public boolean isBroadcastOnReturnEnabled() { return broadcastOnReturn; }

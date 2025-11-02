@@ -19,6 +19,7 @@ public class Spanish implements TranslationProvider {
         add(Lang.CAPTCHA_QUESTIONS_FILE_EMPTY_OR_INVALID, "¡El archivo questions.yml está vacío o es inválido! La función de Test de Turing no funcionará.");
 
         add(Lang.ANTIAFK_COMMAND_NOT_IN_YML, "¡El comando de AntiAFK (antiafk) no se encuentra en plugin.yml o está mal configurado!");
+        add(Lang.AFK_TEST_COMMAND_NOT_IN_YML, "¡El comando AFKTest (afktest) no se encontró en plugin.yml o está configurado incorrectamente!");
         add(Lang.PLUGIN_COMMANDS_WILL_NOT_WORK, "Los comandos del plugin no funcionarán. Por favor, revisa tu plugin.yml.");
         add(Lang.AFK_COMMAND_NOT_IN_YML, "¡El comando /afk no se encuentra en plugin.yml!");
         add(Lang.AFKCEVAP_COMMAND_NOT_IN_YML, "¡El comando /afkcevap no se encuentra en plugin.yml!");

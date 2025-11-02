@@ -251,8 +251,44 @@ learning_mode:
 turing_test:
   enabled: true
 
-  # Oyuncunun soruyu cevaplamak için kaç saniyesi olacağını belirler.
-  answer_timeout_seconds: 20
+  # HANGİ CAPTCHA TÜRLERİNİN KULLANILACAĞINI VE AĞIRLIKLARINI BELİRLEYEN ANA BÖLÜM
+  # Sistem, şüpheli bir oyuncu bulduğunda bu listeden ağırlığa göre rastgele birini seçer.
+  # Ağırlıkların toplamının 100 olması gerekmez, sistem oranları kendi hesaplar.
+  palettes:
+    # Mevcut Soru/Cevap sistemi. Kapatmak için enabled: false yapın.
+    QUESTION_ANSWER:
+      enabled: true
+      weight: 40  # %40 ihtimalle bu captcha türü seçilir (40 / (40+60))
+
+    # YENİ: Renk Paleti GUI sistemi.
+    COLOR_PALETTE:
+      enabled: true
+      weight: 60  # %60 ihtimalle bu captcha türü seçilir
+
+  # ======================================================= #
+  #             CAPTCHA TÜRLERİNİN AYARLARI                 #
+  # ======================================================= #
+
+  # Soru/Cevap Captcha'sı için ayarlar
+  question_answer:
+    answer_timeout_seconds: 20
+
+  # Renk Paleti Captcha'sı için ayarlar
+  color_palette:
+    # GUI başlığı ve diğer metinler messages.yml'den alınacak.
+    gui_rows: 3
+    time_limit_seconds: 15
+    correct_item_count: 5
+    distractor_color_count: 2
+    distractor_item_count_per_color: 4
+    # Kullanılabilecek renkler messages.yml'deki 'captcha_palette_colors' ile eşleşmelidir.
+    available_colors:
+      - "RED"
+      - "BLUE"
+      - "LIME"
+      - "YELLOW"
+      - "ORANGE"
+      - "CYAN"
 
   # Oyuncu testi geçemezse çalıştırılacak komutlar.
   # Boş bırakılırsa, oyuncu sadece varsayılan olarak AFK yapılır.

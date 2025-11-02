@@ -19,6 +19,7 @@ public class Turkish implements TranslationProvider {
         add(Lang.CAPTCHA_QUESTIONS_FILE_EMPTY_OR_INVALID, "questions.yml dosyası boş veya hatalı! Turing Testi çalışmayacak.");
 
         add(Lang.ANTIAFK_COMMAND_NOT_IN_YML, "AntiAFK komutu (antiafk) plugin.yml dosyasında bulunamadı veya hatalı yapılandırıldı!");
+        add(Lang.AFK_TEST_COMMAND_NOT_IN_YML, "AFKTest Komutu (afktest) plugin.yml dosyasında bulunamadı veya hatalı yapılandırıldı!");
         add(Lang.PLUGIN_COMMANDS_WILL_NOT_WORK, "Plugin komutları çalışmayacak. Lütfen plugin.yml dosyanızı kontrol edin.");
         add(Lang.AFK_COMMAND_NOT_IN_YML, "/afk komutu plugin.yml'de bulunamadı!");
         add(Lang.AFKCEVAP_COMMAND_NOT_IN_YML, "/afkcevap komutu plugin.yml'de bulunamadı!");

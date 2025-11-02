@@ -19,6 +19,7 @@ public class Polish implements TranslationProvider {
         add(Lang.CAPTCHA_QUESTIONS_FILE_EMPTY_OR_INVALID, "Plik questions.yml jest pusty lub nieprawidłowy! Funkcja testu Turinga nie będzie działać.");
 
         add(Lang.ANTIAFK_COMMAND_NOT_IN_YML, "Komenda AntiAFK (antiafk) nie została znaleziona w plugin.yml lub jest źle skonfigurowana!");
+        add(Lang.AFK_TEST_COMMAND_NOT_IN_YML, "Komenda AFKTest (afktest) nie została znaleziona w pliku plugin.yml lub jest nieprawidłowo skonfigurowana!");
         add(Lang.PLUGIN_COMMANDS_WILL_NOT_WORK, "Komendy pluginu nie będą działać. Sprawdź plik plugin.yml.");
         add(Lang.AFK_COMMAND_NOT_IN_YML, "Komenda /afk nie została znaleziona w plugin.yml!");
         add(Lang.AFKCEVAP_COMMAND_NOT_IN_YML, "Komenda /afkcevap nie została znaleziona w plugin.yml!");

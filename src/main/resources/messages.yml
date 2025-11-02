@@ -30,6 +30,26 @@ turing_test:
   success: "&aDoğru cevap! Teşekkürler, oyuna devam edebilirsin."
   failure: "&cYanlış cevap veya süre doldu! Aktivite gösterene kadar AFK olarak işaretlendin."
 
+  captcha_palette:
+    gui_title: "&4&lBot Doğrulama Testi"
+    instruction: "&cTüm %color% renkli yünlere tıkla! &7(Kapatırsan /afktest)"
+    success: "&aDoğrulama başarılı! Teşekkürler." # Bu genel başarı mesajını kullanabiliriz.
+    failure_wrong_item: "&cYanlış yüne tıkladın! Test başarısız."
+    failure_time_out: "&cSüren doldu! Test başarısız."
+
+  test_command:
+    not_in_test: "&cDevam eden bir bot testin bulunmuyor."
+    qa_reprompt: "&eSoru: &f%question% &7(Kalan süre: &c%time_left% saniye&7)"
+
+# Çevrilebilir renk isimleri. config.yml'deki 'available_colors' ile eşleşmelidir.
+captcha_palette_colors:
+  RED: "&cKırmızı"
+  BLUE: "&9Mavi"
+  LIME: "&aAçık Yeşil"
+  YELLOW: "&eSarı"
+  ORANGE: "&6Turuncu"
+  CYAN: "&3Camgöbeği"
+
 # /afk Komutu Mesajları
 command:
   antiafk:

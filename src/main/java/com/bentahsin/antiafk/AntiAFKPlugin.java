@@ -2,6 +2,7 @@ package com.bentahsin.antiafk;
 
 import com.bentahsin.antiafk.behavior.BehaviorAnalysisManager;
 import com.bentahsin.antiafk.commands.afkcevap.CevapCommand;
+import com.bentahsin.antiafk.commands.afktest.TestCommand;
 import com.bentahsin.antiafk.commands.antiafk.CommandManager;
 import com.bentahsin.antiafk.commands.afk.AFKCommandManager;
 import com.bentahsin.antiafk.commands.afk.ToggleAFKCommand;
@@ -117,6 +118,13 @@ public final class AntiAFKPlugin extends JavaPlugin {
             cevapCommand.setTabCompleter(new CevapCommand(this));
         } else {
             getLogger().severe(systemLanguageManager.getSystemMessage(Lang.AFKCEVAP_COMMAND_NOT_IN_YML));
+        }
+
+        PluginCommand testCommand = getCommand("afktest");
+        if (testCommand != null) {
+            testCommand.setExecutor(new TestCommand(this));
+        } else {
+            getLogger().severe(systemLanguageManager.getSystemMessage(Lang.AFK_TEST_COMMAND_NOT_IN_YML));
         }
 
         new AFKCheckTask(this).runTaskTimer(this, 100L, 1L);

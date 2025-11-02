@@ -1,152 +1,170 @@
 package com.bentahsin.antiafk.turing;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
-import com.bentahsin.antiafk.language.Lang;
-import com.bentahsin.antiafk.language.SystemLanguageManager;
-import com.bentahsin.antiafk.managers.PlayerLanguageManager;
-import com.bentahsin.antiafk.utils.ChatUtil;
-import org.bukkit.Bukkit;
+import com.bentahsin.antiafk.managers.DebugManager;
+import com.bentahsin.antiafk.turing.captcha.ColorPaletteCaptcha;
+import com.bentahsin.antiafk.turing.captcha.ICaptcha;
+import com.bentahsin.antiafk.turing.captcha.QuestionAnswerCaptcha;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 
-import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 
 /**
- * Turing Testi (Captcha) sistemini yönetir.
+ * Farklı captcha türlerini yöneten ve ağırlıklara göre rastgele birini seçip
+ * oyuncuya sunan merkezi yönetici sınıfı.
  */
 public class CaptchaManager {
 
     private final AntiAFKPlugin plugin;
-    private final Logger logger;
-    private final PlayerLanguageManager plLang;
-    private final SystemLanguageManager sysLang;
-    private final Map<UUID, CaptchaChallenge> activeChallenges = new ConcurrentHashMap<>();
-    private final List<Map.Entry<String, List<String>>> questionPool = new ArrayList<>();
+    private final Map<UUID, ICaptcha> activePlayerCaptcha = new ConcurrentHashMap<>();
+    private final Map<String, ICaptcha> captchaRegistry = new HashMap<>();
+
+    private final List<WeightedCaptcha> palette = new ArrayList<>();
+    private int totalWeight = 0;
     private final Random random = new Random();
 
     public CaptchaManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
-        this.logger = plugin.getLogger();
-        this.plLang = plugin.getPlayerLanguageManager();
-        this.sysLang = plugin.getSystemLanguageManager();
-        loadQuestions();
+
+        registerCaptcha(new QuestionAnswerCaptcha(plugin, this));
+        registerCaptcha(new ColorPaletteCaptcha(plugin, this));
+
+        loadPalettes();
     }
 
-    public void loadQuestions() {
-        questionPool.clear();
-        File questionsFile = new File(plugin.getDataFolder(), "questions.yml");
-        if (!questionsFile.exists()) {
-            plugin.saveResource("questions.yml", false);
+    private void registerCaptcha(ICaptcha captcha) {
+        captchaRegistry.put(captcha.getTypeName(), captcha);
+    }
+
+    private void loadPalettes() {
+        palette.clear();
+        totalWeight = 0;
+        ConfigurationSection paletteSection = plugin.getConfig().getConfigurationSection("turing_test.palettes");
+        if (paletteSection == null) {
+            plugin.getLogger().warning("Config.yml'de 'turing_test.palettes' bölümü bulunamadı. Captcha sistemi çalışmayabilir.");
+            return;
         }
-        FileConfiguration config = YamlConfiguration.loadConfiguration(questionsFile);
-        ConfigurationSection questionsSection = config.getConfigurationSection("questions");
-        if (questionsSection != null) {
-            for (String key : questionsSection.getKeys(false)) {
-                String question = questionsSection.getString(key + ".question");
-                List<String> answers = questionsSection.getStringList(key + ".answers");
-                if (question != null && !answers.isEmpty()) {
-                    questionPool.add(new AbstractMap.SimpleEntry<>(question, answers));
+
+        for (String key : paletteSection.getKeys(false)) {
+            if (paletteSection.getBoolean(key + ".enabled", false)) {
+                int weight = paletteSection.getInt(key + ".weight", 0);
+                if (weight > 0 && captchaRegistry.containsKey(key)) {
+                    palette.add(new WeightedCaptcha(captchaRegistry.get(key), weight));
+                    totalWeight += weight;
                 }
             }
         }
-        if (questionPool.isEmpty()) {
-            logger.warning(sysLang.getSystemMessage(Lang.CAPTCHA_QUESTIONS_FILE_EMPTY_OR_INVALID));
+
+        if (palette.isEmpty()) {
+            plugin.getLogger().warning("Aktif ve geçerli ağırlığa sahip hiçbir captcha türü bulunamadı.");
         }
     }
 
-    /**
-     * Bir oyuncu için Turing Testi başlatır.
-     * @param player Testin başlatılacağı oyuncu.
-     */
+    private ICaptcha selectRandomCaptchaFromPalette() {
+        if (totalWeight <= 0) return null;
+
+        int randomValue = random.nextInt(totalWeight);
+        int currentWeight = 0;
+
+        for (WeightedCaptcha weightedCaptcha : palette) {
+            currentWeight += weightedCaptcha.getWeight();
+            if (randomValue < currentWeight) {
+                return weightedCaptcha.getCaptcha();
+            }
+        }
+        return null;
+    }
+
     public void startChallenge(Player player) {
-        if (isBeingTested(player) || questionPool.isEmpty()) {
+        if (isBeingTested(player) || palette.isEmpty()) {
             return;
         }
 
         plugin.getAfkManager().setSuspicious(player);
 
-        Map.Entry<String, List<String>> randomEntry = questionPool.get(random.nextInt(questionPool.size()));
-        String question = randomEntry.getKey();
-        List<String> answers = randomEntry.getValue();
-        int timeoutSeconds = plugin.getConfigManager().getAnswerTimeoutSeconds();
-
-        BukkitTask timeoutTask = Bukkit.getScheduler().runTaskLater(plugin, () -> failChallenge(player), timeoutSeconds * 20L);
-
-        activeChallenges.put(player.getUniqueId(), new CaptchaChallenge(answers, timeoutTask));
-
-        plLang.sendMessage(player, "turing_test.header");
-        player.sendMessage(ChatUtil.color("  " + question));
-        plLang.sendMessage(player, "turing_test.instruction", "%seconds%", String.valueOf(timeoutSeconds));
-    }
-
-    /**
-     * Oyuncunun verdiği bir cevabı işler.
-     * @param player Cevabı veren oyuncu.
-     * @param answer Oyuncunun cevabı.
-     */
-    public void submitAnswer(Player player, String answer) {
-        CaptchaChallenge challenge = activeChallenges.get(player.getUniqueId());
-        if (challenge == null) {
-            plLang.sendMessage(player, "turing_test.no_active_test");
+        ICaptcha selectedCaptcha = selectRandomCaptchaFromPalette();
+        if (selectedCaptcha == null) {
+            plugin.getLogger().warning("Aktif captcha türü seçilemedi, test başlatılamıyor.");
+            plugin.getAfkManager().resetSuspicion(player);
             return;
         }
 
-        if (challenge.isCorrect(answer)) {
-            passChallenge(player);
+        activePlayerCaptcha.put(player.getUniqueId(), selectedCaptcha);
+        selectedCaptcha.start(player);
+    }
+
+    public void reopenChallenge(Player player) {
+        ICaptcha activeCaptcha = activePlayerCaptcha.get(player.getUniqueId());
+        if (activeCaptcha != null) {
+            activeCaptcha.reopen(player);
         } else {
-            failChallenge(player);
+            plugin.getPlayerLanguageManager().sendMessage(player, "turing_test.test_command.not_in_test");
         }
     }
 
-    private void passChallenge(Player player) {
-        CaptchaChallenge challenge = activeChallenges.remove(player.getUniqueId());
-        if (challenge != null) {
-            challenge.getTimeoutTask().cancel();
+    public void submitAnswer(Player player, String answer) {
+        ICaptcha activeCaptcha = activePlayerCaptcha.get(player.getUniqueId());
+        if (activeCaptcha instanceof QuestionAnswerCaptcha) {
+            ((QuestionAnswerCaptcha) activeCaptcha).handleAnswer(player, answer);
+        } else if (activeCaptcha == null) {
+            plugin.getPlayerLanguageManager().sendMessage(player, "turing_test.no_active_test");
         }
+    }
 
+    public void passChallenge(Player player) {
+        ICaptcha captcha = activePlayerCaptcha.get(player.getUniqueId());
+        if (captcha != null) {
+            captcha.cleanUp(player);
+            activePlayerCaptcha.remove(player.getUniqueId());
+        }
         plugin.getDatabaseManager().incrementTestsPassed(player.getUniqueId());
-
         plugin.getAfkManager().resetSuspicion(player);
-        plLang.sendMessage(player, "turing_test.success");
+        plugin.getPlayerLanguageManager().sendMessage(player, "turing_test.success");
     }
 
-    private void failChallenge(Player player) {
-        CaptchaChallenge challenge = activeChallenges.remove(player.getUniqueId());
-        if (challenge != null) {
-            challenge.getTimeoutTask().cancel();
+    public void failChallenge(Player player, String reason) {
+        ICaptcha captcha = activePlayerCaptcha.get(player.getUniqueId());
+        if (captcha != null) {
+            captcha.cleanUp(player);
+            activePlayerCaptcha.remove(player.getUniqueId());
         }
 
         plugin.getDatabaseManager().incrementTestsFailed(player.getUniqueId());
 
         List<Map<String, String>> actions = plugin.getConfigManager().getCaptchaFailureActions();
-
         if (actions != null && !actions.isEmpty()) {
             plugin.getAfkManager().executeActions(player, actions);
         } else {
             plugin.getAfkManager().setManualAFK(player, "behavior.turing_test_failed");
         }
 
-        plLang.sendMessage(player, "turing_test.failure");
+        plugin.getPlayerLanguageManager().sendMessage(player, "turing_test.failure");
+        plugin.getDebugManager().log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Player %s failed captcha. Reason: %s", player.getName(), reason);
     }
 
     public boolean isBeingTested(Player player) {
-        return activeChallenges.containsKey(player.getUniqueId());
+        return activePlayerCaptcha.containsKey(player.getUniqueId());
     }
 
-    /**
-     * Oyuncu sunucudan çıktığında aktif testi iptal eder.
-     * @param player Çıkan oyuncu.
-     */
     public void onPlayerQuit(Player player) {
-        CaptchaChallenge challenge = activeChallenges.remove(player.getUniqueId());
-        if (challenge != null) {
-            challenge.getTimeoutTask().cancel();
+        ICaptcha activeCaptcha = activePlayerCaptcha.remove(player.getUniqueId());
+        if (activeCaptcha != null) {
+            activeCaptcha.cleanUp(player);
         }
+    }
+
+    private static class WeightedCaptcha {
+        private final ICaptcha captcha;
+        private final int weight;
+
+        public WeightedCaptcha(ICaptcha captcha, int weight) {
+            this.captcha = captcha;
+            this.weight = weight;
+        }
+
+        public ICaptcha getCaptcha() { return captcha; }
+        public int getWeight() { return weight; }
     }
 }

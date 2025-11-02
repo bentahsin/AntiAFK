@@ -19,6 +19,7 @@ public class German implements TranslationProvider {
         add(Lang.CAPTCHA_QUESTIONS_FILE_EMPTY_OR_INVALID, "Die Datei questions.yml ist leer oder ungültig! Die Turing-Test-Funktion wird nicht funktionieren.");
 
         add(Lang.ANTIAFK_COMMAND_NOT_IN_YML, "Der AntiAFK-Befehl (antiafk) wurde in der plugin.yml nicht gefunden oder ist falsch konfiguriert!");
+        add(Lang.AFK_TEST_COMMAND_NOT_IN_YML, "AFKTest-Befehl (afktest) wurde nicht in plugin.yml gefunden oder ist falsch konfiguriert!");
         add(Lang.PLUGIN_COMMANDS_WILL_NOT_WORK, "Die Befehle des Plugins werden nicht funktionieren. Bitte überprüfe deine plugin.yml.");
         add(Lang.AFK_COMMAND_NOT_IN_YML, "Der Befehl /afk wurde in der plugin.yml nicht gefunden!");
         add(Lang.AFKCEVAP_COMMAND_NOT_IN_YML, "Der Befehl /afkcevap wurde in der plugin.yml nicht gefunden!");

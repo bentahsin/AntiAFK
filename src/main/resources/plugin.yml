@@ -15,7 +15,9 @@ commands:
   afkcevap:
     description: AntiAFK bot testini cevaplamanızı sağlar.
     usage: /afkcevap <cevap>
-
+  afktest:
+    description: Aktif bot testini yeniden açmanızı sağlar.
+    usage: /afktest
 permissions:
   antiafk.admin:
     description: Plugin komutlarını kullanma izni.

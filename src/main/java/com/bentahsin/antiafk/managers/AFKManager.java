@@ -93,7 +93,7 @@ public class AFKManager {
         lastActivity.invalidate(uuid);
         lastWarningTime.invalidate(uuid);
         botDetectionData.invalidate(uuid);
-        rejoinProtectedPlayers.invalidate(uuid);
+        playerStates.invalidate(uuid);
     }
 
     /**

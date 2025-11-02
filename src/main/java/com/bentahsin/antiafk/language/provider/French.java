@@ -19,6 +19,7 @@ public class French implements TranslationProvider {
         add(Lang.CAPTCHA_QUESTIONS_FILE_EMPTY_OR_INVALID, "Le fichier questions.yml est vide ou invalide ! La fonctionnalité du test de Turing ne fonctionnera pas.");
 
         add(Lang.ANTIAFK_COMMAND_NOT_IN_YML, "La commande AntiAFK (antiafk) n'est pas trouvée dans plugin.yml ou est mal configurée !");
+        add(Lang.AFK_TEST_COMMAND_NOT_IN_YML, "La commande AFKTest (afktest) n'a pas été trouvée dans plugin.yml ou est incorrectement configurée !");
         add(Lang.PLUGIN_COMMANDS_WILL_NOT_WORK, "Les commandes du plugin ne fonctionneront pas. Veuillez vérifier votre fichier plugin.yml.");
         add(Lang.AFK_COMMAND_NOT_IN_YML, "La commande /afk n'a pas été trouvée dans plugin.yml !");
         add(Lang.AFKCEVAP_COMMAND_NOT_IN_YML, "La commande /afkcevap n'a pas été trouvée dans plugin.yml !");

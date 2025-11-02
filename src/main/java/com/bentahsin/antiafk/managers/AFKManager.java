@@ -233,9 +233,15 @@ public class AFKManager {
      * @param player Sunucuya katılan oyuncu.
      */
     public void checkRejoin(Player player) {
-        if (!configManager.isRejoinProtectionEnabled()) return;
+        if (!configManager.isRejoinProtectionEnabled()) {
+            debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Rejoin check for %s skipped: feature disabled.", player.getName());
+            return;
+        }
+
         UUID uuid = player.getUniqueId();
         Long punishedTime = rejoinProtectedPlayers.getIfPresent(uuid);
+
+        debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Running rejoin check for %s. Punished time found: %s", player.getName(), (punishedTime != null));
 
         if (punishedTime != null) {
             long currentTime = System.currentTimeMillis();
@@ -243,14 +249,19 @@ public class AFKManager {
 
             if ((currentTime - punishedTime) < cooldownMillis) {
                 long timeLeftSeconds = (cooldownMillis - (currentTime - punishedTime)) / 1000;
+
+                debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Rejoin protection is active for %s. Time left: %d seconds. Applying punishment.", player.getName(), timeLeftSeconds);
+
                 String message = plLang.getMessage("rejoin_kick", "%time_left%", TimeUtil.formatTime(timeLeftSeconds));
 
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    player.sendMessage(message);
-                    executeActions(player, configManager.getActions());
-                }, 5L);
+                    if (player.isOnline()) {
+                        player.kickPlayer(message);
+                    }
+                }, 2L);
 
             } else {
+                debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Rejoin protection for %s has expired. Invalidating.", player.getName());
                 rejoinProtectedPlayers.invalidate(uuid);
             }
         }

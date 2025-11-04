@@ -36,7 +36,7 @@ turing_test:
   captcha_palette:
     gui_title: "&4&lBot Verification Test"
     instruction: "&cClick all %color% colored wools! &7(Type /afktest if you close)"
-    success: "&aVerification successful! Thank you." # We can use this general success message.
+    success: "&aVerification successful! Thank you."
     failure_wrong_item: "&cYou clicked the wrong wool! Test failed."
     failure_time_out: "&cTime's up! Test failed."
 

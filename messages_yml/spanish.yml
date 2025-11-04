@@ -25,13 +25,33 @@ info:
 # Mensaje de Protección al Reconectar
 rejoin_kick: "&c¡Tu penalización de AFK aún no ha expirado! Por favor, inténtalo de nuevo en &e%time_left%&c."
 
-# Mensajes de Prueba de Turing (Captcha)
+# Mensajes de Test de Turing (Captcha)
 turing_test:
   header: "!&8&m------------------------------------------"
   instruction: "&fPara responder, escribe &e/afkcevap <respuesta> &fen el chat. &c(Tienes %seconds% segundos)"
-  no_active_test: "&cNo tienes una prueba activa para responder en este momento."
+  no_active_test: "&cNo tienes ninguna prueba activa que responder en este momento."
   success: "&a¡Respuesta correcta! Gracias, puedes seguir jugando."
   failure: "&c¡Respuesta incorrecta o tiempo agotado! Has sido marcado como AFK hasta que muestres actividad."
+
+  captcha_palette:
+    gui_title: "&4&lTest de Verificación Anti-Bot"
+    instruction: "&c¡Haz clic en toda la lana de color %color%! &7(Escribe /afktest si lo cierras)"
+    success: "&a¡Verificación superada! Gracias."
+    failure_wrong_item: "&c¡Has hecho clic en la lana incorrecta! Prueba fallida."
+    failure_time_out: "&c¡Se acabó el tiempo! Prueba fallida."
+
+  test_command:
+    not_in_test: "&cNo tienes ninguna prueba anti-bot en curso."
+    qa_reprompt: "&ePregunta: &f%question% &7(Tiempo restante: &c%time_left% segundos&7)"
+
+# Nombres de colores traducibles. Deben coincidir con 'available_colors' en config.yml.
+captcha_palette_colors:
+  RED: "&cRojo"
+  BLUE: "&9Azul"
+  LIME: "&aLima"
+  YELLOW: "&eAmarillo"
+  ORANGE: "&6Naranja"
+  CYAN: "&3Cian"
 
 # Mensajes de Comandos
 command:

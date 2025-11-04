@@ -25,13 +25,33 @@ info:
 # Wiadomość o ochronie przy ponownym dołączeniu
 rejoin_kick: "&cTwoja kara za bycie AFK jeszcze nie wygasła! Spróbuj ponownie za &e%time_left%&c."
 
-# Wiadomości testu Turinga (Captcha)
+# Wiadomości Testu Turinga (Captcha)
 turing_test:
   header: "!&8&m------------------------------------------"
   instruction: "&fAby odpowiedzieć, wpisz &e/afkcevap <odpowiedź> &fna czacie. &c(Masz %seconds% sekund)"
-  no_active_test: "&cNie masz aktywnego testu do rozwiązania."
+  no_active_test: "&cNie masz obecnie aktywnego testu do rozwiązania."
   success: "&aPrawidłowa odpowiedź! Dziękujemy, możesz kontynuować grę."
   failure: "&cNieprawidłowa odpowiedź lub czas minął! Zostałeś oznaczony jako AFK, dopóki nie wykażesz aktywności."
+
+  captcha_palette:
+    gui_title: "&4&lTest Weryfikacyjny Bota"
+    instruction: "&cKliknij całą wełnę w kolorze %color%! &7(Wpisz /afktest, jeśli zamkniesz)"
+    success: "&aWeryfikacja udana! Dziękujemy."
+    failure_wrong_item: "&cKliknąłeś złą wełnę! Test niezaliczony."
+    failure_time_out: "&cCzas minął! Test niezaliczony."
+
+  test_command:
+    not_in_test: "&cNie masz obecnie trwającego testu bota."
+    qa_reprompt: "&ePytanie: &f%question% &7(Pozostały czas: &c%time_left% sekund&7)"
+
+# Przetłumaczalne nazwy kolorów. Muszą pasować do 'available_colors' w config.yml.
+captcha_palette_colors:
+  RED: "&cCzerwony"
+  BLUE: "&9Niebieski"
+  LIME: "&aLimonkowy"
+  YELLOW: "&eŻółty"
+  ORANGE: "&6Pomarańczowy"
+  CYAN: "&3Cyjanowy"
 
 # Wiadomości komend
 command:

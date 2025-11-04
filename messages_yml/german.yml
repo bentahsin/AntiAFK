@@ -29,9 +29,29 @@ rejoin_kick: "&cDeine AFK-Strafe ist noch nicht abgelaufen! Bitte versuche es in
 turing_test:
   header: "!&8&m------------------------------------------"
   instruction: "&fUm zu antworten, tippe &e/afkcevap <Antwort> &fin den Chat. &c(Du hast %seconds% Sekunden Zeit)"
-  no_active_test: "&cDu hast gerade keinen aktiven Test zu beantworten."
+  no_active_test: "&cDu hast derzeit keinen aktiven Test zu beantworten."
   success: "&aRichtige Antwort! Danke, du kannst weiterspielen."
   failure: "&cFalsche Antwort oder Zeit abgelaufen! Du wurdest als AFK markiert, bis du Aktivität zeigst."
+
+  captcha_palette:
+    gui_title: "&4&lBot-Verifizierungstest"
+    instruction: "&cKlicke auf alle %color% farbigen Wollblöcke! &7(Tippe /afktest, falls du schließt)"
+    success: "&aVerifizierung erfolgreich! Danke."
+    failure_wrong_item: "&cDu hast auf die falsche Wolle geklickt! Test fehlgeschlagen."
+    failure_time_out: "&cZeit abgelaufen! Test fehlgeschlagen."
+
+  test_command:
+    not_in_test: "&cDu hast keinen laufenden Bot-Test."
+    qa_reprompt: "&eFrage: &f%question% &7(Verbleibende Zeit: &c%time_left% Sekunden&7)"
+
+# Übersetzbare Farbnamen. Muss mit 'available_colors' in config.yml übereinstimmen.
+captcha_palette_colors:
+  RED: "&cRot"
+  BLUE: "&9Blau"
+  LIME: "&aHellgrün"
+  YELLOW: "&eGelb"
+  ORANGE: "&6Orange"
+  CYAN: "&3Zyan"
 
 # Befehlsnachrichten
 command:

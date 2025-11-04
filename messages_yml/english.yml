@@ -33,6 +33,26 @@ turing_test:
   success: "&aCorrect answer! Thank you, you may continue playing."
   failure: "&cIncorrect answer or time's up! You have been marked as AFK until you show activity."
 
+  captcha_palette:
+    gui_title: "&4&lBot Verification Test"
+    instruction: "&cClick all %color% colored wools! &7(Type /afktest if you close)"
+    success: "&aVerification successful! Thank you." # We can use this general success message.
+    failure_wrong_item: "&cYou clicked the wrong wool! Test failed."
+    failure_time_out: "&cTime's up! Test failed."
+
+  test_command:
+    not_in_test: "&cYou do not have an ongoing bot test."
+    qa_reprompt: "&eQuestion: &f%question% &7(Time left: &c%time_left% seconds&7)"
+
+# Translatable color names. Must match 'available_colors' in config.yml.
+captcha_palette_colors:
+  RED: "&cRed"
+  BLUE: "&9Blue"
+  LIME: "&aLime"
+  YELLOW: "&eYellow"
+  ORANGE: "&6Orange"
+  CYAN: "&3Cyan"
+
 # Command Messages
 command:
   antiafk:

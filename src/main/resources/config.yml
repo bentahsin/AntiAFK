@@ -44,6 +44,20 @@ debug:
     database_queries: false
 
 # ================================== #
+#         ENTEGRASYONLAR           #
+# ================================== #
+
+# Discord Webhook entegrasyonu. Kick/ban gibi önemli bildirimleri Discord'a göndermek için.
+# Nasıl oluşturulur?: Discord kanal ayarları -> Entegrasyonlar -> Webhook'lar -> Yeni Webhook
+discord_webhook:
+  enabled: false
+  webhook_url: "BURAYA_WEBHOOK_URL'NİZİ_YAPIŞTIRIN"
+  # Webhook tarafından gönderilen mesajlarda görünecek kullanıcı adı.
+  bot_name: "AntiAFK Guard"
+  # Webhook tarafından gönderilen mesajlarda görünecek avatar URL'si (isteğe bağlı).
+  avatar_url: ""
+
+# ================================== #
 #         ANA AFK SİSTEMİ            #
 # ================================== #
 
@@ -77,6 +91,10 @@ actions:
     command: "broadcast &e%player_displayname% &6uzun süre AFK kaldığı için lobiye gönderildi."
   - type: "PLAYER"
     command: "spawn" # Veya /spawn, /hub vb.
+  # Bu aksiyon, yukarıdaki komutlarla BİRLİKTE çalışır ve Discord'a bir bildirim gönderir.
+  - type: "DISCORD_WEBHOOK"
+    # Placeholder'lar burada da geçerlidir. Renk kodları Discord'da çalışmaz.
+    message: "**%player_displayname%** was moved to spawn for being AFK too long."
   #- type: "CONSOLE"
   #  command: "kick %player% &6Merhaba &c%player_displayname% &6uzun süre AFK kaldığın için sunucudan atıldın. :("
 
@@ -115,6 +133,8 @@ progressive_punishment:
       actions:
         - type: "CONSOLE"
           command: "tempban %player% 10m &cAFK kalmayı alışkanlık haline getirdiğiniz için geçici olarak uzaklaştırıldınız."
+        - type: "DISCORD_WEBHOOK"
+          message: ":rotating_light: **%player_displayname%** has been temporarily banned for 10 minutes due to repeated AFK behavior."
 
 # ================================== #
 #         AKTİVİTE TESPİTİ           #

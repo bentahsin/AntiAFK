@@ -7,6 +7,7 @@ import com.bentahsin.antiafk.models.PlayerState;
 import com.bentahsin.antiafk.models.PunishmentLevel;
 import com.bentahsin.antiafk.models.RegionOverride;
 import com.bentahsin.antiafk.storage.DatabaseManager;
+import com.bentahsin.antiafk.utils.DiscordWebhookUtil;
 import com.bentahsin.antiafk.utils.TimeUtil;
 import com.bentahsin.antiafk.data.PointlessActivityData;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -407,6 +408,12 @@ public class AFKManager {
 
         for (Map<String, String> action : actions) {
             String type = action.get("type");
+
+            if ("DISCORD_WEBHOOK".equalsIgnoreCase(type)) {
+                String message = applyPlaceholders(player, action.get("message"), 0, maxAfkTimeForAction);
+                DiscordWebhookUtil.sendMessage(plugin, message);
+                continue;
+            }
 
             String command = applyPlaceholders(player, action.get("command"), 0, maxAfkTimeForAction);
 

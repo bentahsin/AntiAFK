@@ -23,14 +23,14 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
 
     private final AntiAFKPlugin plugin;
     private final CaptchaManager captchaManager;
-    private final ConfigManager cfgMgr;
+    private final ConfigManager configManager;
     private final Random random = new Random();
     private final Map<UUID, ActivePaletteTest> activeTests = new ConcurrentHashMap<>();
 
     public ColorPaletteCaptcha(AntiAFKPlugin plugin, CaptchaManager captchaManager) {
         this.plugin = plugin;
         this.captchaManager = captchaManager;
-        this.cfgMgr = plugin.getConfigManager();
+        this.configManager = plugin.getConfigManager();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
@@ -41,20 +41,20 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
 
     @Override
     public void start(Player player) {
-        int guiRows = cfgMgr.getColorPaletteGuiRows();
-        int timeLimit = cfgMgr.getColorPaletteTimeLimit();
-        int correctCount = cfgMgr.getColorPaletteCorrectCount();
-        int distractorColorCount = cfgMgr.getColorPaletteDistractorColorCount();
-        int distractorItemCount = cfgMgr.getColorPaletteDistractorItemCount();
-        List<String> availableColors = cfgMgr.getColorPaletteAvailableColors();
+        final int guiRows = configManager.getColorPaletteGuiRows();
+        final int timeLimit = configManager.getColorPaletteTimeLimit();
+        final int correctCount = configManager.getColorPaletteCorrectCount();
+        final int distractorColorCount = configManager.getColorPaletteDistractorColorCount();
+        final int distractorItemCount = configManager.getColorPaletteDistractorItemCount();
+        final List<String> availableColors = configManager.getColorPaletteAvailableColors();
 
         if (availableColors.isEmpty()) {
             captchaManager.failChallenge(player, "Renk paleti yapılandırılmamış.");
             return;
         }
 
-        String correctColorStr = availableColors.get(random.nextInt(availableColors.size()));
-        List<String> distractorColors = new ArrayList<>();
+        final String correctColorStr = availableColors.get(random.nextInt(availableColors.size()));
+        final List<String> distractorColors = new ArrayList<>();
         List<String> tempColorPool = new ArrayList<>(availableColors);
         tempColorPool.remove(correctColorStr);
         Collections.shuffle(tempColorPool);
@@ -62,10 +62,11 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
             distractorColors.add(tempColorPool.get(i));
         }
 
-        String translatedColor = getTranslatedColorName(correctColorStr);
-        String guiTitle = plugin.getPlayerLanguageManager().getRawMessage("turing_test.captcha_palette.instruction")
-                .replace("%color%", translatedColor);
-        Inventory gui = Bukkit.createInventory(player, guiRows * 9, ChatUtil.color(guiTitle));
+        final String translatedColor = getTranslatedColorName(correctColorStr);
+        final String guiTitle = plugin.getPlayerLanguageManager().getMessage("turing_test.captcha_palette.instruction", "%color%", translatedColor)
+                .replace(plugin.getPlayerLanguageManager().getPrefix(), ""); // Prefix'i GUI başlığından kaldıralım.
+
+        final Inventory gui = Bukkit.createInventory(player, guiRows * 9, guiTitle);
 
         List<ItemStack> itemsToPlace = new ArrayList<>();
         for (int i = 0; i < correctCount; i++) itemsToPlace.add(createWoolItem(correctColorStr));
@@ -154,7 +155,15 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
     }
 
     private String getTranslatedColorName(String colorKey) {
-        return ChatUtil.color(plugin.getPlayerLanguageManager().getRawMessage("turing_test.captcha_palette_colors." + colorKey.toUpperCase()));
+        String path = "turing_test.captcha_palette_colors." + colorKey.toUpperCase();
+        String translatedName = plugin.getPlayerLanguageManager().getRawMessage(path);
+
+        if (translatedName == null) {
+            plugin.getLogger().warning("messages.yml dosyasında renk çevirisi bulunamadı: " + path + ". Anahtar adı kullanılacak.");
+            return colorKey;
+        }
+
+        return ChatUtil.color(translatedName);
     }
 
     private static class ActivePaletteTest {

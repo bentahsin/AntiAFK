@@ -289,6 +289,7 @@ turing_test:
       - "YELLOW"
       - "ORANGE"
       - "CYAN"
+      - "MAGENTA"
 
   # Oyuncu testi geçemezse çalıştırılacak komutlar.
   # Boş bırakılırsa, oyuncu sadece varsayılan olarak AFK yapılır.

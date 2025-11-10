@@ -317,6 +317,8 @@ turing_test:
   on_failure_actions:
     - type: "CONSOLE"
       command: "kick %player% &cBot testi başarısız!"
+    - type: "DISCORD_WEBHOOK"
+      message: ":shield: **%player_displayname%** was kicked for failing the bot captcha test."
     #- type: "PLAYER"
     #  command: "spawn"
 

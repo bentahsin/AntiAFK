@@ -3,12 +3,15 @@ package com.bentahsin.antiafk.utils;
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.managers.DebugManager;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 /**
  * Discord Webhook'larına asenkron olarak mesaj gönderen yardımcı sınıf.
@@ -23,24 +26,34 @@ public final class DiscordWebhookUtil {
      * @param message Gönderilecek mesaj.
      */
     public static void sendMessage(AntiAFKPlugin plugin, String message) {
+        DebugManager debugManager = plugin.getDebugManager();
+
+        boolean isEnabled = plugin.getConfig().getBoolean("discord_webhook.enabled", false);
         String webhookUrl = plugin.getConfig().getString("discord_webhook.webhook_url", "");
         String botName = plugin.getConfig().getString("discord_webhook.bot_name", "AntiAFK Guard");
         String avatarUrl = plugin.getConfig().getString("discord_webhook.avatar_url", "");
 
-        if (!plugin.getConfig().getBoolean("discord_webhook.enabled", false) || Objects.requireNonNull(webhookUrl).isEmpty() || webhookUrl.equals("BURAYA_WEBHOOK_URL'NİZİ_YAPIŞTIRIN")) {
+        boolean isUrlValid = !Objects.requireNonNull(webhookUrl).isEmpty() && !webhookUrl.equals("BURAYA_WEBHOOK_URL'NİZİ_YAPIŞTIRIN");
+        debugManager.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Webhook check started. Enabled: %b, URL Valid: %b", isEnabled, isUrlValid);
+
+        if (!isEnabled || !isUrlValid) {
+            debugManager.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Webhook sending aborted due to invalid config.");
             return;
         }
 
         CompletableFuture.runAsync(() -> {
             try {
+                String jsonPayload = createJsonPayload(message, botName, avatarUrl);
+                debugManager.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Attempting to send webhook to URL. Payload: %s", jsonPayload);
+
                 URL url = new URL(webhookUrl);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "application/json; utf-8");
-                connection.setRequestProperty("User-Agent", "AntiAFK-Plugin");
+                connection.setRequestProperty("User-Agent", "AntiAFK-Plugin/1.0");
                 connection.setDoOutput(true);
-
-                String jsonPayload = createJsonPayload(message, botName, avatarUrl);
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
 
                 try (OutputStream os = connection.getOutputStream()) {
                     byte[] input = jsonPayload.getBytes(StandardCharsets.UTF_8);
@@ -48,19 +61,28 @@ public final class DiscordWebhookUtil {
                 }
 
                 int responseCode = connection.getResponseCode();
-                plugin.getDebugManager().log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Discord webhook sent. Response code: %d", responseCode);
+                debugManager.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Discord webhook response received. Code: %d", responseCode);
+
+                if (responseCode < 200 || responseCode >= 300) {
+                    plugin.getLogger().warning("Discord webhook returned a non-successful status code: " + responseCode);
+                    try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8))) {
+                        StringBuilder response = new StringBuilder();
+                        String responseLine;
+                        while ((responseLine = br.readLine()) != null) {
+                            response.append(responseLine.trim());
+                        }
+                        plugin.getLogger().warning("Discord API Error Response: " + response);
+                    }
+                }
 
                 connection.disconnect();
 
             } catch (Exception e) {
-                plugin.getLogger().warning("Discord webhook mesajı gönderilirken bir hata oluştu: " + e.getMessage());
+                plugin.getLogger().log(Level.SEVERE, "Discord webhook mesajı gönderilirken kritik bir hata oluştu:", e);
             }
         });
     }
 
-    /**
-     * Discord Webhook API'sinin beklediği JSON formatını oluşturur.
-     */
     private static String createJsonPayload(String content, String username, String avatarUrl) {
         StringBuilder json = new StringBuilder();
         json.append("{");
@@ -75,9 +97,6 @@ public final class DiscordWebhookUtil {
         return json.toString();
     }
 
-    /**
-     * JSON içindeki özel karakterlerden kaçınmak için.
-     */
     private static String escapeJson(String text) {
         return text.replace("\\", "\\\\")
                 .replace("\"", "\\\"")

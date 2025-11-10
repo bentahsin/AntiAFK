@@ -44,14 +44,14 @@ turing_test:
     not_in_test: "&cYou do not have an ongoing bot test."
     qa_reprompt: "&eQuestion: &f%question% &7(Time left: &c%time_left% seconds&7)"
 
-# Translatable color names. Must match 'available_colors' in config.yml.
-captcha_palette_colors:
-  RED: "&cRed"
-  BLUE: "&9Blue"
-  LIME: "&aLime"
-  YELLOW: "&eYellow"
-  ORANGE: "&6Orange"
-  CYAN: "&3Cyan"
+  # Translatable color names. Must match 'available_colors' in config.yml.
+  captcha_palette_colors:
+    RED: "&cRed"
+    BLUE: "&9Blue"
+    LIME: "&aLime"
+    YELLOW: "&eYellow"
+    ORANGE: "&6Orange"
+    CYAN: "&3Cyan"
 
 # Command Messages
 command:

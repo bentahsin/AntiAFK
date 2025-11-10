@@ -41,14 +41,14 @@ turing_test:
     not_in_test: "&cDevam eden bir bot testin bulunmuyor."
     qa_reprompt: "&eSoru: &f%question% &7(Kalan süre: &c%time_left% saniye&7)"
 
-# Çevrilebilir renk isimleri. config.yml'deki 'available_colors' ile eşleşmelidir.
-captcha_palette_colors:
-  RED: "&cKırmızı"
-  BLUE: "&9Mavi"
-  LIME: "&aAçık Yeşil"
-  YELLOW: "&eSarı"
-  ORANGE: "&6Turuncu"
-  CYAN: "&3Camgöbeği"
+  # Çevrilebilir renk isimleri. config.yml'deki 'available_colors' ile eşleşmelidir.
+  captcha_palette_colors:
+    RED: "&cKırmızı"
+    BLUE: "&9Mavi"
+    LIME: "&aAçık Yeşil"
+    YELLOW: "&eSarı"
+    ORANGE: "&6Turuncu"
+    CYAN: "&3Camgöbeği"
 
 # /afk Komutu Mesajları
 command:

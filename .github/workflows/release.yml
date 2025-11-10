@@ -1,0 +1,71 @@
+name: Java CI with Maven - Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Kodu Checkout Yap
+        uses: actions/checkout@v4
+
+      - name: JDK 8 Kurulumu
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+          cache: 'maven'
+
+      - name: Maven ile Derle (Build)
+        run: mvn clean package
+
+      - name: Derlenen JAR Dosyasını Bul
+        id: find_jar
+        run: |
+          JAR_FILE=$(find target -maxdepth 1 -type f -name "*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar" | head -n 1)
+          echo "JAR_PATH=$JAR_FILE" >> $GITHUB_OUTPUT
+          echo "JAR_NAME=$(basename $JAR_FILE)" >> $GITHUB_OUTPUT
+
+      - name: GitHub Release Oluştur
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            Eklentinin ${{ github.ref_name }} sürümü.
+          draft: false
+          prerelease: false
+
+      - name: JAR Dosyasını Release'e Yükle
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.find_jar.outputs.JAR_PATH }}
+          asset_name: ${{ steps.find_jar.outputs.JAR_NAME }}
+          asset_content_type: application/java-archive
+
+      - name: Modrinth'e Yükle
+        uses: RubixDev/modrinth-upload@v1
+        with:
+          project_id: "ZrW0jIBC"
+          token: ${{ secrets.MODRINTH_TOKEN }}
+          file_path: ${{ steps.find_jar.outputs.JAR_PATH }}
+          name: "Release ${{ github.ref_name }}"
+          version: ${{ github.ref_name }}
+          changelog: ${{ steps.create_release.outputs.body }}
+          game_versions: 1.13.2,1.14,1.14.1,1.14.2,1.14.3,1.14.4,1.15,1.15.1,1.15.2,1.16,1.16.1,1.16.2,1.16.3,1.16.4,1.16.5,1.17,1.17.1,1.18,1.18.1,1.18.2,1.19,1.19.1,1.19.2,1.19.3,1.19.4,1.20,1.20.1,1.20.2,1.20.3,1.20.4,1.20.5,1.20.6,1.21,1.21.1,1.21.2,1.21.3,1.21.4,1.21.5,1.21.6,1.21.7,1.21.8,1.21.9"]'
+          loaders: paper,spigot,bukkit,purpur
+          featured: true
+          release_type: "release"

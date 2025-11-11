@@ -55,7 +55,7 @@ public class PlayerActionGUI extends Menu {
 
         actions.put(11, () -> {
             if (!plugin.getConfigManager().getActions().isEmpty()) {
-                afkManager.getPunishmentManager().executeActions(target, plugin.getConfigManager().getActions());
+                afkManager.getPunishmentManager().executeActions(target, plugin.getConfigManager().getActions(), afkManager.getStateManager());
                 plLang.sendMessage(admin, "gui.player_actions.actions_applied", "%player%", target.getName());
                 admin.playSound(admin.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
             } else {

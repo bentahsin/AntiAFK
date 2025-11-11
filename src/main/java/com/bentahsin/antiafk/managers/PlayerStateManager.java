@@ -24,15 +24,17 @@ public class PlayerStateManager {
     private final ConfigManager configManager;
     private final PlayerLanguageManager plLang;
     private final DatabaseManager databaseManager;
+    private final WarningManager warningManager;
 
     private final Cache<UUID, Long> lastActivity;
     private final Cache<UUID, PlayerState> playerStates;
     private final Map<UUID, Long> afkStartTime = new ConcurrentHashMap<>();
 
-    public PlayerStateManager(AntiAFKPlugin plugin) {
+    public PlayerStateManager(AntiAFKPlugin plugin, WarningManager wm) {
         this.configManager = plugin.getConfigManager();
         this.plLang = plugin.getPlayerLanguageManager();
         this.databaseManager = plugin.getDatabaseManager();
+        this.warningManager = wm;
 
         this.lastActivity = buildCache(1, TimeUnit.HOURS);
         this.playerStates = Caffeine.newBuilder()
@@ -81,6 +83,7 @@ public class PlayerStateManager {
      */
     public void updateActivity(Player player) {
         lastActivity.put(player.getUniqueId(), System.currentTimeMillis());
+        warningManager.clearWarningCache(player);
     }
 
     /**

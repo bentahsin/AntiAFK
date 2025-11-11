@@ -92,7 +92,7 @@ public class PunishmentManager {
             actionsToExecute = configManager.getActions();
         }
 
-        executeActions(player, actionsToExecute);
+        executeActions(player, actionsToExecute, stateManager);
 
         stateManager.setSystemPunished(player, true);
 
@@ -149,7 +149,7 @@ public class PunishmentManager {
      * @param player  Eylemlerin uygulanacağı oyuncu.
      * @param actions Yürütülecek eylemlerin listesi.
      */
-    public void executeActions(Player player, List<Map<String, String>> actions) {
+    public void executeActions(Player player, List<Map<String, String>> actions, PlayerStateManager stateManager) {
         long maxAfkTimeForAction;
         RegionOverride override = configManager.getRegionOverrideForPlayer(player);
         if (override != null && override.getMaxAfkTime() > 0) {

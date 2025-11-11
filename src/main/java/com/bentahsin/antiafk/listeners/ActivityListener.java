@@ -118,7 +118,6 @@ public abstract class ActivityListener {
         }
 
         afkManager.getStateManager().updateActivity(player);
-        afkManager.getWarningManager().clearWarningCache(player);
         debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "AFK timer reset for %s.", player.getName());
 
         if (!isMovementEvent && plugin.getBehaviorAnalysisManager().isEnabled()) {

@@ -135,7 +135,7 @@ public class CaptchaManager {
 
         List<Map<String, String>> actions = plugin.getConfigManager().getCaptchaFailureActions();
         if (actions != null && !actions.isEmpty()) {
-            plugin.getAfkManager().getPunishmentManager().executeActions(player, actions);
+            plugin.getAfkManager().getPunishmentManager().executeActions(player, actions, plugin.getAfkManager().getStateManager());
         } else {
             plugin.getAfkManager().getStateManager().setManualAFK(player, "behavior.turing_test_failed");
         }

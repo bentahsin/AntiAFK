@@ -21,8 +21,8 @@ public class AFKManager {
         DatabaseManager databaseManager = plugin.getDatabaseManager();
         PlayerLanguageManager plLang = plugin.getPlayerLanguageManager();
         SystemLanguageManager sysLang = plugin.getSystemLanguageManager();
-        this.stateManager = new PlayerStateManager(plugin);
-        this.warningManager = new WarningManager(plugin, configManager, plLang, sysLang, stateManager);
+        this.warningManager = new WarningManager(plugin, configManager, plLang, sysLang);
+        this.stateManager = new PlayerStateManager(plugin, warningManager);
         this.punishmentManager = new PunishmentManager(plugin, configManager, databaseManager, stateManager, plLang, debugMgr);
         this.botDetectionManager = new BotDetectionManager(plugin, configManager, stateManager, debugMgr);
     }
@@ -60,7 +60,7 @@ public class AFKManager {
         }
 
         if (!stateManager.isEffectivelyAfk(player)) {
-            warningManager.checkAndSendWarning(player, afkSeconds, effectiveMaxAfkTime);
+            warningManager.checkAndSendWarning(player, afkSeconds, effectiveMaxAfkTime, stateManager);
         }
     }
 

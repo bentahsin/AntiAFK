@@ -27,17 +27,15 @@ public class WarningManager {
     private final SystemLanguageManager sysLang;
     private final ConfigManager configManager;
     private final PlayerLanguageManager plLang;
-    private final PlayerStateManager stateManager;
 
     private final Cache<UUID, Long> lastWarningTime;
 
-    public WarningManager(AntiAFKPlugin plugin, ConfigManager configManager, PlayerLanguageManager plLang, SystemLanguageManager sysLang, PlayerStateManager stateManager) {
+    public WarningManager(AntiAFKPlugin plugin, ConfigManager configManager, PlayerLanguageManager plLang, SystemLanguageManager sysLang) {
         this.plugin = plugin;
         this.logger = plugin.getLogger();
         this.configManager = configManager;
         this.plLang = plLang;
         this.sysLang = sysLang;
-        this.stateManager = stateManager;
 
         this.lastWarningTime = Caffeine.newBuilder()
                 .expireAfterAccess(30, TimeUnit.MINUTES)
@@ -52,7 +50,7 @@ public class WarningManager {
      * @param afkSeconds  Oyuncunun mevcut AFK süresi.
      * @param maxAfkTime  Oyuncu için geçerli maksimum AFK süresi.
      */
-    public void checkAndSendWarning(Player player, long afkSeconds, long maxAfkTime) {
+    public void checkAndSendWarning(Player player, long afkSeconds, long maxAfkTime, PlayerStateManager stateManager) {
         for (Map<String, Object> warning : configManager.getWarnings()) {
             long warningTime = (long) warning.get("time");
             long timeLeft = maxAfkTime - afkSeconds;
@@ -62,7 +60,7 @@ public class WarningManager {
                 if (lastWarned != null && lastWarned > warningTime) {
                     continue;
                 }
-                sendWarning(player, warning, timeLeft, maxAfkTime);
+                sendWarning(player, warning, timeLeft, maxAfkTime, stateManager);
                 lastWarningTime.put(player.getUniqueId(), warningTime);
                 break;
             }
@@ -72,7 +70,7 @@ public class WarningManager {
     /**
      * Oyuncuya yapılandırılmış uyarı mesajını gönderir.
      */
-    private void sendWarning(Player player, Map<String, Object> warning, long timeLeft, long maxAfkTime) {
+    private void sendWarning(Player player, Map<String, Object> warning, long timeLeft, long maxAfkTime, PlayerStateManager stateManager) {
         String type = (String) warning.get("type");
 
         String message = ChatColor.translateAlternateColorCodes('&',

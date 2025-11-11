@@ -20,7 +20,7 @@ public class PlayerStateListener extends ActivityListener implements org.bukkit.
         if (!(event.getEntity() instanceof Player)) return;
         Player player = (Player) event.getEntity();
 
-        if (getConfigManager().isSetInvulnerable() && getAfkManager().isManuallyAFK(player)) {
+        if (getConfigManager().isSetInvulnerable() && getAfkManager().getStateManager().isManuallyAFK(player)) {
             event.setCancelled(true);
         }
     }

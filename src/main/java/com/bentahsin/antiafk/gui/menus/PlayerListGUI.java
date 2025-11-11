@@ -105,8 +105,8 @@ public class PlayerListGUI extends Menu {
             meta.setDisplayName("§r" + player.getDisplayName());
 
 
-            String afkTime = TimeUtil.formatTime(afkManager.getAfkTime(player));
-            String statusKey = afkManager.isManuallyAFK(player) ? "gui.player_list_menu.status_afk" : "gui.player_list_menu.status_active";
+            String afkTime = TimeUtil.formatTime(afkManager.getStateManager().getAfkTime(player));
+            String statusKey = afkManager.getStateManager().isManuallyAFK(player) ? "gui.player_list_menu.status_afk" : "gui.player_list_menu.status_active";
             String status = lang.getMessage(statusKey);
             String world = player.getWorld().getName();
 

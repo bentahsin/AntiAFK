@@ -48,13 +48,13 @@ public class ToggleAFKCommand implements IAFKSubCommand {
             return;
         }
 
-        if (afkManager.isManuallyAFK(player)) {
-            afkManager.unsetAfkStatus(player);
+        if (afkManager.getStateManager().isManuallyAFK(player)) {
+            afkManager.getStateManager().unsetAfkStatus(player);
         } else {
             String reason = args.length > 0
                     ? String.join(" ", args)
                     : plugin.getConfigManager().getAfkDefaultReason();
-            afkManager.setManualAFK(player, reason);
+            afkManager.getStateManager().setManualAFK(player, reason);
         }
     }
 

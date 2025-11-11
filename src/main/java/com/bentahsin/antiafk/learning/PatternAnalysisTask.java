@@ -105,7 +105,7 @@ public class PatternAnalysisTask extends BukkitRunnable {
                             player.getName(), knownPattern.getName(), info.getDistance()
                     );
                     Bukkit.getScheduler().runTask(plugin, () ->
-                            afkMgr.triggerSuspicionAndChallenge(player, "Öğrenilmiş bot deseni (" + knownPattern.getName() + ")")
+                            afkMgr.getBotDetectionManager().triggerSuspicionAndChallenge(player, "Öğrenilmiş bot deseni (" + knownPattern.getName() + ")")
                     );
                     break;
                 }

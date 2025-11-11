@@ -26,6 +26,6 @@ public class ReasonPlaceholder implements IPlaceholder {
             return "";
         }
 
-        return plugin.getAfkManager().getAfkReason(player);
+        return plugin.getAfkManager().getStateManager().getAfkReason(player);
     }
 }

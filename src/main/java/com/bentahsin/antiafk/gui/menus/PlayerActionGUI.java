@@ -55,7 +55,7 @@ public class PlayerActionGUI extends Menu {
 
         actions.put(11, () -> {
             if (!plugin.getConfigManager().getActions().isEmpty()) {
-                afkManager.executeActions(target, plugin.getConfigManager().getActions());
+                afkManager.getPunishmentManager().executeActions(target, plugin.getConfigManager().getActions());
                 plLang.sendMessage(admin, "gui.player_actions.actions_applied", "%player%", target.getName());
                 admin.playSound(admin.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
             } else {
@@ -69,13 +69,13 @@ public class PlayerActionGUI extends Menu {
         ));
 
 
-        boolean isTargetManualAFK = afkManager.isManuallyAFK(target);
+        boolean isTargetManualAFK = afkManager.getStateManager().isManuallyAFK(target);
         actions.put(13, () -> {
             if (isTargetManualAFK) {
-                afkManager.unsetAfkStatus(target);
+                afkManager.getStateManager().unsetAfkStatus(target);
                 plLang.sendMessage(admin, "gui.player_actions.manual_afk_off", "%player%", target.getName());
             } else {
-                afkManager.setManualAFK(target, "Bir admin tarafından AFK yapıldı.");
+                afkManager.getStateManager().setManualAFK(target, "Bir admin tarafından AFK yapıldı.");
                 plLang.sendMessage(admin, "gui.player_actions.manual_afk_on", "%player%", target.getName());
             }
             admin.playSound(admin.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);

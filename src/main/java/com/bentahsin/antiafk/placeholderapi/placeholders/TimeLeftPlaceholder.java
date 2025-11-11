@@ -28,7 +28,7 @@ public class TimeLeftPlaceholder implements IPlaceholder {
         }
 
         long maxAfk = plugin.getConfigManager().getMaxAfkTimeSeconds();
-        long afkTime = plugin.getAfkManager().getAfkTime(player);
+        long afkTime = plugin.getAfkManager().getStateManager().getAfkTime(player);
         long timeLeft = Math.max(0, maxAfk - afkTime);
 
         return TimeUtil.formatTime(timeLeft);

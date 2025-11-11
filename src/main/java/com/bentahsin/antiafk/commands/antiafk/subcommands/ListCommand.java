@@ -34,7 +34,7 @@ public class ListCommand implements ISubCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        List<Player> afkPlayers = afkManager.getAfkPlayers();
+        List<Player> afkPlayers = afkManager.getStateManager().getAfkPlayers();
 
         if (afkPlayers.isEmpty()) {
             plLang.sendMessage(sender, "command.antiafk.list.no_afk_players");
@@ -68,7 +68,7 @@ public class ListCommand implements ISubCommand {
                 break;
             }
             Player afkPlayer = afkPlayers.get(currentIndex);
-            String afkTime = TimeUtil.formatTime(afkManager.getAfkTime(afkPlayer));
+            String afkTime = TimeUtil.formatTime(afkManager.getStateManager().getAfkTime(afkPlayer));
 
             sender.sendMessage(plLang.getMessage("command.antiafk.list.entry",
                     "%rank%", String.valueOf(currentIndex + 1),

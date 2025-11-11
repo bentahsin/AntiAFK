@@ -82,12 +82,12 @@ public class CaptchaManager {
             return;
         }
 
-        plugin.getAfkManager().setSuspicious(player);
+        plugin.getAfkManager().getStateManager().setSuspicious(player);
 
         ICaptcha selectedCaptcha = selectRandomCaptchaFromPalette();
         if (selectedCaptcha == null) {
             plugin.getLogger().warning("Aktif captcha türü seçilemedi, test başlatılamıyor.");
-            plugin.getAfkManager().resetSuspicion(player);
+            plugin.getAfkManager().getBotDetectionManager().resetSuspicion(player);
             return;
         }
 
@@ -120,7 +120,7 @@ public class CaptchaManager {
             activePlayerCaptcha.remove(player.getUniqueId());
         }
         plugin.getDatabaseManager().incrementTestsPassed(player.getUniqueId());
-        plugin.getAfkManager().resetSuspicion(player);
+        plugin.getAfkManager().getBotDetectionManager().resetSuspicion(player);
         plugin.getPlayerLanguageManager().sendMessage(player, "turing_test.success");
     }
 
@@ -135,9 +135,9 @@ public class CaptchaManager {
 
         List<Map<String, String>> actions = plugin.getConfigManager().getCaptchaFailureActions();
         if (actions != null && !actions.isEmpty()) {
-            plugin.getAfkManager().executeActions(player, actions);
+            plugin.getAfkManager().getPunishmentManager().executeActions(player, actions);
         } else {
-            plugin.getAfkManager().setManualAFK(player, "behavior.turing_test_failed");
+            plugin.getAfkManager().getStateManager().setManualAFK(player, "behavior.turing_test_failed");
         }
 
         plugin.getPlayerLanguageManager().sendMessage(player, "turing_test.failure");

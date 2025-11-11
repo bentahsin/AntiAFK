@@ -31,7 +31,7 @@ public class TagPlaceholder implements IPlaceholder {
             return "";
         }
 
-        if (afkMgr.isEffectivelyAfk(player)) {
+        if (afkMgr.getStateManager().isEffectivelyAfk(player)) {
             return ChatUtil.color(cfgMgr.getAfkTagFormat());
         } else {
             return "";

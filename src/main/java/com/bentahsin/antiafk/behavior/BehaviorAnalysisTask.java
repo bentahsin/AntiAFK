@@ -105,7 +105,7 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
 
                             if (data.getConsecutiveRepeatCount() >= maxRepeats) {
                                 Bukkit.getScheduler().runTask(plugin, () ->
-                                        afkMgr.triggerSuspicionAndChallenge(player, "behavior.afk_detected")
+                                        afkMgr.getBotDetectionManager().triggerSuspicionAndChallenge(player, "behavior.afk_detected")
                                 );
                                 data.reset();
                                 break;

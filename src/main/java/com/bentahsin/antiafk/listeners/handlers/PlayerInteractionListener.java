@@ -31,7 +31,7 @@ public class PlayerInteractionListener extends ActivityListener implements org.b
         if (getConfigManager().isAutoClickerEnabled() &&
                 (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) &&
                 shouldTrackAutoClicker(player)) {
-            getAfkManager().trackClick(player);
+            getAfkManager().getBotDetectionManager().trackClick(player);
         }
     }
 
@@ -57,7 +57,7 @@ public class PlayerInteractionListener extends ActivityListener implements org.b
             }
 
             if (getConfigManager().isAutoClickerEnabled() && shouldTrackAutoClicker(player)) {
-                getAfkManager().trackClick(player);
+                getAfkManager().getBotDetectionManager().trackClick(player);
             }
         }
     }

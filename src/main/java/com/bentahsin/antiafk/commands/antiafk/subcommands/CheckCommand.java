@@ -82,9 +82,9 @@ public class CheckCommand implements ISubCommand {
         plLang.sendMessage(sender, "command.antiafk.check.header", "%player%", target.getName());
 
         String statusMessage;
-        if (onlineTarget != null && afkManager.isEffectivelyAfk(onlineTarget)) {
+        if (onlineTarget != null && afkManager.getStateManager().isEffectivelyAfk(onlineTarget)) {
             statusMessage = plLang.getMessage("command.antiafk.check.status_afk");
-        } else if (onlineTarget != null && afkManager.isSuspicious(onlineTarget)) {
+        } else if (onlineTarget != null && afkManager.getStateManager().isSuspicious(onlineTarget)) {
             statusMessage = plLang.getMessage("command.antiafk.check.status_suspicious");
         } else {
             statusMessage = plLang.getMessage("command.antiafk.check.status_active");
@@ -107,8 +107,8 @@ public class CheckCommand implements ISubCommand {
                 "%passed%", String.valueOf(stats.getTuringTestsPassed()),
                 "%failed%", String.valueOf(stats.getTuringTestsFailed())));
 
-        if (onlineTarget != null && afkManager.isEffectivelyAfk(onlineTarget)) {
-            String rawReason = afkManager.getAfkReason(onlineTarget);
+        if (onlineTarget != null && afkManager.getStateManager().isEffectivelyAfk(onlineTarget)) {
+            String rawReason = afkManager.getStateManager().getAfkReason(onlineTarget);
             String displayReason;
 
             if (rawReason != null && (rawReason.startsWith("behavior.") || rawReason.startsWith("command.afk"))) {
@@ -125,7 +125,7 @@ public class CheckCommand implements ISubCommand {
         String no = plLang.getMessage("command.antiafk.check.boolean_no");
 
         sender.sendMessage(plLang.getMessage("command.antiafk.check.is_autonomous",
-                "%value%", (onlineTarget != null && afkManager.isMarkedAsAutonomous(onlineTarget)) ? yes : no));
+                "%value%", (onlineTarget != null && afkManager.getStateManager().isMarkedAsAutonomous(onlineTarget)) ? yes : no));
     }
 
     /**

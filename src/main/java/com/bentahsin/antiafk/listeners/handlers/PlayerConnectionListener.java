@@ -25,8 +25,7 @@ public class PlayerConnectionListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        plugin.getAfkManager().checkRejoin(event.getPlayer());
-        plugin.getAfkManager().addPlayer(event.getPlayer());
+        plugin.getAfkManager().onPlayerJoin(event.getPlayer());
     }
 
     @EventHandler
@@ -34,7 +33,7 @@ public class PlayerConnectionListener implements Listener {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
 
-        plugin.getAfkManager().removePlayer(player);
+        plugin.getAfkManager().onPlayerQuit(player);
 
         if (plugin.getBehaviorAnalysisManager() != null && plugin.getBehaviorAnalysisManager().isEnabled()) {
             plugin.getBehaviorAnalysisManager().removePlayerData(player);

@@ -28,7 +28,7 @@ public class TimeAfkPlaceholder implements IPlaceholder {
             return "0";
         }
 
-        long afkTime = afkMgr.getAfkTime(player);
+        long afkTime = afkMgr.getStateManager().getAfkTime(player);
         return TimeUtil.formatTime(afkTime);
     }
 }

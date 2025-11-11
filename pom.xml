@@ -68,6 +68,10 @@
                                     <pattern>org.apache.commons.pool2</pattern>
                                     <shadedPattern>com.bentahsin.antiafk.libs.pool2</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>com.bentahsin.benthpapimanager</pattern>
+                                    <shadedPattern>com.bentahsin.antiafk.libs.benthpapimanager</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
@@ -197,6 +201,11 @@
             <artifactId>annotations</artifactId>
             <version>24.0.1</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.bentahsin</groupId>
+            <artifactId>BenthPAPIManager</artifactId>
+            <version>v1.0.3-b1</version>
         </dependency>
     </dependencies>
 </project>

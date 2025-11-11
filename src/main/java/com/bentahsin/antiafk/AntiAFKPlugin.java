@@ -22,11 +22,12 @@ import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.DebugManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
-import com.bentahsin.antiafk.placeholderapi.AFKPlaceholder;
+import com.bentahsin.antiafk.placeholderapi.AntiAFKPlaceholders;
 import com.bentahsin.antiafk.storage.DatabaseManager;
 import com.bentahsin.antiafk.storage.PlayerStatsManager;
 import com.bentahsin.antiafk.tasks.AFKCheckTask;
 import com.bentahsin.antiafk.turing.CaptchaManager;
+import com.bentahsin.benthpapimanager.BenthPAPIManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.PluginCommand;
@@ -54,6 +55,7 @@ public final class AntiAFKPlugin extends JavaPlugin {
     private PatternAnalysisTask patternAnalysisTask;
     private LearningDataCollectorTask learningDataCollectorTask;
     private VectorPoolManager vectorPoolManager;
+    private BenthPAPIManager papiManager;
     private boolean placeholderApiEnabled = false;
     private boolean worldGuardHooked = false;
     private boolean protocolLibEnabled = false;
@@ -138,9 +140,14 @@ public final class AntiAFKPlugin extends JavaPlugin {
             getLogger().warning(systemLanguageManager.getSystemMessage(Lang.PROTOCOLLIB_NOT_FOUND));
         }
 
-
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            new AFKPlaceholder(this).register();
+            this.papiManager = BenthPAPIManager.create(this)
+                    .withInjectable(AFKManager.class, afkManager)
+                    .withInjectable(ConfigManager.class, configManager)
+                    .withInjectable(PlayerLanguageManager.class, playerLanguageManager)
+                    .withDefaultErrorText("...")
+                    .register(AntiAFKPlaceholders.class);
+
             placeholderApiEnabled = true;
             getLogger().info(systemLanguageManager.getSystemMessage(Lang.PLACEHOLDERAPI_FOUND));
         } else {
@@ -199,6 +206,9 @@ public final class AntiAFKPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (papiManager != null) {
+            papiManager.unregisterAll();
+        }
         if (recordingManager != null) {
             recordingManager.clearAllRecordings();
         }

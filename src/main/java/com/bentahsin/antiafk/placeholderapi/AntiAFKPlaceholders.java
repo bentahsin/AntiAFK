@@ -69,16 +69,13 @@ public class AntiAFKPlaceholders {
         if (player == null) {
             return "";
         }
-
         String reasonKey = afkManager.getStateManager().getAfkReason(player);
         if (reasonKey == null) {
             return "";
         }
-
         if (reasonKey.startsWith("behavior.") || reasonKey.startsWith("command.afk")) {
             return plLang.getMessage(reasonKey).replace(plLang.getPrefix(), "").trim();
         }
-
         return reasonKey;
     }
 }

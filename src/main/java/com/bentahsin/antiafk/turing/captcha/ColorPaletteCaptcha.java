@@ -64,7 +64,7 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
 
         final String translatedColor = getTranslatedColorName(correctColorStr);
         final String guiTitle = plugin.getPlayerLanguageManager().getMessage("turing_test.captcha_palette.instruction", "%color%", translatedColor)
-                .replace(plugin.getPlayerLanguageManager().getPrefix(), ""); // Prefix'i GUI başlığından kaldıralım.
+                .replace(plugin.getPlayerLanguageManager().getPrefix(), "");
 
         final Inventory gui = Bukkit.createInventory(player, guiRows * 9, guiTitle);
 

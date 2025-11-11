@@ -161,27 +161,26 @@ public class PunishmentManager {
         for (Map<String, String> action : actions) {
             String type = action.get("type");
 
-            String commandOrMessage = PlaceholderUtil.applyPlaceholders(
-                    plugin, stateManager, player, action.get("command"), 0, maxAfkTimeForAction
-            );
-
             if ("DISCORD_WEBHOOK".equalsIgnoreCase(type)) {
                 String message = action.get("message");
-                if (message != null && !message.isEmpty()) {
-                    message = PlaceholderUtil.applyPlaceholders(
-                            plugin, stateManager, player, message, 0, maxAfkTimeForAction
-                    );
-                } else {
-                    message = commandOrMessage;
+                if (message == null || message.isEmpty()) {
+                    message = action.get("command");
                 }
+                message = PlaceholderUtil.applyPlaceholders(
+                        plugin, stateManager, player, message, 0, maxAfkTimeForAction
+                );
                 DiscordWebhookUtil.sendMessage(plugin, message);
                 continue;
             }
 
+            String command = PlaceholderUtil.applyPlaceholders(
+                    plugin, stateManager, player, action.get("command"), 0, maxAfkTimeForAction
+            );
+
             if ("PLAYER".equalsIgnoreCase(type)) {
-                Bukkit.getScheduler().runTask(plugin, () -> player.performCommand(commandOrMessage));
+                Bukkit.getScheduler().runTask(plugin, () -> player.performCommand(command));
             } else if ("CONSOLE".equalsIgnoreCase(type)) {
-                String cleanCommand = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', commandOrMessage));
+                String cleanCommand = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', command));
                 Bukkit.getScheduler().runTask(plugin, () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cleanCommand));
             }
         }

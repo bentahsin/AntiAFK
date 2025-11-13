@@ -7,14 +7,12 @@ import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.models.RegionOverride;
 import com.bentahsin.antiafk.utils.TimeUtil;
-import net.wesjd.anvilgui.AnvilGUI;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.Collections;
 
 public class RegionEditGUI extends Menu {
 
@@ -100,13 +98,18 @@ public class RegionEditGUI extends Menu {
             return;
         }
 
-        new AnvilGUI.Builder()
-                .onClick((slot, stateSnapshot) -> {
-                    if (slot != AnvilGUI.Slot.OUTPUT) return Collections.emptyList();
+        String title = plLang.getMessage("gui.menu_titles.anvil_region_time_editor");
+        String initialText = plugin.getConfig().getString(path + ".max_afk_time", "15m");
 
-                    String inputText = stateSnapshot.getText().toLowerCase();
+        plugin.getGeyserCompatibilityManager().promptForInput(
+                player,
+                title,
+                initialText,
+                inputText -> {
                     if (!inputText.equals("disabled") && TimeUtil.parseTime(inputText) <= 0) {
-                        return Collections.singletonList(AnvilGUI.ResponseAction.replaceInputText(plLang.getMessage("gui.anvil.invalid_format")));
+                        plLang.sendMessage(player, "gui.anvil.invalid_format_and_reopening");
+                        Bukkit.getScheduler().runTaskLater(plugin, this::openRegionTimeEditor, 2L);
+                        return;
                     }
 
                     plugin.getConfig().set(path + ".max_afk_time", inputText);
@@ -116,13 +119,10 @@ public class RegionEditGUI extends Menu {
                     plLang.sendMessage(player, "gui.region.time_updated", "%time%", inputText);
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.5f);
 
-                    return Collections.singletonList(AnvilGUI.ResponseAction.run(() -> new RegionEditGUI(playerMenuUtility, plugin).open()));
-                })
-                .text(plugin.getConfig().getString(path + ".max_afk_time", "15m"))
-                .itemLeft(new ItemStack(Material.PAPER))
-                .title(plLang.getMessage("gui.menu_titles.anvil_region_time_editor"))
-                .plugin(plugin)
-                .open(player);
+                    new RegionEditGUI(playerMenuUtility, plugin).open();
+                },
+                () -> new RegionEditGUI(playerMenuUtility, plugin).open()
+        );
     }
 
     private void openConfirmation() {

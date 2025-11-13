@@ -49,6 +49,7 @@ turing_test:
     YELLOW: "&eSarı"
     ORANGE: "&6Turuncu"
     CYAN: "&3Camgöbeği"
+    MAGENTA: "&dMacenta"
 
 # /afk Komutu Mesajları
 command:
@@ -472,8 +473,11 @@ gui:
     rule_exists: "&c'%region%' bölgesi için zaten bir kural mevcut."
     invalid_region: "&c'%region%' adında geçerli bir WorldGuard bölgesi bulunamadı. Lütfen tekrar deneyin veya 'iptal' yazın."
     input_prompt: "&aYeni bir kural eklemek için sohbete mevcut bir WorldGuard bölgesinin adını yazın."
+    input_prompt_title: "Yeni Bölge Kuralı"
     input_cancel_prompt: "&eİşlemi iptal etmek için 'iptal' yazın."
     input_cancelled: "&cYeni kural ekleme işlemi iptal edildi."
+    input_prompt_geyser_title: "&e%title%"
+    input_prompt_geyser_instruction: "&7Lütfen cevabınızı sohbete yazın. İptal etmek için 'iptal' yazın."
     time_updated: "&aBölge AFK süresi başarıyla '%time%' olarak güncellendi."
     action_deleted: "&aAksiyon başarıyla silindi."
     config_path_error: "&cConfig dosyasında bu bölge için yol bulunamadı. Bir hata oluştu."
@@ -481,6 +485,7 @@ gui:
 
   anvil:
     invalid_format: "Geçersiz Format!"
+    invalid_format_and_reopening: "&cGeçersiz format! Lütfen tekrar deneyin."
 
   # Kitap ile Girdi Alma
   book_input:

@@ -6,7 +6,6 @@ import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
 import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.utils.TimeUtil;
-import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -14,9 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class SettingsGUI extends Menu {
@@ -125,40 +122,40 @@ public class SettingsGUI extends Menu {
         openAnvilEditor("max_afk_time", "gui.menu_titles.anvil_max_afk_time");
     }
 
+
+
     private void openAutoAfkTimeEditor() {
         openAnvilEditor("detection.auto_set_afk_after", "gui.menu_titles.anvil_auto_afk_time");
     }
 
     private void openAnvilEditor(String configPath, String titleKey) {
         Player player = playerMenuUtility.getOwner();
-        final AtomicBoolean success = new AtomicBoolean(false);
+        String title = lang.getMessage(titleKey);
+        String initialText = plugin.getConfig().getString(configPath, "15m");
 
-        new AnvilGUI.Builder()
-                .onClose(state -> {
-                    if (success.get()) {
-                        Bukkit.getScheduler().runTaskLater(plugin, () -> new SettingsGUI(playerMenuUtility, plugin).open(), 1L);
-                    }
-                })
-                .onClick((slot, stateSnapshot) -> {
-                    if (slot != AnvilGUI.Slot.OUTPUT) return Collections.emptyList();
-                    String inputText = stateSnapshot.getText();
+        plugin.getGeyserCompatibilityManager().promptForInput(
+                player,
+                title,
+                initialText,
+                inputText -> {
                     if (TimeUtil.parseTime(inputText) <= 0 && !inputText.equalsIgnoreCase("disabled")) {
-                        return Collections.singletonList(AnvilGUI.ResponseAction.replaceInputText(lang.getMessage("gui.anvil.invalid_format")));
+                        lang.sendMessage(player, "gui.anvil.invalid_format");
+                        Bukkit.getScheduler().runTaskLater(plugin, this::open, 1L);
+                        return;
                     }
+
                     plugin.getConfig().set(configPath, inputText);
                     plugin.saveConfig();
-                    plugin.getConfigManager().loadConfig();
+                    configManager.loadConfig();
                     lang.sendMessage(player, "gui.settings_updated", "%value%", inputText);
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.5f);
-                    success.set(true);
-                    return Collections.singletonList(AnvilGUI.ResponseAction.close());
-                })
-                .preventClose()
-                .text(plugin.getConfig().getString(configPath, "15m"))
-                .itemLeft(new ItemStack(Material.PAPER))
-                .title(lang.getMessage(titleKey))
-                .plugin(plugin)
-                .open(player);
+
+                    new SettingsGUI(playerMenuUtility, plugin).open();
+                },
+                () -> {
+                    new SettingsGUI(playerMenuUtility, plugin).open();
+                }
+        );
     }
 
     protected void fillEmptySlots() {

@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Farklı captcha türlerini yöneten ve ağırlıklara göre rastgele birini seçip
@@ -22,7 +23,6 @@ public class CaptchaManager {
     private final Map<String, ICaptcha> captchaRegistry = new HashMap<>();
 
     private final List<WeightedCaptcha> palette = new ArrayList<>();
-    private int totalWeight = 0;
     private final Random random = new Random();
 
     public CaptchaManager(AntiAFKPlugin plugin) {
@@ -40,7 +40,6 @@ public class CaptchaManager {
 
     private void loadPalettes() {
         palette.clear();
-        totalWeight = 0;
         ConfigurationSection paletteSection = plugin.getConfig().getConfigurationSection("turing_test.palettes");
         if (paletteSection == null) {
             plugin.getLogger().warning("Config.yml'de 'turing_test.palettes' bölümü bulunamadı. Captcha sistemi çalışmayabilir.");
@@ -52,7 +51,6 @@ public class CaptchaManager {
                 int weight = paletteSection.getInt(key + ".weight", 0);
                 if (weight > 0 && captchaRegistry.containsKey(key)) {
                     palette.add(new WeightedCaptcha(captchaRegistry.get(key), weight));
-                    totalWeight += weight;
                 }
             }
         }
@@ -62,31 +60,51 @@ public class CaptchaManager {
         }
     }
 
-    private ICaptcha selectRandomCaptchaFromPalette() {
-        if (totalWeight <= 0) return null;
+    private ICaptcha selectAppropriateCaptcha(Player player) {
+        boolean isBedrock = plugin.getGeyserCompatibilityManager().isBedrockPlayer(player.getUniqueId());
 
-        int randomValue = random.nextInt(totalWeight);
+        List<WeightedCaptcha> availablePalette;
+
+        if (isBedrock) {
+            availablePalette = palette.stream()
+                    .filter(weightedCaptcha -> !(weightedCaptcha.getCaptcha() instanceof ColorPaletteCaptcha))
+                    .collect(Collectors.toList());
+        } else {
+            availablePalette = this.palette;
+        }
+
+        if (availablePalette.isEmpty()) {
+            return null;
+        }
+
+        int filteredTotalWeight = availablePalette.stream().mapToInt(WeightedCaptcha::getWeight).sum();
+        if (filteredTotalWeight <= 0) {
+            return null;
+        }
+
+        int randomValue = random.nextInt(filteredTotalWeight);
         int currentWeight = 0;
 
-        for (WeightedCaptcha weightedCaptcha : palette) {
+        for (WeightedCaptcha weightedCaptcha : availablePalette) {
             currentWeight += weightedCaptcha.getWeight();
             if (randomValue < currentWeight) {
                 return weightedCaptcha.getCaptcha();
             }
         }
+
         return null;
     }
 
     public void startChallenge(Player player) {
-        if (isBeingTested(player) || palette.isEmpty()) {
+        if (isBeingTested(player)) {
             return;
         }
 
         plugin.getAfkManager().getStateManager().setSuspicious(player);
+        ICaptcha selectedCaptcha = selectAppropriateCaptcha(player);
 
-        ICaptcha selectedCaptcha = selectRandomCaptchaFromPalette();
         if (selectedCaptcha == null) {
-            plugin.getLogger().warning("Aktif captcha türü seçilemedi, test başlatılamıyor.");
+            plugin.getLogger().warning("Oyuncu " + player.getName() + " için uygun bir captcha türü bulunamadı. Test başlatılamıyor.");
             plugin.getAfkManager().getBotDetectionManager().resetSuspicion(player);
             return;
         }

@@ -17,6 +17,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
+import java.util.UUID;
+import java.util.function.Consumer;
+
 /**
  * Oyuncu sohbeti, komutları ve özel metin girdilerini yönetir.
  */
@@ -29,13 +32,28 @@ public class PlayerChatListener extends ActivityListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
+        UUID playerUUID = player.getUniqueId();
 
-        if (getPlugin().getPlayersInChatInput().contains(player.getUniqueId())) {
+        if (getPlugin().getPlayersInChatInput().contains(playerUUID)) {
             event.setCancelled(true);
-            String regionName = event.getMessage();
-            processRegionInput(player, regionName);
+            String input = event.getMessage();
+
+            Consumer<String> callback = getPlugin().getChatInputCallbacks().get(playerUUID);
+            if (input.equalsIgnoreCase("iptal")) {
+                getPlugin().clearPlayerChatInput(playerUUID);
+                getLanguageManager().sendMessage(player, "gui.region.input_cancelled");
+                return;
+            }
+
+            if (callback != null) {
+                Bukkit.getScheduler().runTask(getPlugin(), () -> {
+                    callback.accept(input);
+                });
+            }
+            getPlugin().clearPlayerChatInput(playerUUID);
+
         } else if (getConfigManager().isCheckChat()) {
-            handleActivity(player, null, false);
+            handleActivity(player, event, false);
         }
     }
 

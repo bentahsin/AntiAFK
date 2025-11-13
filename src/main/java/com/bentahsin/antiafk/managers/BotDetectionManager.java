@@ -41,6 +41,10 @@ public class BotDetectionManager {
      * @param player Tıklama yapan oyuncu.
      */
     public void trackClick(Player player) {
+        if (plugin.getGeyserCompatibilityManager().isBedrockPlayer(player.getUniqueId())) {
+            return;
+        }
+
         long currentTime = System.currentTimeMillis();
 
         PointlessActivityData data = getBotDetectionData(player.getUniqueId());

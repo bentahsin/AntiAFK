@@ -18,10 +18,7 @@ import com.bentahsin.antiafk.learning.RecordingManager;
 import com.bentahsin.antiafk.learning.collector.LearningDataCollectorTask;
 import com.bentahsin.antiafk.learning.pool.VectorPoolManager;
 import com.bentahsin.antiafk.listeners.ListenerManager;
-import com.bentahsin.antiafk.managers.AFKManager;
-import com.bentahsin.antiafk.managers.ConfigManager;
-import com.bentahsin.antiafk.managers.DebugManager;
-import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.bentahsin.antiafk.managers.*;
 import com.bentahsin.antiafk.placeholderapi.AntiAFKPlaceholders;
 import com.bentahsin.antiafk.storage.DatabaseManager;
 import com.bentahsin.antiafk.storage.PlayerStatsManager;
@@ -36,6 +33,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 public final class AntiAFKPlugin extends JavaPlugin {
@@ -56,11 +54,13 @@ public final class AntiAFKPlugin extends JavaPlugin {
     private LearningDataCollectorTask learningDataCollectorTask;
     private VectorPoolManager vectorPoolManager;
     private BenthPAPIManager papiManager;
+    private GeyserCompatibilityManager geyserCompManager;
     private boolean placeholderApiEnabled = false;
     private boolean worldGuardHooked = false;
     private boolean protocolLibEnabled = false;
     private final HashMap<UUID, PlayerMenuUtility> playerMenuUtilityMap = new HashMap<>();
     private final Set<UUID> playersInChatInput = new HashSet<>();
+    private final Map<UUID, Consumer<String>> chatInputCallbacks = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -70,6 +70,8 @@ public final class AntiAFKPlugin extends JavaPlugin {
 
         configManager = new ConfigManager(this);
         systemLanguageManager.setLanguage(configManager.getLang());
+
+        geyserCompManager = new GeyserCompatibilityManager(this);
 
         debugManager = new DebugManager(this);
 
@@ -231,23 +233,18 @@ public final class AntiAFKPlugin extends JavaPlugin {
     public ConfigManager getConfigManager() {
         return configManager;
     }
-
     public AFKManager getAfkManager() {
         return afkManager;
     }
-
     public BehaviorAnalysisManager getBehaviorAnalysisManager() {
         return behaviorAnalysisManager;
     }
-
     public boolean isPlaceholderApiEnabled() {
         return placeholderApiEnabled;
     }
-
     public boolean isWorldGuardHooked() {
         return worldGuardHooked;
     }
-
     public PlayerMenuUtility getPlayerMenuUtility(Player p) {
         if (playerMenuUtilityMap.containsKey(p.getUniqueId())) {
             return playerMenuUtilityMap.get(p.getUniqueId());
@@ -257,21 +254,16 @@ public final class AntiAFKPlugin extends JavaPlugin {
             return playerMenuUtility;
         }
     }
-
     public HashMap<UUID, PlayerMenuUtility> getPlayerMenuUtilityMap() { return playerMenuUtilityMap; }
-
     public Set<UUID> getPlayersInChatInput() {
         return playersInChatInput;
     }
-
     public boolean isProtocolLibEnabled() {
         return protocolLibEnabled;
     }
-
     public Optional<BookInputManager> getBookInputManager() {
         return Optional.ofNullable(bookInputManager);
     }
-
     public PlayerLanguageManager getPlayerLanguageManager() { return playerLanguageManager; }
     public SystemLanguageManager getSystemLanguageManager() { return systemLanguageManager; }
     public Optional<CaptchaManager> getCaptchaManager() {
@@ -300,5 +292,15 @@ public final class AntiAFKPlugin extends JavaPlugin {
     }
     public DebugManager getDebugManager() {
         return debugManager;
+    }
+    public GeyserCompatibilityManager getGeyserCompatibilityManager() {
+        return geyserCompManager;
+    }
+    public Map<UUID, Consumer<String>> getChatInputCallbacks() {
+        return chatInputCallbacks;
+    }
+    public void clearPlayerChatInput(UUID uuid) {
+        playersInChatInput.remove(uuid);
+        chatInputCallbacks.remove(uuid);
     }
 }

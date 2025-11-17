@@ -24,7 +24,7 @@ jobs:
         run: mvn -B package
 
       - name: Geliştirme Build'lerini Artifact Olarak Yükle
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }}-development-builds

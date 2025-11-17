@@ -34,7 +34,7 @@
             <artifactId>worldguard-bukkit</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.comphenix.protocol</groupId>
+            <groupId>net.dmulloy2</groupId>
             <artifactId>ProtocolLib</artifactId>
         </dependency>
         <dependency>

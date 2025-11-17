@@ -1,4 +1,4 @@
-name: Java CI (Build, Test & Artifact)
+name: Java CI (Build & Artifact)
 
 on:
   push:
@@ -13,28 +13,26 @@ jobs:
       - name: Kodu Checkout Yap
         uses: actions/checkout@v4
 
-      - name: JDK 8 Kurulumu
+      - name: JDK 17 Kurulumu
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '8'
+          java-version: '17'
           cache: 'maven'
 
-      - name: Maven ile Derle ve Test Et
-        run: mvn clean verify
+      - name: Maven ile Tüm Modülleri Derle
+        run: mvn -B package
 
-      - name: Derlenen JAR Dosyasını Bul
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        id: find_jar
-        run: |
-          JAR_FILE=$(find target -maxdepth 1 -type f -name "*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar" | head -n 1)
-          echo "JAR_PATH=$JAR_FILE" >> $GITHUB_OUTPUT
-          echo "JAR_NAME=$(basename $JAR_FILE)" >> $GITHUB_OUTPUT
-
-      - name: Geliştirme Build'ini Artifact Olarak Yükle
+      - name: Geliştirme Build'lerini Artifact Olarak Yükle
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-development-build
-          path: ${{ steps.find_jar.outputs.JAR_PATH }}
+          name: ${{ github.event.repository.name }}-development-builds
+          path: |
+            antiafk-core/target/*.jar
+            !antiafk-core/target/*-sources.jar
+            !antiafk-core/target/*-javadoc.jar
+            antiafk-geyser/target/*.jar
+            !antiafk-geyser/target/*-sources.jar
+            !antiafk-geyser/target/*-javadoc.jar
           retention-days: 7

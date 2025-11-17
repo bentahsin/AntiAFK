@@ -1,4 +1,6 @@
 target
 .idea
 AntiAFK.iml
+AntiAFK-Core.iml
+AntiAFK-Geyser.iml
 dependency-reduced-pom.xml

@@ -1,0 +1,7 @@
+name: AntiAFK-Geyser
+version: ${project.version}
+main: com.bentahsin.antiafk.geyser.GeyserModulePlugin
+author: bentahsin
+description: AntiAFK için Geyser uyumluluk modülü.
+api-version: '1.17'
+depend: [AntiAFK]

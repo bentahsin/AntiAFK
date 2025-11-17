@@ -58,6 +58,10 @@
             <artifactId>gson</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo</artifactId>
         </dependency>
@@ -129,6 +133,10 @@
                                 <relocation>
                                     <pattern>com.google.gson</pattern>
                                     <shadedPattern>com.bentahsin.antiafk.libs.gson</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.inject</pattern>
+                                    <shadedPattern>com.bentahsin.antiafk.libs.guice</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.esotericsoftware.kryo</pattern>

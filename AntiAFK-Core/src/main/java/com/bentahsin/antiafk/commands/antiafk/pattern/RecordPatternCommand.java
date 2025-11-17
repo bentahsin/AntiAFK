@@ -3,6 +3,8 @@ package com.bentahsin.antiafk.commands.antiafk.pattern;
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.learning.RecordingManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -14,14 +16,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Singleton
 public class RecordPatternCommand implements IPatternSubCommand {
 
     private final RecordingManager recordingManager;
     private final PlayerLanguageManager plLang;
 
-    public RecordPatternCommand(AntiAFKPlugin plugin) {
-        this.recordingManager = plugin.getRecordingManager();
-        this.plLang = plugin.getPlayerLanguageManager();
+    @Inject
+    public RecordPatternCommand(AntiAFKPlugin plugin, PlayerLanguageManager playerLanguageManager, RecordingManager recordingManager) {
+        this.recordingManager = recordingManager;
+        this.plLang = playerLanguageManager;
     }
 
     @Override

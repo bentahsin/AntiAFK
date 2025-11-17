@@ -1,32 +1,44 @@
 package com.bentahsin.antiafk.managers;
 
-import com.bentahsin.antiafk.AntiAFKPlugin;
-import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.models.RegionOverride;
-import com.bentahsin.antiafk.storage.DatabaseManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.entity.Player;
 
+/**
+ * Ana AFK kontrol mantığını koordine eden merkezi yönetici.
+ * Diğer tüm ilgili yöneticileri bir araya getirir.
+ */
+@Singleton
 public class AFKManager {
 
+    // Artık tüm yöneticiler Guice tarafından enjekte edilecek.
     private final ConfigManager configManager;
-
     private final PlayerStateManager stateManager;
     private final WarningManager warningManager;
     private final PunishmentManager punishmentManager;
     private final BotDetectionManager botDetectionManager;
 
-    public AFKManager(AntiAFKPlugin plugin) {
-        this.configManager = plugin.getConfigManager();
-        DebugManager debugMgr = plugin.getDebugManager();
-        DatabaseManager databaseManager = plugin.getDatabaseManager();
-        PlayerLanguageManager plLang = plugin.getPlayerLanguageManager();
-        SystemLanguageManager sysLang = plugin.getSystemLanguageManager();
-        this.warningManager = new WarningManager(plugin, configManager, plLang, sysLang);
-        this.stateManager = new PlayerStateManager(plugin, warningManager);
-        this.punishmentManager = new PunishmentManager(plugin, configManager, databaseManager, stateManager, plLang, debugMgr);
-        this.botDetectionManager = new BotDetectionManager(plugin, configManager, stateManager, debugMgr);
+    @Inject
+    public AFKManager(
+            ConfigManager configManager,
+            PlayerStateManager stateManager,
+            WarningManager warningManager,
+            PunishmentManager punishmentManager,
+            BotDetectionManager botDetectionManager
+    ) {
+        this.configManager = configManager;
+        this.stateManager = stateManager;
+        this.warningManager = warningManager;
+        this.punishmentManager = punishmentManager;
+        this.botDetectionManager = botDetectionManager;
     }
 
+    /**
+     * Bir oyuncunun AFK durumunu, uyarılarını ve potansiyel cezalarını kontrol eder.
+     * Bu metot, AFKCheckTask tarafından periyodik olarak çağrılır.
+     * @param player Kontrol edilecek oyuncu.
+     */
     public void checkPlayer(Player player) {
         if (player.hasPermission(configManager.getPermBypassAll())) return;
         if (player.hasPermission(configManager.getPermBypassClassic())) return;

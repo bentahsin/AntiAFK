@@ -6,24 +6,29 @@ import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.DebugManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.command.CommandSender;
 
 import java.util.Collections;
 import java.util.List;
 
+@Singleton
 public class ReloadCommand implements ISubCommand {
-    private final AntiAFKPlugin plugin;
     private final PlayerLanguageManager plLang;
     private final SystemLanguageManager sysLang;
     private final ConfigManager cfgMgr;
     private final DebugManager debugMgr;
 
-    public ReloadCommand(AntiAFKPlugin plugin) {
-        this.plugin = plugin;
-        this.plLang = plugin.getPlayerLanguageManager();
-        this.sysLang = plugin.getSystemLanguageManager();
-        this.cfgMgr = plugin.getConfigManager();
-        this.debugMgr = plugin.getDebugManager();
+    @Inject
+    public ReloadCommand(PlayerLanguageManager plLang,
+                         SystemLanguageManager sysLang,
+                         ConfigManager cfgMgr,
+                         DebugManager debugMgr) {
+        this.plLang = plLang;
+        this.sysLang = sysLang;
+        this.cfgMgr = cfgMgr;
+        this.debugMgr = debugMgr;
     }
 
     @Override
@@ -39,7 +44,7 @@ public class ReloadCommand implements ISubCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         cfgMgr.loadConfig();
-        debugMgr.loadConfigSettings(plugin);
+        debugMgr.loadConfigSettings();
         sysLang.setLanguage(cfgMgr.getLang());
         plLang.loadMessages();
         plLang.sendMessage(sender, "info.reloaded");

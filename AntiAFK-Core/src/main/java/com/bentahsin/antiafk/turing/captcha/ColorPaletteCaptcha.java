@@ -1,9 +1,11 @@
 package com.bentahsin.antiafk.turing.captcha;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
-import com.bentahsin.antiafk.managers.ConfigManager;
-import com.bentahsin.antiafk.turing.CaptchaManager;
+import com.bentahsin.antiafk.managers.*;
+import com.bentahsin.antiafk.storage.DatabaseManager;
 import com.bentahsin.antiafk.utils.ChatUtil;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -19,19 +21,36 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Singleton
 public class ColorPaletteCaptcha implements ICaptcha, Listener {
 
     private final AntiAFKPlugin plugin;
-    private final CaptchaManager captchaManager;
     private final ConfigManager configManager;
+    private final PlayerLanguageManager playerLanguageManager;
+    private final AFKManager afkManager;
+    private final DatabaseManager databaseManager;
+    private final DebugManager debugManager;
+
     private final Random random = new Random();
     private final Map<UUID, ActivePaletteTest> activeTests = new ConcurrentHashMap<>();
 
-    public ColorPaletteCaptcha(AntiAFKPlugin plugin, CaptchaManager captchaManager) {
+    @Inject
+    public ColorPaletteCaptcha(
+            AntiAFKPlugin plugin,
+            ConfigManager configManager,
+            PlayerLanguageManager playerLanguageManager,
+            AFKManager afkManager,
+            DatabaseManager databaseManager,
+            DebugManager debugManager
+    ) {
         this.plugin = plugin;
-        this.captchaManager = captchaManager;
-        this.configManager = plugin.getConfigManager();
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        this.configManager = configManager;
+        this.playerLanguageManager = playerLanguageManager;
+        this.afkManager = afkManager;
+        this.databaseManager = databaseManager;
+        this.debugManager = debugManager;
+        // Constructor'daki 'plugin.getServer().getPluginManager().registerEvents(this, plugin);' satırını SİLİYORUZ.
+        // Bu sorumluluk artık ListenerManager'a ait.
     }
 
     @Override
@@ -49,7 +68,7 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
         final List<String> availableColors = configManager.getColorPaletteAvailableColors();
 
         if (availableColors.isEmpty()) {
-            captchaManager.failChallenge(player, "Renk paleti yapılandırılmamış.");
+            failChallenge(player, "Renk paleti yapılandırılmamış.");
             return;
         }
 
@@ -63,8 +82,8 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
         }
 
         final String translatedColor = getTranslatedColorName(correctColorStr);
-        final String guiTitle = plugin.getPlayerLanguageManager().getMessage("turing_test.captcha_palette.instruction", "%color%", translatedColor)
-                .replace(plugin.getPlayerLanguageManager().getPrefix(), "");
+        final String guiTitle = playerLanguageManager.getMessage("turing_test.captcha_palette.instruction", "%color%", translatedColor)
+                .replace(playerLanguageManager.getPrefix(), "");
 
         final Inventory gui = Bukkit.createInventory(player, guiRows * 9, guiTitle);
 
@@ -86,8 +105,8 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
         BukkitTask timeoutTask = Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (activeTests.containsKey(player.getUniqueId())) {
                 player.closeInventory();
-                plugin.getPlayerLanguageManager().sendMessage(player, "turing_test.captcha_palette.failure_time_out");
-                captchaManager.failChallenge(player, "Renk paleti süresi doldu.");
+                playerLanguageManager.sendMessage(player, "turing_test.captcha_palette.failure_time_out");
+                failChallenge(player, "Renk paleti süresi doldu.");
             }
         }, timeLimit * 20L);
 
@@ -124,12 +143,12 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
             test.incrementCorrectClicks();
             if (test.isCompleted()) {
                 player.closeInventory();
-                captchaManager.passChallenge(player);
+                passChallenge(player);
             }
         } else {
             player.closeInventory();
-            plugin.getPlayerLanguageManager().sendMessage(player, "turing_test.captcha_palette.failure_wrong_item");
-            captchaManager.failChallenge(player, "Yanlış renge tıkladı.");
+            playerLanguageManager.sendMessage(player, "turing_test.captcha_palette.failure_wrong_item");
+            failChallenge(player, "Yanlış renge tıkladı.");
         }
     }
 
@@ -139,6 +158,30 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
         if (test != null) {
             test.getTimeoutTask().cancel();
         }
+    }
+
+    // --- Private Helper Metotları ---
+
+    private void passChallenge(Player player) {
+        cleanUp(player);
+        databaseManager.incrementTestsPassed(player.getUniqueId());
+        afkManager.getBotDetectionManager().resetSuspicion(player);
+        playerLanguageManager.sendMessage(player, "turing_test.success");
+    }
+
+    private void failChallenge(Player player, String reason) {
+        cleanUp(player);
+        databaseManager.incrementTestsFailed(player.getUniqueId());
+
+        List<Map<String, String>> actions = configManager.getCaptchaFailureActions();
+        if (actions != null && !actions.isEmpty()) {
+            afkManager.getPunishmentManager().executeActions(player, actions, afkManager.getStateManager());
+        } else {
+            afkManager.getStateManager().setManualAFK(player, "behavior.turing_test_failed");
+        }
+
+        playerLanguageManager.sendMessage(player, "turing_test.failure");
+        debugManager.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Player %s failed captcha. Reason: %s", player.getName(), reason);
     }
 
     private ItemStack createWoolItem(String colorName) {
@@ -156,7 +199,7 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
 
     private String getTranslatedColorName(String colorKey) {
         String path = "turing_test.captcha_palette_colors." + colorKey.toUpperCase();
-        String translatedName = plugin.getPlayerLanguageManager().getRawMessage(path);
+        String translatedName = playerLanguageManager.getRawMessage(path);
 
         if (translatedName == null) {
             plugin.getLogger().warning("messages.yml dosyasında renk çevirisi bulunamadı: " + path + ". Anahtar adı kullanılacak.");
@@ -167,6 +210,7 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
     }
 
     private static class ActivePaletteTest {
+        // ... bu iç sınıf aynı kalıyor ...
         private final String correctColor;
         private final int totalCorrectItems;
         private final BukkitTask timeoutTask;

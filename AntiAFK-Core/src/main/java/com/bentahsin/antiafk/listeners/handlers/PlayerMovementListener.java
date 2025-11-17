@@ -4,6 +4,12 @@ import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.behavior.BehaviorAnalysisManager;
 import com.bentahsin.antiafk.behavior.PlayerBehaviorData;
 import com.bentahsin.antiafk.listeners.ActivityListener;
+import com.bentahsin.antiafk.managers.AFKManager;
+import com.bentahsin.antiafk.managers.ConfigManager;
+import com.bentahsin.antiafk.managers.DebugManager;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,13 +22,16 @@ import java.util.LinkedList;
 /**
  * Oyuncu hareketi ve dünya değiştirme olaylarını yönetir.
  */
+@Singleton
 public class PlayerMovementListener extends ActivityListener implements org.bukkit.event.Listener {
 
-    private final BehaviorAnalysisManager analysisManager;
-
-    public PlayerMovementListener(AntiAFKPlugin plugin) {
-        super(plugin);
-        this.analysisManager = plugin.getBehaviorAnalysisManager();
+    @Inject
+    public PlayerMovementListener(
+            AntiAFKPlugin plugin, AFKManager afkManager, ConfigManager configManager,
+            DebugManager debugManager, PlayerLanguageManager languageManager,
+            BehaviorAnalysisManager behaviorAnalysisManager
+    ) {
+        super(plugin, afkManager, configManager, debugManager, languageManager, behaviorAnalysisManager);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -46,15 +55,15 @@ public class PlayerMovementListener extends ActivityListener implements org.bukk
         handleActivity(player, event, true);
 
         if (hasMovedBlocks) {
-            getConfigManager().clearPlayerCache(player);
+            configManager.clearPlayerCache(player);
         }
 
-        if (analysisManager.isEnabled() && !player.hasPermission(getConfigManager().getPermBypassBehavioral())) {
-            PlayerBehaviorData data = analysisManager.getPlayerData(player);
+        if (behaviorAnalysisManager.isEnabled() && !player.hasPermission(configManager.getPermBypassBehavioral())) {
+            PlayerBehaviorData data = behaviorAnalysisManager.getPlayerData(player);
             LinkedList<Location> history = data.getMovementHistory();
             synchronized (history) {
                 history.add(to);
-                while (history.size() > analysisManager.getHistorySizeTicks()) {
+                while (history.size() > behaviorAnalysisManager.getHistorySizeTicks()) {
                     history.removeFirst();
                 }
             }
@@ -65,8 +74,8 @@ public class PlayerMovementListener extends ActivityListener implements org.bukk
     public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
         Player player = event.getPlayer();
 
-        if (analysisManager.isEnabled()) {
-            PlayerBehaviorData data = analysisManager.getPlayerData(player);
+        if (behaviorAnalysisManager.isEnabled()) {
+            PlayerBehaviorData data = behaviorAnalysisManager.getPlayerData(player);
             if (data != null) {
                 data.reset();
             }

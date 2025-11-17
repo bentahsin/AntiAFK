@@ -1,10 +1,17 @@
 package com.bentahsin.antiafk.turing;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.managers.AFKManager;
+import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.DebugManager;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.bentahsin.antiafk.platform.IInputCompatibility;
+import com.bentahsin.antiafk.storage.DatabaseManager;
 import com.bentahsin.antiafk.turing.captcha.ColorPaletteCaptcha;
 import com.bentahsin.antiafk.turing.captcha.ICaptcha;
 import com.bentahsin.antiafk.turing.captcha.QuestionAnswerCaptcha;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
@@ -16,20 +23,41 @@ import java.util.stream.Collectors;
  * Farklı captcha türlerini yöneten ve ağırlıklara göre rastgele birini seçip
  * oyuncuya sunan merkezi yönetici sınıfı.
  */
+@Singleton
 public class CaptchaManager {
 
     private final AntiAFKPlugin plugin;
+    private final IInputCompatibility inputCompatibility;
+    private final AFKManager afkManager;
+    private final PlayerLanguageManager plLang;
+    private final DatabaseManager databaseManager;
+    private final ConfigManager configManager;
+    private final DebugManager debugManager;
     private final Map<UUID, ICaptcha> activePlayerCaptcha = new ConcurrentHashMap<>();
     private final Map<String, ICaptcha> captchaRegistry = new HashMap<>();
 
     private final List<WeightedCaptcha> palette = new ArrayList<>();
     private final Random random = new Random();
 
-    public CaptchaManager(AntiAFKPlugin plugin) {
+    @Inject
+    public CaptchaManager(AntiAFKPlugin plugin, IInputCompatibility inputCompatibility,
+                          AFKManager afkManager,
+                          PlayerLanguageManager plLang,
+                          DatabaseManager databaseManager,
+                          ConfigManager configManager,
+                          DebugManager debugManager,
+                          Set<ICaptcha> availableCaptchas) {
         this.plugin = plugin;
+        this.inputCompatibility = inputCompatibility;
+        this.afkManager = afkManager;
+        this.plLang = plLang;
+        this.databaseManager = databaseManager;
+        this.configManager = configManager;
+        this.debugManager = debugManager;
 
-        registerCaptcha(new QuestionAnswerCaptcha(plugin, this));
-        registerCaptcha(new ColorPaletteCaptcha(plugin, this));
+        for (ICaptcha captcha : availableCaptchas) {
+            registerCaptcha(captcha);
+        }
 
         loadPalettes();
     }
@@ -61,7 +89,7 @@ public class CaptchaManager {
     }
 
     private ICaptcha selectAppropriateCaptcha(Player player) {
-        boolean isBedrock = plugin.getInputCompatibility().isBedrockPlayer(player.getUniqueId());
+        boolean isBedrock = inputCompatibility.isBedrockPlayer(player.getUniqueId());
 
         List<WeightedCaptcha> availablePalette;
 
@@ -100,12 +128,12 @@ public class CaptchaManager {
             return;
         }
 
-        plugin.getAfkManager().getStateManager().setSuspicious(player);
+        afkManager.getStateManager().setSuspicious(player);
         ICaptcha selectedCaptcha = selectAppropriateCaptcha(player);
 
         if (selectedCaptcha == null) {
             plugin.getLogger().warning("Oyuncu " + player.getName() + " için uygun bir captcha türü bulunamadı. Test başlatılamıyor.");
-            plugin.getAfkManager().getBotDetectionManager().resetSuspicion(player);
+            afkManager.getBotDetectionManager().resetSuspicion(player);
             return;
         }
 
@@ -118,7 +146,7 @@ public class CaptchaManager {
         if (activeCaptcha != null) {
             activeCaptcha.reopen(player);
         } else {
-            plugin.getPlayerLanguageManager().sendMessage(player, "turing_test.test_command.not_in_test");
+            plLang.sendMessage(player, "turing_test.test_command.not_in_test");
         }
     }
 
@@ -127,7 +155,7 @@ public class CaptchaManager {
         if (activeCaptcha instanceof QuestionAnswerCaptcha) {
             ((QuestionAnswerCaptcha) activeCaptcha).handleAnswer(player, answer);
         } else if (activeCaptcha == null) {
-            plugin.getPlayerLanguageManager().sendMessage(player, "turing_test.no_active_test");
+            plLang.sendMessage(player, "turing_test.no_active_test");
         }
     }
 
@@ -137,9 +165,9 @@ public class CaptchaManager {
             captcha.cleanUp(player);
             activePlayerCaptcha.remove(player.getUniqueId());
         }
-        plugin.getDatabaseManager().incrementTestsPassed(player.getUniqueId());
-        plugin.getAfkManager().getBotDetectionManager().resetSuspicion(player);
-        plugin.getPlayerLanguageManager().sendMessage(player, "turing_test.success");
+        databaseManager.incrementTestsPassed(player.getUniqueId());
+        afkManager.getBotDetectionManager().resetSuspicion(player);
+        plLang.sendMessage(player, "turing_test.success");
     }
 
     public void failChallenge(Player player, String reason) {
@@ -149,17 +177,17 @@ public class CaptchaManager {
             activePlayerCaptcha.remove(player.getUniqueId());
         }
 
-        plugin.getDatabaseManager().incrementTestsFailed(player.getUniqueId());
+        databaseManager.incrementTestsFailed(player.getUniqueId());
 
-        List<Map<String, String>> actions = plugin.getConfigManager().getCaptchaFailureActions();
+        List<Map<String, String>> actions = configManager.getCaptchaFailureActions();
         if (actions != null && !actions.isEmpty()) {
-            plugin.getAfkManager().getPunishmentManager().executeActions(player, actions, plugin.getAfkManager().getStateManager());
+            afkManager.getPunishmentManager().executeActions(player, actions, afkManager.getStateManager());
         } else {
-            plugin.getAfkManager().getStateManager().setManualAFK(player, "behavior.turing_test_failed");
+            afkManager.getStateManager().setManualAFK(player, "behavior.turing_test_failed");
         }
 
-        plugin.getPlayerLanguageManager().sendMessage(player, "turing_test.failure");
-        plugin.getDebugManager().log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Player %s failed captcha. Reason: %s", player.getName(), reason);
+        plLang.sendMessage(player, "turing_test.failure");
+        debugManager.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Player %s failed captcha. Reason: %s", player.getName(), reason);
     }
 
     public boolean isBeingTested(Player player) {

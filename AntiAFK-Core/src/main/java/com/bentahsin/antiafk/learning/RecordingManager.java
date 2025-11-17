@@ -7,6 +7,8 @@ import com.bentahsin.antiafk.learning.pool.VectorPoolManager;
 import com.bentahsin.antiafk.learning.serialization.JsonPatternSerializer;
 import com.bentahsin.antiafk.learning.serialization.KryoPatternSerializer;
 import com.bentahsin.antiafk.learning.serialization.ISerializer;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -23,6 +25,7 @@ import java.util.logging.Level;
 /**
  * Oyuncu hareket desenlerini kaydetme sürecini yönetir.
  */
+@Singleton
 public class RecordingManager {
 
     private final AntiAFKPlugin plugin;
@@ -31,10 +34,11 @@ public class RecordingManager {
     private final Map<UUID, List<MovementVector>> activeRecordings = new ConcurrentHashMap<>();
     private final File recordsDirectory;
 
-    public RecordingManager(AntiAFKPlugin plugin) {
+    @Inject
+    public RecordingManager(AntiAFKPlugin plugin, VectorPoolManager vectorPoolManager, SystemLanguageManager sysLang) {
         this.plugin = plugin;
-        this.sysLang = plugin.getSystemLanguageManager();
-        this.vectorPoolManager = plugin.getVectorPoolManager();
+        this.sysLang = sysLang;
+        this.vectorPoolManager = vectorPoolManager;
         this.recordsDirectory = new File(plugin.getDataFolder(), "records");
         if (!recordsDirectory.exists()) {
             boolean ignored = recordsDirectory.mkdirs();

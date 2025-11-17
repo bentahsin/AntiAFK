@@ -1,35 +1,41 @@
 package com.bentahsin.antiafk.commands.antiafk.subcommands;
 
-import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.commands.antiafk.ISubCommand;
 import com.bentahsin.antiafk.commands.antiafk.pattern.FileManagementPatternCommand;
 import com.bentahsin.antiafk.commands.antiafk.pattern.IPatternSubCommand;
-
 import com.bentahsin.antiafk.commands.antiafk.pattern.ListPatternCommand;
 import com.bentahsin.antiafk.commands.antiafk.pattern.RecordPatternCommand;
+import com.bentahsin.antiafk.learning.RecordingManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Singleton
 public class PatternCommand implements ISubCommand {
 
-    private final AntiAFKPlugin plugin;
-    private final PlayerLanguageManager plLang;
+    private final RecordingManager recordingManager;
+    private final PlayerLanguageManager playerLanguageManager;
     private final Map<String, IPatternSubCommand> subCommands = new HashMap<>();
 
-    public PatternCommand(AntiAFKPlugin plugin) {
-        this.plugin = plugin;
-        this.plLang = plugin.getPlayerLanguageManager();
-        registerPatternSubCommands();
-    }
+    @Inject
+    public PatternCommand(
+            RecordingManager recordingManager,
+            PlayerLanguageManager playerLanguageManager,
+            RecordPatternCommand recordPatternCommand,
+            ListPatternCommand listPatternCommand,
+            FileManagementPatternCommand fileManagementPatternCommand
+    ) {
+        this.recordingManager = recordingManager;
+        this.playerLanguageManager = playerLanguageManager;
 
-    private void registerPatternSubCommands() {
-        register(new RecordPatternCommand(plugin));
-        register(new ListPatternCommand(plugin));
-        register(new FileManagementPatternCommand(plugin));
+        register(recordPatternCommand);
+        register(listPatternCommand);
+        register(fileManagementPatternCommand);
     }
 
     private void register(IPatternSubCommand command) {
@@ -48,8 +54,8 @@ public class PatternCommand implements ISubCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if (plugin.getRecordingManager() == null) {
-            plLang.sendMessage(sender, "command.pattern.learning_mode_disabled");
+        if (recordingManager == null) {
+            playerLanguageManager.sendMessage(sender, "command.pattern.learning_mode_disabled");
             return;
         }
 
@@ -67,7 +73,7 @@ public class PatternCommand implements ISubCommand {
         }
 
         if (subCommand.getPermission() != null && !sender.hasPermission(subCommand.getPermission())) {
-            plLang.sendMessage(sender, "error.no_permission");
+            playerLanguageManager.sendMessage(sender, "error.no_permission");
             return;
         }
 
@@ -76,13 +82,13 @@ public class PatternCommand implements ISubCommand {
     }
 
     private void sendHelpMessage(CommandSender sender) {
-        sender.sendMessage(plLang.getMessage("command.pattern.help.header"));
+        sender.sendMessage(playerLanguageManager.getMessage("command.pattern.help.header"));
         for (IPatternSubCommand cmd : subCommands.values()) {
             if (cmd.getPermission() == null || sender.hasPermission(cmd.getPermission())) {
-                sender.sendMessage(plLang.getMessage("command.pattern.help.entry", "%usage%", cmd.getUsage()));
+                sender.sendMessage(playerLanguageManager.getMessage("command.pattern.help.entry", "%usage%", cmd.getUsage()));
             }
         }
-        sender.sendMessage(plLang.getMessage("command.pattern.help.footer"));
+        sender.sendMessage(playerLanguageManager.getMessage("command.pattern.help.footer"));
     }
 
     @Override

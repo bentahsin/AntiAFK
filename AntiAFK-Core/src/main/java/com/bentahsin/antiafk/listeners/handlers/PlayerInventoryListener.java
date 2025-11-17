@@ -1,7 +1,12 @@
 package com.bentahsin.antiafk.listeners.handlers;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.behavior.BehaviorAnalysisManager;
 import com.bentahsin.antiafk.listeners.ActivityListener;
+import com.bentahsin.antiafk.managers.AFKManager;
+import com.bentahsin.antiafk.managers.ConfigManager;
+import com.bentahsin.antiafk.managers.DebugManager;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -16,20 +21,24 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
  */
 public class PlayerInventoryListener extends ActivityListener implements org.bukkit.event.Listener {
 
-    public PlayerInventoryListener(AntiAFKPlugin plugin) {
-        super(plugin);
+    public PlayerInventoryListener(
+            AntiAFKPlugin plugin, AFKManager afkManager, ConfigManager configManager,
+            DebugManager debugManager, PlayerLanguageManager languageManager,
+            BehaviorAnalysisManager behaviorAnalysisManager
+    ) {
+        super(plugin, afkManager, configManager, debugManager, languageManager, behaviorAnalysisManager);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerDropItem(PlayerDropItemEvent event) {
-        if (getConfigManager().isCheckItemDrop()) {
+        if (configManager.isCheckItemDrop()) {
             handleActivity(event.getPlayer(), null, false);
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent event) {
-        if (getConfigManager().isCheckInventoryActivity()) {
+        if (configManager.isCheckInventoryActivity()) {
             if (event.getWhoClicked() instanceof Player) {
                 handleActivity((Player) event.getWhoClicked(), null, false);
             }
@@ -38,21 +47,21 @@ public class PlayerInventoryListener extends ActivityListener implements org.buk
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInventoryOpen(InventoryOpenEvent event) {
-        if (getConfigManager().isCheckInventoryActivity()) {
+        if (configManager.isCheckInventoryActivity()) {
             handleActivity((Player) event.getPlayer(), null, false);
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerConsume(PlayerItemConsumeEvent event) {
-        if (getConfigManager().isCheckItemConsume()) {
+        if (configManager.isCheckItemConsume()) {
             handleActivity(event.getPlayer(), null, false);
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onHeldItemChange(PlayerItemHeldEvent event) {
-        if (getConfigManager().isCheckHeldItemChange()) {
+        if (configManager.isCheckHeldItemChange()) {
             handleActivity(event.getPlayer(), null, false);
         }
     }

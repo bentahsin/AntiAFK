@@ -1,10 +1,11 @@
 package com.bentahsin.antiafk.managers;
 
-import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.models.PlayerState;
 import com.bentahsin.antiafk.storage.DatabaseManager;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
  * Oyuncu durumlarını (aktivite, AFK durumu, şüphe) yönetmekten sorumlu
  * merkezi yönetici.
  */
+@Singleton
 public class PlayerStateManager {
 
     private final ConfigManager configManager;
@@ -30,10 +32,11 @@ public class PlayerStateManager {
     private final Cache<UUID, PlayerState> playerStates;
     private final Map<UUID, Long> afkStartTime = new ConcurrentHashMap<>();
 
-    public PlayerStateManager(AntiAFKPlugin plugin, WarningManager wm) {
-        this.configManager = plugin.getConfigManager();
-        this.plLang = plugin.getPlayerLanguageManager();
-        this.databaseManager = plugin.getDatabaseManager();
+    @Inject
+    public PlayerStateManager(ConfigManager cm, PlayerLanguageManager plLang, DatabaseManager dbMgr, WarningManager wm) {
+        this.configManager = cm;
+        this.plLang = plLang;
+        this.databaseManager = dbMgr;
         this.warningManager = wm;
 
         this.lastActivity = buildCache(1, TimeUnit.HOURS);

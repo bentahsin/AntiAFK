@@ -5,12 +5,15 @@ import com.bentahsin.antiafk.learning.dtw.MovementVectorDistanceFn;
 import com.bentahsin.antiafk.learning.pool.VectorPoolManager;
 import com.bentahsin.antiafk.learning.util.LimitedQueue;
 import com.bentahsin.antiafk.managers.AFKManager;
+import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.DebugManager;
 import com.fastdtw.dtw.FastDTW;
 import com.fastdtw.dtw.TimeWarpInfo;
 import com.fastdtw.timeseries.TimeSeries;
 import com.fastdtw.timeseries.TimeSeriesPoint;
 import com.fastdtw.util.DistanceFunction;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -26,6 +29,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * Oyuncuların anlık hareketlerini, bilinen bot desenleriyle asenkron olarak karşılaştırır.
  * Bu sınıf, kendi nesne havuzunu yöneterek ve ham veriyi işleyerek GC yükünü minimize eder.
  */
+@Singleton
 public class PatternAnalysisTask extends BukkitRunnable {
 
     private final AntiAFKPlugin plugin;
@@ -45,18 +49,21 @@ public class PatternAnalysisTask extends BukkitRunnable {
     private final double preFilterSizeRatio;
     private final DistanceFunction distanceFunction;
 
-    public PatternAnalysisTask(AntiAFKPlugin plugin) {
+    @Inject
+    public PatternAnalysisTask(AntiAFKPlugin plugin, AFKManager afkMgr, DebugManager debugMgr,
+                               PatternManager patternManager, RecordingManager recordingManager,
+                               ConfigManager configManager, VectorPoolManager vectorPoolManager) {
         this.plugin = plugin;
-        this.afkMgr = plugin.getAfkManager();
-        this.debugMgr = plugin.getDebugManager();
-        this.patternManager = plugin.getPatternManager();
-        this.recordingManager = plugin.getRecordingManager();
+        this.afkMgr = afkMgr;
+        this.debugMgr = debugMgr;
+        this.patternManager = patternManager;
+        this.recordingManager = recordingManager;
+        this.vectorPoolManager = vectorPoolManager;
         this.observationWindows = new ConcurrentHashMap<>();
-        this.vectorPoolManager = new VectorPoolManager(plugin);
 
-        this.similarityThreshold = plugin.getConfigManager().getLearningSimilarityThreshold();
-        this.searchRadius = plugin.getConfigManager().getLearningSearchRadius();
-        this.preFilterSizeRatio = plugin.getConfigManager().getPreFilterSizeRatio();
+        this.similarityThreshold = configManager.getLearningSimilarityThreshold();
+        this.searchRadius = configManager.getLearningSearchRadius();
+        this.preFilterSizeRatio = configManager.getPreFilterSizeRatio();
         this.distanceFunction = new MovementVectorDistanceFn();
     }
 

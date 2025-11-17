@@ -2,12 +2,14 @@ package com.bentahsin.antiafk.language;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.language.provider.*;
+import com.google.inject.Singleton;
 
 import java.util.EnumMap;
 import java.util.IllegalFormatException;
 import java.util.Map;
 import java.util.logging.Logger;
 
+@Singleton
 public class SystemLanguageManager {
 
     private final Logger logger;

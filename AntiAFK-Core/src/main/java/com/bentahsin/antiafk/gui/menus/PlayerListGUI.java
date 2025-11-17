@@ -1,11 +1,13 @@
 package com.bentahsin.antiafk.gui.menus;
 
-import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.gui.Menu;
+import com.bentahsin.antiafk.gui.factory.GUIFactory;
 import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
 import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.utils.TimeUtil;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -18,23 +20,33 @@ import java.util.stream.Collectors;
 
 public class PlayerListGUI extends Menu {
 
-    private final AntiAFKPlugin plugin;
+    // Guice tarafından enjekte edilecek bağımlılıklar
     private final AFKManager afkManager;
-    private final PlayerLanguageManager lang;
+    private final PlayerLanguageManager playerLanguageManager;
+    private final GUIFactory guiFactory;
+
+    // Dışarıdan verilecek parametre
     private final int page;
 
-    public PlayerListGUI(PlayerMenuUtility playerMenuUtility, AntiAFKPlugin plugin, int page) {
+    @Inject
+    public PlayerListGUI(
+            @Assisted PlayerMenuUtility playerMenuUtility,
+            @Assisted int page, // Sayfa numarasını da @Assisted ile alıyoruz
+            AFKManager afkManager,
+            PlayerLanguageManager playerLanguageManager,
+            GUIFactory guiFactory
+    ) {
         super(playerMenuUtility);
-        this.plugin = plugin;
-        this.afkManager = plugin.getAfkManager();
-        this.lang = plugin.getPlayerLanguageManager();
         this.page = page;
+        this.afkManager = afkManager;
+        this.playerLanguageManager = playerLanguageManager;
+        this.guiFactory = guiFactory;
     }
 
     @Override
     public String getMenuName() {
-        return lang.getMessage("gui.menu_titles.player_list", "%page%", String.valueOf(page + 1))
-                .replace(lang.getPrefix(), "");
+        return playerLanguageManager.getMessage("gui.menu_titles.player_list", "%page%", String.valueOf(page + 1))
+                .replace(playerLanguageManager.getPrefix(), "");
     }
 
     @Override
@@ -59,7 +71,8 @@ public class PlayerListGUI extends Menu {
             actions.put(i, () -> {
                 playerMenuUtility.setTargetPlayerUUID(targetPlayer.getUniqueId());
                 playerMenuUtility.setLastPlayerListPage(this.page);
-                new PlayerActionGUI(playerMenuUtility, plugin).open();
+                // DEĞİŞİKLİK: 'new' yerine fabrikayı kullanıyoruz.
+                guiFactory.createPlayerActionGUI(playerMenuUtility).open();
             });
 
             inventory.setItem(i, playerHead);
@@ -67,11 +80,12 @@ public class PlayerListGUI extends Menu {
     }
 
     private void addBottomBar() {
-        actions.put(49, () -> new AdminPanelGUI(playerMenuUtility, plugin).open());
+        // DEĞİŞİKLİK: 'new' yerine fabrikayı kullanıyoruz.
+        actions.put(49, () -> guiFactory.createAdminPanelGUI(playerMenuUtility).open());
         inventory.setItem(49, createGuiItem(
                 Material.BARRIER,
-                lang.getMessage("gui.player_list_menu.back_to_main_menu_button.name"),
-                lang.getMessageList("gui.player_list_menu.back_to_main_menu_button.lore").toArray(new String[0])
+                playerLanguageManager.getMessage("gui.player_list_menu.back_to_main_menu_button.name"),
+                playerLanguageManager.getMessageList("gui.player_list_menu.back_to_main_menu_button.lore").toArray(new String[0])
         ));
 
         List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
@@ -79,20 +93,22 @@ public class PlayerListGUI extends Menu {
         int maxPages = (int) Math.ceil((double) players.size() / maxItemsPerPage);
 
         if (page > 0) {
-            actions.put(48, () -> new PlayerListGUI(playerMenuUtility, plugin, page - 1).open());
+            // DEĞİŞİKLİK: 'new' yerine fabrikayı kullanıyoruz.
+            actions.put(48, () -> guiFactory.createPlayerListGUI(playerMenuUtility, page - 1).open());
             inventory.setItem(48, createGuiItem(
                     Material.ARROW,
-                    lang.getMessage("gui.player_list_menu.previous_page_button.name"),
-                    lang.getMessageList("gui.player_list_menu.previous_page_button.lore").toArray(new String[0])
+                    playerLanguageManager.getMessage("gui.player_list_menu.previous_page_button.name"),
+                    playerLanguageManager.getMessageList("gui.player_list_menu.previous_page_button.lore").toArray(new String[0])
             ));
         }
 
         if (page + 1 < maxPages) {
-            actions.put(50, () -> new PlayerListGUI(playerMenuUtility, plugin, page + 1).open());
+            // DEĞİŞİKLİK: 'new' yerine fabrikayı kullanıyoruz.
+            actions.put(50, () -> guiFactory.createPlayerListGUI(playerMenuUtility, page + 1).open());
             inventory.setItem(50, createGuiItem(
                     Material.ARROW,
-                    lang.getMessage("gui.player_list_menu.next_page_button.name"),
-                    lang.getMessageList("gui.player_list_menu.next_page_button.lore").toArray(new String[0])
+                    playerLanguageManager.getMessage("gui.player_list_menu.next_page_button.name"),
+                    playerLanguageManager.getMessageList("gui.player_list_menu.next_page_button.lore").toArray(new String[0])
             ));
         }
     }
@@ -104,13 +120,12 @@ public class PlayerListGUI extends Menu {
             meta.setOwningPlayer(player);
             meta.setDisplayName("§r" + player.getDisplayName());
 
-
             String afkTime = TimeUtil.formatTime(afkManager.getStateManager().getAfkTime(player));
             String statusKey = afkManager.getStateManager().isManuallyAFK(player) ? "gui.player_list_menu.status_afk" : "gui.player_list_menu.status_active";
-            String status = lang.getMessage(statusKey);
+            String status = playerLanguageManager.getMessage(statusKey);
             String world = player.getWorld().getName();
 
-            List<String> loreTemplate = lang.getMessageList("gui.player_list_menu.player_head_lore");
+            List<String> loreTemplate = playerLanguageManager.getMessageList("gui.player_list_menu.player_head_lore");
 
             List<String> finalLore = loreTemplate.stream()
                     .map(line -> line

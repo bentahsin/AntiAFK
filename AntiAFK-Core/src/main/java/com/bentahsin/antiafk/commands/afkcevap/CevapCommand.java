@@ -1,8 +1,10 @@
 package com.bentahsin.antiafk.commands.afkcevap;
 
-import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.turing.CaptchaManager;
+import com.google.inject.Inject;
+import com.google.inject.Provider; // Provider'ı import ediyoruz
+import com.google.inject.Singleton;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,40 +15,43 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
+@Singleton
 public class CevapCommand implements CommandExecutor, TabCompleter {
 
-    private final PlayerLanguageManager plLang;
-    private final Optional<CaptchaManager> captchaManager;
+    private final PlayerLanguageManager playerLanguageManager;
+    private final Provider<CaptchaManager> captchaManagerProvider;
 
-    public CevapCommand(AntiAFKPlugin plugin) {
-        this.plLang = plugin.getPlayerLanguageManager();
-        this.captchaManager = plugin.getCaptchaManager();
+    @Inject
+    public CevapCommand(PlayerLanguageManager playerLanguageManager, Provider<CaptchaManager> captchaManagerProvider) {
+        this.playerLanguageManager = playerLanguageManager;
+        this.captchaManagerProvider = captchaManagerProvider;
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player)) {
-            plLang.sendMessage(sender, "error.must_be_player");
+            playerLanguageManager.sendMessage(sender, "error.must_be_player");
             return true;
         }
 
         Player player = (Player) sender;
 
-        if (!captchaManager.isPresent()) {
-            plLang.sendMessage(player, "turing_test.no_active_test");
+        CaptchaManager captchaManager = captchaManagerProvider.get();
+
+        if (captchaManager == null) {
+            playerLanguageManager.sendMessage(player, "turing_test.no_active_test");
             return true;
         }
 
         if (args.length == 0) {
-            plLang.sendMessage(sender, "command.afkcevap.usage");
+            playerLanguageManager.sendMessage(sender, "command.afkcevap.usage");
             return true;
         }
 
         String answer = String.join(" ", args);
 
-        captchaManager.ifPresent(manager -> manager.submitAnswer(player, answer));
+        captchaManager.submitAnswer(player, answer);
 
         return true;
     }

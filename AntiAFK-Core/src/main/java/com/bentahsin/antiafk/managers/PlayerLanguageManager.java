@@ -4,6 +4,8 @@ import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.language.Lang;
 import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.utils.ChatUtil;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -18,6 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+@Singleton
 public class PlayerLanguageManager {
 
     private final AntiAFKPlugin plugin;
@@ -27,11 +30,12 @@ public class PlayerLanguageManager {
     private FileConfiguration messagesConfig;
     private String prefix;
 
-    public PlayerLanguageManager(AntiAFKPlugin plugin) {
+    @Inject
+    public PlayerLanguageManager(AntiAFKPlugin plugin, SystemLanguageManager sysLang) {
         this.plugin = plugin;
         this.plMgr = plugin.getServer().getPluginManager();
         this.logger = plugin.getLogger();
-        this.sysLang = plugin.getSystemLanguageManager();
+        this.sysLang = sysLang;
         loadMessages();
     }
 

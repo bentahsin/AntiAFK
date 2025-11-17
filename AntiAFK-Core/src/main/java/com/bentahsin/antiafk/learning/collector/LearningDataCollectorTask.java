@@ -1,8 +1,9 @@
 package com.bentahsin.antiafk.learning.collector;
 
-import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.learning.MovementVector;
 import com.bentahsin.antiafk.learning.PatternAnalysisTask;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -12,13 +13,15 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Singleton
 public class LearningDataCollectorTask extends BukkitRunnable {
 
     private final PatternAnalysisTask analysisTask;
     private final Map<UUID, LearningData> playerData = new ConcurrentHashMap<>();
 
-    public LearningDataCollectorTask(AntiAFKPlugin plugin) {
-        this.analysisTask = plugin.getPatternAnalysisTask();
+    @Inject
+    public LearningDataCollectorTask(PatternAnalysisTask analysisTask) {
+        this.analysisTask = analysisTask;
     }
 
     @Override

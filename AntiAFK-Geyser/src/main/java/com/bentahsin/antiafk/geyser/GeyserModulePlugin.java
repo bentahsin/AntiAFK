@@ -10,7 +10,6 @@ public class GeyserModulePlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // Ana eklentiyi bul
         AntiAFKPlugin corePlugin = (AntiAFKPlugin) Bukkit.getPluginManager().getPlugin("AntiAFK");
         if (corePlugin == null) {
             getLogger().severe("AntiAFK ana eklentisi bulunamadı! Geyser modülü devre dışı bırakılıyor.");

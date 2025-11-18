@@ -16,6 +16,7 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.Multibinder;
 
 import java.util.Optional;
+import java.util.logging.Logger;
 
 /**
  * Guice için bağımlılık bağlamalarını (bindings) tanımlayan ana modül.
@@ -51,5 +52,15 @@ public class AntiAFKModule extends AbstractModule {
         } else {
             return Optional.empty();
         }
+    }
+
+    /**
+     * Logger enjeksiyonu için sağlayıcı.
+     * Guice, Logger isteyen sınıflara plugin'in logger'ını verecek.
+     */
+    @Provides
+    @Singleton
+    Logger provideLogger(AntiAFKPlugin plugin) {
+        return plugin.getLogger();
     }
 }

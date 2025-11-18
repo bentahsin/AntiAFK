@@ -38,7 +38,7 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
 
     @Inject
     public BehaviorAnalysisTask(
-            AntiAFKPlugin plugin, // Sadece Bukkit scheduler için gerekli.
+            AntiAFKPlugin plugin,
             BehaviorAnalysisManager analysisManager,
             ConfigManager configManager,
             DebugManager debugManager,
@@ -50,9 +50,6 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
         this.debugManager = debugManager;
         this.afkManager = afkManager;
 
-        // Config değerlerini artık ConfigManager üzerinden alıyoruz.
-        // Bunun için ConfigManager'a yeni getter'lar eklemek gerekebilir.
-        // Şimdilik eski yöntemle devam edelim, ama ideal olanı bu.
         this.minTrajectoryPoints = plugin.getConfig().getInt("behavioral-analysis.min-trajectory-points", 20);
         this.maxTrajectoryPoints = plugin.getConfig().getInt("behavioral-analysis.max-trajectory-points", 300);
         this.locationTolerance = plugin.getConfig().getDouble("behavioral-analysis.location-tolerance", 1.0);
@@ -64,7 +61,6 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
     @Override
     public void run() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            // 'configManager' üzerinden bypass iznini kontrol et
             if (player.hasPermission(configManager.getPermBypassBehavioral()) || !player.isOnline()) {
                 continue;
             }
@@ -73,14 +69,13 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
             LinkedList<Location> history = data.getMovementHistory();
             boolean matchFound = false;
 
-            // ArrayList'leri döngü dışında bir kez oluşturmak daha verimli.
             List<Location> currentTrajectory = new ArrayList<>(maxTrajectoryPoints);
             List<Location> pastTrajectory = new ArrayList<>(maxTrajectoryPoints);
 
             synchronized (history) {
                 for (int currentLength = minTrajectoryPoints; currentLength <= maxTrajectoryPoints; currentLength++) {
                     if (history.size() < currentLength * 2) {
-                        continue; // Yeterli geçmiş veri yoksa bu yörünge uzunluğunu atla.
+                        continue;
                     }
 
                     currentTrajectory.clear();
@@ -96,12 +91,11 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
                             matchFound = true;
                             long now = System.currentTimeMillis();
 
-                            // Tekrarlar arasındaki sürenin, yörünge süresinin 1.5 katından az olup olmadığını kontrol et
                             double expectedTime = (double) currentLength / 20.0 * 1000.0;
                             if (now - data.getLastRepeatTimestamp() < expectedTime * 1.5) {
                                 data.setConsecutiveRepeatCount(data.getConsecutiveRepeatCount() + 1);
                             } else {
-                                data.setConsecutiveRepeatCount(1); // Sayaç sıfırla
+                                data.setConsecutiveRepeatCount(1);
                             }
 
                             data.setLastRepeatTimestamp(now);
@@ -117,14 +111,13 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
                             }
 
                             if (data.getConsecutiveRepeatCount() >= maxRepeats) {
-                                // Sonucu ana iş parçacığına (main thread) gönder
                                 Bukkit.getScheduler().runTask(plugin, () ->
                                         afkManager.getBotDetectionManager().triggerSuspicionAndChallenge(player, "behavior.afk_detected")
                                 );
                                 data.reset();
-                                break; // İç döngüyü kır
+                                break;
                             }
-                            break; // İç döngüyü kır
+                            break;
                         }
                     }
                     if (matchFound) break;

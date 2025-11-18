@@ -29,7 +29,7 @@ public class BehaviorAnalysisManager implements Listener {
     private final PluginManager pluginManager;
     private final Logger logger;
     private final SystemLanguageManager systemLanguageManager;
-    private final BehaviorAnalysisTask analysisTask; // Artık 'new' ile oluşturmuyoruz.
+    private final BehaviorAnalysisTask analysisTask;
 
     private final Map<UUID, PlayerBehaviorData> playerDataMap = new ConcurrentHashMap<>();
     private final int historySizeTicks;

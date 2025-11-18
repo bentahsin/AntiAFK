@@ -18,13 +18,10 @@ import java.util.List;
 
 public class PlayerActionGUI extends Menu {
 
-    // Guice tarafından enjekte edilecek bağımlılıklar
     private final AFKManager afkManager;
     private final ConfigManager configManager;
     private final PlayerLanguageManager playerLanguageManager;
     private final GUIFactory guiFactory;
-
-    // Dışarıdan verilen parametrelerden türetilen alan
     private final Player target;
 
     @Inject
@@ -40,8 +37,6 @@ public class PlayerActionGUI extends Menu {
         this.configManager = configManager;
         this.playerLanguageManager = playerLanguageManager;
         this.guiFactory = guiFactory;
-
-        // 'target' oyuncusunu constructor'da PlayerMenuUtility üzerinden alıyoruz.
         this.target = Bukkit.getPlayer(playerMenuUtility.getTargetPlayerUUID());
     }
 
@@ -95,8 +90,6 @@ public class PlayerActionGUI extends Menu {
                 playerLanguageManager.sendMessage(admin, "gui.player_actions.manual_afk_on", "%player%", target.getName());
             }
             admin.playSound(admin.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-
-            // DEĞİŞİKLİK: GUI'yi yeniden açarken fabrikayı kullanıyoruz.
             guiFactory.createPlayerActionGUI(playerMenuUtility).open();
         });
 
@@ -112,8 +105,6 @@ public class PlayerActionGUI extends Menu {
                 lore.toArray(new String[0])
         ));
 
-        // DEĞİŞİKLİK: Geri dönüş için de fabrikayı kullanıyoruz.
-        // (GUIFactory'ye createPlayerListGUI metodu eklenmeli)
         actions.put(22, () -> guiFactory.createPlayerListGUI(playerMenuUtility, playerMenuUtility.getLastPlayerListPage()).open());
         inventory.setItem(22, createGuiItem(Material.ARROW, "&cGeri Dön (Sayfa " + (playerMenuUtility.getLastPlayerListPage() + 1) + ")"));
     }

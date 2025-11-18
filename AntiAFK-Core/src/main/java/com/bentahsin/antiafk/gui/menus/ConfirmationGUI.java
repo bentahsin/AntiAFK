@@ -17,24 +17,20 @@ import java.util.function.Consumer;
  */
 public class ConfirmationGUI extends Menu {
 
-    // Guice tarafından enjekte EDİLMEYEN, dışarıdan verilen alanlar
     private final String title;
     private final ItemStack confirmationItem;
     private final Consumer<InventoryClickEvent> onConfirm;
     private final Consumer<InventoryClickEvent> onCancel;
 
-    // Guice tarafından enjekte EDİLEN alan
     private final PlayerLanguageManager playerLanguageManager;
 
     @Inject
     public ConfirmationGUI(
-            // Dışarıdan, manuel olarak verilecek TÜM parametreleri @Assisted ile işaretliyoruz.
             @Assisted PlayerMenuUtility playerMenuUtility,
             @Assisted String title,
             @Assisted ItemStack confirmationItem,
             @Assisted Consumer<InventoryClickEvent> onConfirm,
             @Assisted Consumer<InventoryClickEvent> onCancel,
-            // Geri kalan bu parametreyi Guice kendisi bulup enjekte edecek.
             PlayerLanguageManager playerLanguageManager
     ) {
         super(playerMenuUtility);
@@ -42,7 +38,7 @@ public class ConfirmationGUI extends Menu {
         this.confirmationItem = confirmationItem;
         this.onConfirm = onConfirm;
         this.onCancel = onCancel;
-        this.playerLanguageManager = playerLanguageManager; // Artık 'plugin.get...' yok.
+        this.playerLanguageManager = playerLanguageManager;
     }
 
     @Override

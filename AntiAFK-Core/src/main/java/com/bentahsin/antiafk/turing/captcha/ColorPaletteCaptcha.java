@@ -49,8 +49,6 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
         this.afkManager = afkManager;
         this.databaseManager = databaseManager;
         this.debugManager = debugManager;
-        // Constructor'daki 'plugin.getServer().getPluginManager().registerEvents(this, plugin);' satırını SİLİYORUZ.
-        // Bu sorumluluk artık ListenerManager'a ait.
     }
 
     @Override
@@ -160,8 +158,6 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
         }
     }
 
-    // --- Private Helper Metotları ---
-
     private void passChallenge(Player player) {
         cleanUp(player);
         databaseManager.incrementTestsPassed(player.getUniqueId());
@@ -210,7 +206,6 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
     }
 
     private static class ActivePaletteTest {
-        // ... bu iç sınıf aynı kalıyor ...
         private final String correctColor;
         private final int totalCorrectItems;
         private final BukkitTask timeoutTask;

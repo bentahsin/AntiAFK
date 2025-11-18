@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 
 public class SettingsGUI extends Menu {
 
-    // Artık 'plugin' nesnesine ihtiyacımız yok.
     private final ConfigManager configManager;
     private final PlayerLanguageManager playerLanguageManager;
     private final IInputCompatibility inputCompatibility;
@@ -56,7 +55,6 @@ public class SettingsGUI extends Menu {
     public void setMenuItems() {
         addToggleButton(11, "detection.check_camera_movement", configManager.isCheckCamera(), "check_camera");
         addToggleButton(12, "detection.check_chat_activity", configManager.isCheckChat(), "check_chat");
-        // ... diğer addToggleButton çağrıları aynı kalıyor ...
         addToggleButton(13, "detection.check_interaction", configManager.isCheckInteraction(), "check_interaction");
         addToggleButton(14, "detection.check_toggle_sneak", configManager.isCheckToggleSneak(), "check_toggle_sneak");
         addToggleButton(15, "detection.check_player_attack", configManager.isCheckPlayerAttack(), "check_player_attack");
@@ -91,7 +89,6 @@ public class SettingsGUI extends Menu {
                 Material.GLASS_BOTTLE
         );
 
-        // DEĞİŞİKLİK: Artık 'new' yerine fabrikayı kullanıyoruz.
         actions.put(42, () -> guiFactory.createBehavioralAnalysisGUI(playerMenuUtility).open());
         inventory.setItem(42, createGuiItem(Material.OBSERVER,
                 playerLanguageManager.getMessage("gui.settings_menu.behavioral_analysis_button.name"),
@@ -124,13 +121,12 @@ public class SettingsGUI extends Menu {
     }
 
     private void toggleSetting(String path) {
-        // Config işlemlerini doğrudan ConfigManager üzerinden yapalım.
         boolean currentValue = configManager.getRawConfig().getBoolean(path);
         configManager.getRawConfig().set(path, !currentValue);
         configManager.saveConfig();
         configManager.loadConfig();
         playerMenuUtility.getOwner().playSound(playerMenuUtility.getOwner().getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.2f);
-        setMenuItems(); // GUI'yi yenile
+        setMenuItems();
     }
 
     private void openMaxAfkTimeEditor() {
@@ -153,7 +149,7 @@ public class SettingsGUI extends Menu {
                 inputText -> {
                     if (TimeUtil.parseTime(inputText) <= 0 && !inputText.equalsIgnoreCase("disabled")) {
                         playerLanguageManager.sendMessage(player, "gui.anvil.invalid_format");
-                        Bukkit.getScheduler().runTaskLater(configManager.getPlugin(), this::open, 1L); // plugin nesnesi için ConfigManager'dan al
+                        Bukkit.getScheduler().runTaskLater(configManager.getPlugin(), this::open, 1L);
                         return;
                     }
 
@@ -163,11 +159,9 @@ public class SettingsGUI extends Menu {
                     playerLanguageManager.sendMessage(player, "gui.settings_updated", "%value%", inputText);
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.5f);
 
-                    // GUI'yi yeniden açarken fabrikayı kullan
                     guiFactory.createSettingsGUI(playerMenuUtility).open();
                 },
                 () -> {
-                    // İptal durumunda GUI'yi yeniden açarken fabrikayı kullan
                     guiFactory.createSettingsGUI(playerMenuUtility).open();
                 }
         );

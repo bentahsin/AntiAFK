@@ -1,5 +1,6 @@
 package com.bentahsin.antiafk.managers;
 
+import com.bentahsin.antiafk.api.events.AntiAFKStatusChangeEvent;
 import com.bentahsin.antiafk.models.PlayerState;
 import com.bentahsin.antiafk.storage.DatabaseManager;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -177,6 +178,13 @@ public class PlayerStateManager {
     private void setPlayerAfkInternal(PlayerState state) {
         Player player = Bukkit.getPlayer(state.getUuid());
         if (player != null) {
+            AntiAFKStatusChangeEvent event = new AntiAFKStatusChangeEvent(player, true, state.getAfkReason());
+            Bukkit.getPluginManager().callEvent(event);
+
+            if (event.isCancelled()) {
+                return;
+            }
+
             plLang.sendMessage(player, "command.afk.now_afk");
         }
 

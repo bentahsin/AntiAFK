@@ -36,7 +36,6 @@ public class CommandManager implements CommandExecutor, TabCompleter {
     ) {
         this.playerLanguageManager = playerLanguageManager;
 
-        // Enjekte edilen tüm alt komutları haritaya kaydet
         registerCommand(reloadCommand);
         registerCommand(panelCommand);
         registerCommand(listCommand);
@@ -53,12 +52,9 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         subCommands.put(subCommand.getName().toLowerCase(), subCommand);
     }
 
-    // 'registerSubCommands' metodu artık gereksiz olduğu için SİLİNDİ.
-
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         if (args.length == 0) {
-            // 'plLang' yerine tam ismi kullanalım.
             playerLanguageManager.sendMessage(sender, "command.antiafk.usage", "%label%", label);
             return true;
         }

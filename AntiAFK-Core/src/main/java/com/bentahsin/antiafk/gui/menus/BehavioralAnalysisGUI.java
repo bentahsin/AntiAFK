@@ -52,7 +52,6 @@ public class BehavioralAnalysisGUI extends Menu {
         addToggleButton(12, "behavioral-analysis.enabled", "Sistemi Etkinleştir", "Bu sistemi tamamen açar veya kapatır.");
         addToggleButton(14, "behavioral-analysis.debug", "Debug Modu", "Oyunculara ve konsola hata ayıklama", "mesajları gönderir.");
 
-        // DEĞİŞİKLİK: Artık 'new' yerine fabrikayı kullanıyoruz.
         actions.put(22, () -> guiFactory.createSettingsGUI(playerMenuUtility).open());
         inventory.setItem(22, createGuiItem(Material.ARROW, playerLanguageManager.getMessage("gui.settings_menu.back_button.name")));
     }
@@ -63,7 +62,7 @@ public class BehavioralAnalysisGUI extends Menu {
             configManager.getRawConfig().set(configPath, !currentState);
             configManager.saveConfig();
             configManager.loadConfig();
-            debugManager.loadConfigSettings(); // Bu metodun parametresiz hale getirilmesi gerekir.
+            debugManager.loadConfigSettings();
             playerMenuUtility.getOwner().playSound(playerMenuUtility.getOwner().getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.2f);
             setMenuItems();
         });

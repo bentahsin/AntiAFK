@@ -1,5 +1,7 @@
 package com.bentahsin.antiafk;
 
+import com.bentahsin.antiafk.api.AntiAFKAPI;
+import com.bentahsin.antiafk.api.implementation.AntiAFKAPIImpl;
 import com.bentahsin.antiafk.behavior.BehaviorAnalysisManager;
 import com.bentahsin.antiafk.commands.afk.AFKCommandManager;
 import com.bentahsin.antiafk.commands.afk.ToggleAFKCommand;
@@ -28,6 +30,7 @@ import com.google.inject.Singleton;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.plugin.ServicePriority;
 
 import java.lang.reflect.Field;
 import java.util.logging.Level;
@@ -55,6 +58,7 @@ public class MainInitializer {
     private final BookInputManager bookInputManager;
     private final AFKCommandManager afkCommandManager;
     private final ToggleAFKCommand toggleAFKCommand;
+    private final AntiAFKAPIImpl apiImplementation;
 
     @Inject
     public MainInitializer(
@@ -64,7 +68,8 @@ public class MainInitializer {
             TestCommand testCommand, AFKCheckTask afkCheckTask, MenuListener menuListener, DebugManager debugManager,
             PatternManager patternManager, PatternAnalysisTask patternAnalysisTask,
             LearningDataCollectorTask learningDataCollectorTask, BehaviorAnalysisManager behaviorAnalysisManager,
-            BookInputManager bookInputManager, AFKCommandManager afkCommandManager, ToggleAFKCommand toggleAFKCommand
+            BookInputManager bookInputManager, AFKCommandManager afkCommandManager, ToggleAFKCommand toggleAFKCommand,
+            AntiAFKAPIImpl apiImplementation
     ) {
         this.plugin = plugin;
         this.configManager = configManager;
@@ -86,17 +91,16 @@ public class MainInitializer {
         this.bookInputManager = bookInputManager;
         this.afkCommandManager = afkCommandManager;
         this.toggleAFKCommand = toggleAFKCommand;
+        this.apiImplementation = apiImplementation;
     }
 
     /**
      * Eklentinin tüm başlatma mantığını yürütür.
      */
     public void initialize() {
-        // Temel sistemleri başlat
         systemLanguageManager.setLanguage(configManager.getLang());
         databaseManager.connect();
 
-        // Öğrenme Modu'nu (gerekirse) başlat
         if (configManager.isLearningModeEnabled()) {
             patternManager.loadPatterns();
             long period = configManager.getAnalysisTaskPeriodTicks();
@@ -104,24 +108,28 @@ public class MainInitializer {
             learningDataCollectorTask.runTaskTimer(plugin, 100L, 1L);
         }
 
-        // Komutları kaydet
         registerCommands();
 
-        // Listener'ları kaydet
         listenerManager.registerListeners();
         plugin.getServer().getPluginManager().registerEvents(menuListener, plugin);
 
-        // Periyodik görevleri başlat
         afkCheckTask.runTaskTimer(plugin, 100L, 1L);
 
-        // Harici eklenti entegrasyonlarını kur
         setupIntegrations();
 
         plugin.getLogger().info(systemLanguageManager.getSystemMessage(Lang.PLUGIN_ENABLED_SUCCESSFULLY));
+
+        plugin.getServer().getServicesManager().register(
+                AntiAFKAPI.class,
+                apiImplementation,
+                plugin,
+                ServicePriority.Normal
+        );
+
+        plugin.getLogger().info("AntiAFK API registered.");
     }
 
     private void registerCommands() {
-        // /antiafk
         PluginCommand antiAfkCommand = plugin.getCommand("antiafk");
         if (antiAfkCommand != null) {
             antiAfkCommand.setExecutor(commandManager);
@@ -130,12 +138,10 @@ public class MainInitializer {
             plugin.getLogger().severe(systemLanguageManager.getSystemMessage(Lang.ANTIAFK_COMMAND_NOT_IN_YML));
         }
 
-        // /afk
         if (configManager.isAfkCommandEnabled()) {
             registerDynamicAfkCommand();
         }
 
-        // /afkcevap
         PluginCommand cevapCommandCmd = plugin.getCommand("afkcevap");
         if (cevapCommandCmd != null) {
             cevapCommandCmd.setExecutor(cevapCommand);
@@ -144,7 +150,6 @@ public class MainInitializer {
             plugin.getLogger().severe(systemLanguageManager.getSystemMessage(Lang.AFKCEVAP_COMMAND_NOT_IN_YML));
         }
 
-        // /afktest
         PluginCommand testCommandCmd = plugin.getCommand("afktest");
         if (testCommandCmd != null) {
             testCommandCmd.setExecutor(testCommand);
@@ -154,7 +159,6 @@ public class MainInitializer {
     }
 
     private void setupIntegrations() {
-        // ProtocolLib
         if (plugin.getServer().getPluginManager().getPlugin("ProtocolLib") != null) {
             plugin.setProtocolLibEnabled(true);
             plugin.getServer().getPluginManager().registerEvents(new BookInputListener(bookInputManager), plugin);
@@ -163,7 +167,6 @@ public class MainInitializer {
             plugin.getLogger().warning(systemLanguageManager.getSystemMessage(Lang.PROTOCOLLIB_NOT_FOUND));
         }
 
-        // PlaceholderAPI
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             plugin.setPlaceholderApiEnabled(true);
             BenthPAPIManager papiManager = BenthPAPIManager.create(plugin)
@@ -178,7 +181,6 @@ public class MainInitializer {
             plugin.getLogger().info(systemLanguageManager.getSystemMessage(Lang.PLACEHOLDERAPI_NOT_FOUND));
         }
 
-        // WorldGuard
         if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
             plugin.setWorldGuardHooked(true);
             plugin.getLogger().info(systemLanguageManager.getSystemMessage(Lang.WORLDGUARD_FOUND));

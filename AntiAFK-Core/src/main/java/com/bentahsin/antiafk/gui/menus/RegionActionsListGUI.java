@@ -17,12 +17,10 @@ import java.util.Optional;
 
 public class RegionActionsListGUI extends Menu {
 
-    // Guice tarafından enjekte edilecek bağımlılıklar
     private final PlayerLanguageManager playerLanguageManager;
     private final ConfigManager configManager;
     private final GUIFactory guiFactory;
 
-    // Dışarıdan gelen verilerden türetilen alanlar
     private final String regionName;
     private final RegionOverride regionOverride;
     private final boolean isUsingGlobalActions;
@@ -41,7 +39,6 @@ public class RegionActionsListGUI extends Menu {
 
         this.regionName = playerMenuUtility.getRegionToEdit();
 
-        // RegionOverride'ı constructor'da bulalım
         Optional<RegionOverride> overrideOpt = configManager.getRegionOverrides().stream()
                 .filter(ro -> ro.getRegionName().equalsIgnoreCase(this.regionName))
                 .findFirst();
@@ -70,7 +67,6 @@ public class RegionActionsListGUI extends Menu {
     @Override
     public void setMenuItems() {
         if (regionOverride == null) {
-            // Eğer kural bulunamadıysa, bir önceki menüye (RegionEditGUI) fabrika ile dön.
             guiFactory.createRegionEditGUI(playerMenuUtility).open();
             return;
         }
@@ -87,7 +83,6 @@ public class RegionActionsListGUI extends Menu {
                 final int actionIndex = i;
                 this.actions.put(i, () -> {
                     playerMenuUtility.setActionIndexToEdit(actionIndex);
-                    // DEĞİŞİKLİK: 'new' yerine fabrikayı kullan.
                     guiFactory.createRegionActionEditGUI(playerMenuUtility).open();
                 });
 
@@ -107,14 +102,11 @@ public class RegionActionsListGUI extends Menu {
         }
 
         this.actions.put(48, () -> {
-            playerMenuUtility.setActionIndexToEdit(-1); // Yeni aksiyon için index'i -1 yap
-            // DEĞİŞİKLİK: 'new' yerine fabrikayı kullan.
+            playerMenuUtility.setActionIndexToEdit(-1);
             guiFactory.createRegionActionEditGUI(playerMenuUtility).open();
         });
-        // Bu metinler messages.yml'den gelmeli, ama şimdilik böyle bırakabiliriz.
         inventory.setItem(48, createGuiItem(Material.EMERALD, "&aYeni Aksiyon Ekle", "&7Bu bölgeye özel yeni bir", "&7aksiyon tanımla."));
 
-        // DEĞİŞİKLİK: 'new' yerine fabrikayı kullan.
         this.actions.put(49, () -> guiFactory.createRegionEditGUI(playerMenuUtility).open());
         inventory.setItem(49, createGuiItem(Material.ARROW, "&cGeri Dön"));
     }

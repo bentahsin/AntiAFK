@@ -64,7 +64,7 @@ public class RegionEditGUI extends Menu {
     public void setMenuItems() {
         if (regionOverride == null) {
             playerLanguageManager.sendMessage(playerMenuUtility.getOwner(), "gui.region.rule_not_found");
-            guiFactory.createRegionListGUI(playerMenuUtility).open(); // Fabrika ile aç
+            guiFactory.createRegionListGUI(playerMenuUtility).open();
             return;
         }
 
@@ -84,7 +84,7 @@ public class RegionEditGUI extends Menu {
 
         int actionCount = regionOverride.getActions() == configManager.getActions() ? 0 : regionOverride.getActions().size();
 
-        actions.put(13, () -> guiFactory.createRegionActionsListGUI(playerMenuUtility).open()); // Fabrika ile aç
+        actions.put(13, () -> guiFactory.createRegionActionsListGUI(playerMenuUtility).open());
         inventory.setItem(13, createGuiItem(Material.COMMAND_BLOCK_MINECART,
                 playerLanguageManager.getMessage("gui.region_edit_menu.manage_actions_button.name"),
                 playerLanguageManager.getMessageList("gui.region_edit_menu.manage_actions_button.lore")
@@ -97,7 +97,7 @@ public class RegionEditGUI extends Menu {
                 playerLanguageManager.getMessageList("gui.region_edit_menu.delete_rule_button.lore").toArray(new String[0])
         ));
 
-        actions.put(22, () -> guiFactory.createRegionListGUI(playerMenuUtility).open()); // Fabrika ile aç
+        actions.put(22, () -> guiFactory.createRegionListGUI(playerMenuUtility).open());
         inventory.setItem(22, createGuiItem(Material.ARROW,
                 playerLanguageManager.getMessage("gui.region_edit_menu.back_button.name"),
                 playerLanguageManager.getMessageList("gui.region_edit_menu.back_button.lore").toArray(new String[0])
@@ -133,9 +133,9 @@ public class RegionEditGUI extends Menu {
                     playerLanguageManager.sendMessage(player, "gui.region.time_updated", "%time%", inputText);
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.5f);
 
-                    guiFactory.createRegionEditGUI(playerMenuUtility).open(); // Fabrika ile yeniden aç
+                    guiFactory.createRegionEditGUI(playerMenuUtility).open();
                 },
-                () -> guiFactory.createRegionEditGUI(playerMenuUtility).open() // Fabrika ile yeniden aç
+                () -> guiFactory.createRegionEditGUI(playerMenuUtility).open()
         );
     }
 
@@ -169,7 +169,7 @@ public class RegionEditGUI extends Menu {
         playerLanguageManager.sendMessage(player, "gui.region.rule_deleted", "%region%", regionName);
         player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1f, 1f);
 
-        guiFactory.createRegionListGUI(playerMenuUtility).open(); // Fabrika ile aç
+        guiFactory.createRegionListGUI(playerMenuUtility).open();
     }
 
     private String findConfigPathForRegion(String name) {

@@ -3,7 +3,7 @@ package com.bentahsin.antiafk.commands.afkcevap;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.turing.CaptchaManager;
 import com.google.inject.Inject;
-import com.google.inject.Provider; // Provider'ı import ediyoruz
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

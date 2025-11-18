@@ -36,7 +36,6 @@ public class ListenerManager {
         this.plugin = plugin;
         this.pluginManager = plugin.getServer().getPluginManager();
 
-        // Bağımlılıkları alanlara ata
         this.playerConnectionListener = playerConnectionListener;
         this.playerMovementListener = playerMovementListener;
         this.playerInteractionListener = playerInteractionListener;

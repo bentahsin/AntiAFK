@@ -5,7 +5,7 @@ import com.bentahsin.antiafk.commands.antiafk.ISubCommand;
 import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.models.PlayerStats;
-import com.bentahsin.antiafk.storage.PlayerStatsManager; // Yeni import
+import com.bentahsin.antiafk.storage.PlayerStatsManager;
 import com.bentahsin.antiafk.utils.TimeUtil;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -28,11 +28,10 @@ import java.util.stream.Collectors;
 @Singleton
 public class CheckCommand implements ISubCommand {
 
-    // Artık tüm bağımlılıklar enjekte edilecek.
-    private final AntiAFKPlugin plugin; // Sadece scheduler için gerekli.
+    private final AntiAFKPlugin plugin;
     private final PlayerLanguageManager playerLanguageManager;
     private final AFKManager afkManager;
-    private final PlayerStatsManager playerStatsManager; // Yeni bağımlılık
+    private final PlayerStatsManager playerStatsManager;
 
     @Inject
     public CheckCommand(
@@ -72,18 +71,15 @@ public class CheckCommand implements ISubCommand {
                 return;
             }
 
-            // Artık 'plugin' üzerinden değil, doğrudan enjekte edilen servis üzerinden.
             playerStatsManager.getPlayerStats(target.getUniqueId(), target.getName())
                     .thenAccept(stats -> {
                         Player onlineTarget = target.isOnline() ? target.getPlayer() : null;
-                        // Sonucu ana iş parçacığına gönder
                         Bukkit.getScheduler().runTask(plugin, () -> displayPlayerStats(sender, target, stats, onlineTarget));
                     });
         });
     }
 
     private void displayPlayerStats(CommandSender sender, OfflinePlayer target, PlayerStats stats, Player onlineTarget) {
-        // Bu metodun içindeki kod tamamen aynı kalıyor, sadece 'plLang' yerine 'playerLanguageManager' kullanalım.
         playerLanguageManager.sendMessage(sender, "command.antiafk.check.header", "%player%", target.getName());
 
         String statusMessage;
@@ -135,7 +131,6 @@ public class CheckCommand implements ISubCommand {
 
     @SuppressWarnings("deprecation")
     private CompletableFuture<OfflinePlayer> findOfflinePlayerAsync(String playerName) {
-        // Bu metot aynı kalıyor.
         Player onlinePlayer = Bukkit.getPlayerExact(playerName);
         if (onlinePlayer != null) {
             return CompletableFuture.completedFuture(onlinePlayer);
@@ -145,7 +140,6 @@ public class CheckCommand implements ISubCommand {
 
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
-        // Bu metot aynı kalıyor.
         if (args.length == 1) {
             return StringUtil.copyPartialMatches(args[0],
                     Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()),

@@ -67,7 +67,7 @@ public class RegionActionEditGUI extends Menu {
         String configPath = findConfigPathForRegion(regionName);
         if (configPath == null) {
             playerLanguageManager.sendMessage(playerMenuUtility.getOwner(), "gui.region.config_path_error");
-            guiFactory.createRegionListGUI(playerMenuUtility).open(); // Fabrika ile aç
+            guiFactory.createRegionListGUI(playerMenuUtility).open();
             return;
         }
 
@@ -82,7 +82,7 @@ public class RegionActionEditGUI extends Menu {
         actions.put(11, () -> {
             String newType = type.equalsIgnoreCase("CONSOLE") ? "PLAYER" : "CONSOLE";
             saveAction(configPath, newType, command);
-            guiFactory.createRegionActionEditGUI(playerMenuUtility).open(); // Fabrika ile yeniden aç
+            guiFactory.createRegionActionEditGUI(playerMenuUtility).open();
         });
         inventory.setItem(11, createGuiItem(Material.NAME_TAG,
                 playerLanguageManager.getMessage("gui.region_action_edit_menu.change_type_button.name"),
@@ -112,7 +112,7 @@ public class RegionActionEditGUI extends Menu {
             ));
         }
 
-        actions.put(22, () -> guiFactory.createRegionActionsListGUI(playerMenuUtility).open()); // Fabrika ile aç
+        actions.put(22, () -> guiFactory.createRegionActionsListGUI(playerMenuUtility).open());
         inventory.setItem(22, createGuiItem(Material.ARROW, playerLanguageManager.getMessage("gui.region_action_edit_menu.back_button")));
     }
 
@@ -123,7 +123,6 @@ public class RegionActionEditGUI extends Menu {
         playerLanguageManager.sendMessage(player, "gui.book_input.prompt_info");
         player.playSound(player.getLocation(), Sound.BLOCK_CHEST_OPEN, 1f, 1f);
 
-        // Artık Optional olan bookInputManager'ı kullanıyoruz.
         bookInputManager.ifPresent(manager -> manager.prompt(player, currentCommand, (newCommand) -> {
             saveAction(configPath, type, newCommand);
             playerLanguageManager.sendMessage(player, "gui.book_input.command_updated");

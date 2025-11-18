@@ -25,7 +25,7 @@ import java.util.List;
 
 public class RegionListGUI extends Menu {
 
-    private final AntiAFKPlugin plugin; // Sadece isWorldGuardHooked için
+    private final AntiAFKPlugin plugin;
     private final PlayerLanguageManager playerLanguageManager;
     private final ConfigManager configManager;
     private final IInputCompatibility inputCompatibility;
@@ -77,7 +77,7 @@ public class RegionListGUI extends Menu {
 
                 actions.put(i, () -> {
                     playerMenuUtility.setRegionToEdit(override.getRegionName());
-                    guiFactory.createRegionEditGUI(playerMenuUtility).open(); // Fabrika ile aç
+                    guiFactory.createRegionEditGUI(playerMenuUtility).open();
                 });
 
                 inventory.setItem(i, createGuiItem(Material.GRASS_BLOCK,
@@ -97,7 +97,7 @@ public class RegionListGUI extends Menu {
                 playerLanguageManager.getMessageList("gui.region_list_menu.add_new_rule_button.lore").toArray(new String[0])
         ));
 
-        actions.put(49, () -> guiFactory.createAdminPanelGUI(playerMenuUtility).open()); // Fabrika ile aç
+        actions.put(49, () -> guiFactory.createAdminPanelGUI(playerMenuUtility).open());
         inventory.setItem(49, createGuiItem(Material.BARRIER,
                 playerLanguageManager.getMessage("gui.region_list_menu.back_button.name"),
                 playerLanguageManager.getMessageList("gui.region_list_menu.back_button.lore").toArray(new String[0])
@@ -167,6 +167,6 @@ public class RegionListGUI extends Menu {
         configManager.loadConfig();
         playerLanguageManager.sendMessage(player, "gui.region.rule_created", "%region%", regionName);
         playerMenuUtility.setRegionToEdit(regionName);
-        guiFactory.createRegionEditGUI(playerMenuUtility).open(); // Fabrika ile aç
+        guiFactory.createRegionEditGUI(playerMenuUtility).open();
     }
 }

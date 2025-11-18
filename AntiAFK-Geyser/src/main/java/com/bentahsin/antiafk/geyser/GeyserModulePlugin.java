@@ -3,7 +3,6 @@ package com.bentahsin.antiafk.geyser;
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.platform.IInputCompatibility;
-import com.google.inject.Injector;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -19,15 +18,9 @@ public class GeyserModulePlugin extends JavaPlugin {
             return;
         }
 
-        Injector coreInjector = corePlugin.getInjector();
-        if (coreInjector == null) {
-            getLogger().severe("AntiAFK ana eklentisinin Injector'ı hazır değil! Geyser modülü devre dışı bırakılıyor.");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
         GeyserCompatibilityManager geyserManager = new GeyserCompatibilityManager(
                 corePlugin,
-                coreInjector.getInstance(PlayerLanguageManager.class)
+                corePlugin.getService(PlayerLanguageManager.class)
         );
 
         getServer().getServicesManager().register(IInputCompatibility.class, geyserManager, this, ServicePriority.Highest);

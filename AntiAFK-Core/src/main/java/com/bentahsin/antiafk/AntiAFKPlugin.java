@@ -31,13 +31,10 @@ public final class AntiAFKPlugin extends JavaPlugin {
     private Injector injector;
     private BenthPAPIManager papiManager;
 
-    // Eklentinin çalışma zamanındaki durumunu tutan bayraklar.
-    // Bu bayraklar MainInitializer tarafından doldurulur.
     private boolean placeholderApiEnabled = false;
     private boolean worldGuardHooked = false;
     private boolean protocolLibEnabled = false;
 
-    // Guice tarafından yönetilmeyen, oyuncu oturumlarına özel anlık veriler.
     private final Map<UUID, PlayerMenuUtility> playerMenuUtilityMap = new HashMap<>();
     private final Set<UUID> playersInChatInput = ConcurrentHashMap.newKeySet();
     private final Map<UUID, Consumer<String>> chatInputCallbacks = new ConcurrentHashMap<>();
@@ -45,29 +42,22 @@ public final class AntiAFKPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        // Guice'ı başlat ve tüm bağımlılıkları hazırla.
         this.injector = Guice.createInjector(new AntiAFKModule(this));
-
-        // Tüm başlatma mantığını MainInitializer sınıfına devret.
         injector.getInstance(MainInitializer.class).initialize();
     }
 
     @Override
     public void onDisable() {
-        // PlaceholderAPI kaydını kaldır.
         if (papiManager != null) {
             papiManager.unregisterAll();
         }
 
-        // Guice'dan shutdown yöneticisini al ve tüm servisleri güvenle kapat.
         if (injector != null) {
             injector.getInstance(ShutdownManager.class).shutdown();
         }
 
-        // Eklentiye ait tüm Bukkit görevlerini iptal et.
         Bukkit.getScheduler().cancelTasks(this);
 
-        // En son, "Plugin Disabled" mesajını logla.
         if (injector != null) {
             SystemLanguageManager systemLanguageManager = injector.getInstance(SystemLanguageManager.class);
             getLogger().info(systemLanguageManager.getSystemMessage(Lang.PLUGIN_DISABLED));
@@ -85,11 +75,7 @@ public final class AntiAFKPlugin extends JavaPlugin {
         return injector;
     }
 
-    // --- Oturum Verisi Yönetim Metotları ---
-
     public PlayerMenuUtility getPlayerMenuUtility(Player p) {
-        // Her oyuncu için özel olan ve anlık oluşturulan bu nesne,
-        // en iyi burada yönetilir.
         return playerMenuUtilityMap.computeIfAbsent(p.getUniqueId(), k -> new PlayerMenuUtility(p));
     }
 
@@ -110,9 +96,9 @@ public final class AntiAFKPlugin extends JavaPlugin {
         chatInputCallbacks.remove(uuid);
     }
 
-    // --- Durum Bayrağı (Flag) Getters & Setters ---
-    // Bu metotlar, MainInitializer'ın eklentinin durumunu güncellemesi
-    // ve diğer sınıfların bu durumu okuması için gereklidir.
+    public <T> T getService(Class<T> serviceClass) {
+        return injector.getInstance(serviceClass);
+    }
 
     public void setPapiManager(BenthPAPIManager papiManager) {
         this.papiManager = papiManager;

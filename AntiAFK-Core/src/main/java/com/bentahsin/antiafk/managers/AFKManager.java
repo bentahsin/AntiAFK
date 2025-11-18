@@ -12,7 +12,6 @@ import org.bukkit.entity.Player;
 @Singleton
 public class AFKManager {
 
-    // Artık tüm yöneticiler Guice tarafından enjekte edilecek.
     private final ConfigManager configManager;
     private final PlayerStateManager stateManager;
     private final WarningManager warningManager;

@@ -31,7 +31,7 @@ public class GeyserCompatibilityManager implements IInputCompatibility {
     @Inject
     public GeyserCompatibilityManager(AntiAFKPlugin plugin, PlayerLanguageManager playerLanguageManager) {
         this.plugin = plugin;
-        this.playerLanguageManager = playerLanguageManager; // Enjekte edilen nesneyi ata
+        this.playerLanguageManager = playerLanguageManager;
 
         if (plugin.getServer().getPluginManager().getPlugin("Geyser-Spigot") != null) {
             try {

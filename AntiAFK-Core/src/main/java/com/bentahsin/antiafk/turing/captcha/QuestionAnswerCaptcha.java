@@ -81,8 +81,6 @@ public class QuestionAnswerCaptcha implements ICaptcha {
     @Override
     public void start(Player player) {
         if (questionPool.isEmpty()) {
-            // CaptchaManager'a olan bağımlılığı kaldırdığımız için,
-            // failChallenge mantığını doğrudan burada uyguluyoruz.
             failChallenge(player, "Soru havuzu boş.");
             return;
         }

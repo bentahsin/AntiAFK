@@ -20,18 +20,15 @@ import java.util.stream.Collectors;
 
 public class PlayerListGUI extends Menu {
 
-    // Guice tarafından enjekte edilecek bağımlılıklar
     private final AFKManager afkManager;
     private final PlayerLanguageManager playerLanguageManager;
     private final GUIFactory guiFactory;
-
-    // Dışarıdan verilecek parametre
     private final int page;
 
     @Inject
     public PlayerListGUI(
             @Assisted PlayerMenuUtility playerMenuUtility,
-            @Assisted int page, // Sayfa numarasını da @Assisted ile alıyoruz
+            @Assisted int page,
             AFKManager afkManager,
             PlayerLanguageManager playerLanguageManager,
             GUIFactory guiFactory
@@ -71,7 +68,6 @@ public class PlayerListGUI extends Menu {
             actions.put(i, () -> {
                 playerMenuUtility.setTargetPlayerUUID(targetPlayer.getUniqueId());
                 playerMenuUtility.setLastPlayerListPage(this.page);
-                // DEĞİŞİKLİK: 'new' yerine fabrikayı kullanıyoruz.
                 guiFactory.createPlayerActionGUI(playerMenuUtility).open();
             });
 
@@ -80,7 +76,6 @@ public class PlayerListGUI extends Menu {
     }
 
     private void addBottomBar() {
-        // DEĞİŞİKLİK: 'new' yerine fabrikayı kullanıyoruz.
         actions.put(49, () -> guiFactory.createAdminPanelGUI(playerMenuUtility).open());
         inventory.setItem(49, createGuiItem(
                 Material.BARRIER,
@@ -93,7 +88,6 @@ public class PlayerListGUI extends Menu {
         int maxPages = (int) Math.ceil((double) players.size() / maxItemsPerPage);
 
         if (page > 0) {
-            // DEĞİŞİKLİK: 'new' yerine fabrikayı kullanıyoruz.
             actions.put(48, () -> guiFactory.createPlayerListGUI(playerMenuUtility, page - 1).open());
             inventory.setItem(48, createGuiItem(
                     Material.ARROW,
@@ -103,7 +97,6 @@ public class PlayerListGUI extends Menu {
         }
 
         if (page + 1 < maxPages) {
-            // DEĞİŞİKLİK: 'new' yerine fabrikayı kullanıyoruz.
             actions.put(50, () -> guiFactory.createPlayerListGUI(playerMenuUtility, page + 1).open());
             inventory.setItem(50, createGuiItem(
                     Material.ARROW,

@@ -1,8 +1,13 @@
 package com.bentahsin.antiafk.listeners.handlers;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
-import com.bentahsin.antiafk.gui.menus.RegionEditGUI;
+import com.bentahsin.antiafk.behavior.BehaviorAnalysisManager;
+import com.bentahsin.antiafk.gui.factory.GUIFactory;
 import com.bentahsin.antiafk.listeners.ActivityListener;
+import com.bentahsin.antiafk.managers.AFKManager;
+import com.bentahsin.antiafk.managers.ConfigManager;
+import com.bentahsin.antiafk.managers.DebugManager;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
@@ -25,8 +30,15 @@ import java.util.function.Consumer;
  */
 public class PlayerChatListener extends ActivityListener implements Listener {
 
-    public PlayerChatListener(AntiAFKPlugin plugin) {
-        super(plugin);
+    private final GUIFactory guiFactory;
+
+    public PlayerChatListener(
+            AntiAFKPlugin plugin, AFKManager afkManager, ConfigManager configManager,
+            DebugManager debugManager, PlayerLanguageManager languageManager,
+            BehaviorAnalysisManager behaviorAnalysisManager, GUIFactory guiFactory
+    ) {
+        super(plugin, afkManager, configManager, debugManager, languageManager, behaviorAnalysisManager);
+        this.guiFactory = guiFactory;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -34,61 +46,61 @@ public class PlayerChatListener extends ActivityListener implements Listener {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
 
-        if (getPlugin().getPlayersInChatInput().contains(playerUUID)) {
+        if (plugin.getPlayersInChatInput().contains(playerUUID)) {
             event.setCancelled(true);
             String input = event.getMessage();
 
-            Consumer<String> callback = getPlugin().getChatInputCallbacks().get(playerUUID);
+            Consumer<String> callback = plugin.getChatInputCallbacks().get(playerUUID);
             if (input.equalsIgnoreCase("iptal")) {
-                getPlugin().clearPlayerChatInput(playerUUID);
-                getLanguageManager().sendMessage(player, "gui.region.input_cancelled");
+                plugin.clearPlayerChatInput(playerUUID);
+                languageManager.sendMessage(player, "gui.region.input_cancelled");
                 return;
             }
 
             if (callback != null) {
-                Bukkit.getScheduler().runTask(getPlugin(), () -> {
+                Bukkit.getScheduler().runTask(plugin, () -> {
                     callback.accept(input);
                 });
             }
-            getPlugin().clearPlayerChatInput(playerUUID);
+            plugin.clearPlayerChatInput(playerUUID);
 
-        } else if (getConfigManager().isCheckChat()) {
+        } else if (configManager.isCheckChat()) {
             handleActivity(player, event, false);
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
-        if (getConfigManager().isCheckChat()) {
+        if (configManager.isCheckChat()) {
             handleActivity(event.getPlayer(), null, false);
         }
     }
 
     private void processRegionInput(Player player, String regionName) {
-        Bukkit.getScheduler().runTask(getPlugin(), () -> {
+        Bukkit.getScheduler().runTask(plugin, () -> {
             if (regionName.equalsIgnoreCase("iptal")) {
-                getPlugin().getPlayersInChatInput().remove(player.getUniqueId());
-                getLanguageManager().sendMessage(player, "gui.region.input_cancelled");
+                plugin.getPlayersInChatInput().remove(player.getUniqueId());
+                languageManager.sendMessage(player, "gui.region.input_cancelled");
                 return;
             }
 
             if (!isValidWorldGuardRegion(regionName)) {
-                getLanguageManager().sendMessage(player, "gui.region.invalid_region", "%region%", regionName);
+                languageManager.sendMessage(player, "gui.region.invalid_region", "%region%", regionName);
                 return;
             }
 
-            if (getConfigManager().getRegionOverrides().stream().anyMatch(ro -> ro.getRegionName().equalsIgnoreCase(regionName))) {
-                getLanguageManager().sendMessage(player, "gui.region.rule_exists", "%region%", regionName);
+            if (configManager.getRegionOverrides().stream().anyMatch(ro -> ro.getRegionName().equalsIgnoreCase(regionName))) {
+                languageManager.sendMessage(player, "gui.region.rule_exists", "%region%", regionName);
                 return;
             }
 
             addNewRegionRule(player, regionName);
-            getPlugin().getPlayersInChatInput().remove(player.getUniqueId());
+            plugin.getPlayersInChatInput().remove(player.getUniqueId());
         });
     }
 
     private boolean isValidWorldGuardRegion(String regionName) {
-        if (!getPlugin().isWorldGuardHooked()) return false;
+        if (!plugin.isWorldGuardHooked()) return false;
         RegionContainer regionContainer = WorldGuard.getInstance().getPlatform().getRegionContainer();
         for (World world : Bukkit.getWorlds()) {
             RegionManager regionManager = regionContainer.get(BukkitAdapter.adapt(world));
@@ -107,7 +119,7 @@ public class PlayerChatListener extends ActivityListener implements Listener {
      * @param regionName Eklenecek bölgenin adı.
      */
     private void addNewRegionRule(Player player, String regionName) {
-        ConfigurationSection regionSection = getPlugin().getConfig().getConfigurationSection("worldguard_integration.region_overrides");
+        ConfigurationSection regionSection = plugin.getConfig().getConfigurationSection("worldguard_integration.region_overrides");
 
         int nextId = 0;
         if (regionSection != null) {
@@ -124,16 +136,16 @@ public class PlayerChatListener extends ActivityListener implements Listener {
 
         String path = "worldguard_integration.region_overrides." + nextId;
 
-        getPlugin().getConfig().set(path + ".region", regionName);
-        getPlugin().getConfig().set(path + ".max_af_time", "15m");
+        plugin.getConfig().set(path + ".region", regionName);
+        plugin.getConfig().set(path + ".max_af_time", "15m");
 
-        getPlugin().saveConfig();
+        plugin.saveConfig();
 
-        getConfigManager().loadConfig();
+        configManager.loadConfig();
 
-        getLanguageManager().sendMessage(player, "gui.region.rule_created", "%region%", regionName);
+        languageManager.sendMessage(player, "gui.region.rule_created", "%region%", regionName);
 
-        getPlugin().getPlayerMenuUtility(player).setRegionToEdit(regionName);
-        new RegionEditGUI(getPlugin().getPlayerMenuUtility(player), getPlugin()).open();
+        plugin.getPlayerMenuUtility(player).setRegionToEdit(regionName);
+        guiFactory.createRegionEditGUI(plugin.getPlayerMenuUtility(player)).open();
     }
 }

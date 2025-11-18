@@ -5,6 +5,8 @@ import com.bentahsin.antiafk.language.Lang;
 import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.learning.serialization.KryoPatternSerializer;
 import com.bentahsin.antiafk.managers.ConfigManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,6 +20,7 @@ import java.util.logging.Logger;
 /**
  * Bilinen hareket desenlerini diskten yükler ve bellekte yönetir.
  */
+@Singleton
 public class PatternManager {
 
     private final Logger logger;
@@ -26,10 +29,11 @@ public class PatternManager {
     private final File knownRoutesDirectory;
     private final Map<String, Pattern> knownPatterns = new ConcurrentHashMap<>();
 
-    public PatternManager(AntiAFKPlugin plugin) {
+    @Inject
+    public PatternManager(AntiAFKPlugin plugin, ConfigManager cfgMgr, SystemLanguageManager sysLang) {
         this.logger = plugin.getLogger();
-        this.cfgMgr = plugin.getConfigManager();
-        this.sysLang = plugin.getSystemLanguageManager();
+        this.cfgMgr = cfgMgr;
+        this.sysLang = sysLang;
         this.knownRoutesDirectory = new File(plugin.getDataFolder(), "known_routes");
         if (!knownRoutesDirectory.exists()) {
             boolean ignored = knownRoutesDirectory.mkdirs();

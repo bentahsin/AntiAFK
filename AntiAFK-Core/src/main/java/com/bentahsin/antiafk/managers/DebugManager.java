@@ -1,6 +1,8 @@
 package com.bentahsin.antiafk.managers;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.EnumMap;
@@ -11,6 +13,7 @@ import java.util.logging.Logger;
  * Eklentinin modüler hata ayıklama (debug) sistemini yönetir.
  * Konsola sadece yapılandırmada etkinleştirilmiş modüller için log basar.
  */
+@Singleton
 public class DebugManager {
 
     /**
@@ -26,24 +29,25 @@ public class DebugManager {
     }
 
     private final Logger logger;
+    private final ConfigManager configManager;
+
     private boolean isMasterEnabled;
 
     private final Map<DebugModule, Boolean> moduleStates = new EnumMap<>(DebugModule.class);
 
-    public DebugManager(AntiAFKPlugin plugin) {
-        this.logger = plugin.getLogger();
-        loadConfigSettings(plugin);
+    @Inject
+    public DebugManager(Logger logger, ConfigManager configManager) {
+        this.logger = logger;
+        this.configManager = configManager;
     }
 
     /**
-     * config.yml dosyasından tüm debug ayarlarını okur ve dahili durumu günceller.
-     * Bu metot, eklenti başlangıcında ve yeniden yüklendiğinde çağrılmalıdır.
-     * @param plugin Config dosyasına erişmek için ana eklenti örneği.
+     * ConfigManager üzerinden tüm debug ayarlarını okur ve dahili durumu günceller.
      */
-    public void loadConfigSettings(AntiAFKPlugin plugin) {
+    public void loadConfigSettings() {
         moduleStates.clear();
 
-        ConfigurationSection debugSection = plugin.getConfig().getConfigurationSection("debug");
+        ConfigurationSection debugSection = configManager.getRawConfig().getConfigurationSection("debug");
 
         if (debugSection == null || !debugSection.getBoolean("enabled", false)) {
             isMasterEnabled = false;

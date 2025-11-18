@@ -1,9 +1,13 @@
 package com.bentahsin.antiafk.gui.menus;
 
-import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.gui.Menu;
+import com.bentahsin.antiafk.gui.book.BookInputManager;
+import com.bentahsin.antiafk.gui.factory.GUIFactory;
 import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
+import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -15,28 +19,42 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class RegionActionEditGUI extends Menu {
 
-    private final AntiAFKPlugin plugin;
+    private final ConfigManager configManager;
+    private final PlayerLanguageManager playerLanguageManager;
+    private final GUIFactory guiFactory;
+    private final Optional<BookInputManager> bookInputManager;
+
     private final String regionName;
     private final int actionIndex;
     private final boolean isNewAction;
-    private final PlayerLanguageManager plLang;
 
-    public RegionActionEditGUI(PlayerMenuUtility playerMenuUtility, AntiAFKPlugin plugin) {
+    @Inject
+    public RegionActionEditGUI(
+            @Assisted PlayerMenuUtility playerMenuUtility,
+            ConfigManager configManager,
+            PlayerLanguageManager playerLanguageManager,
+            GUIFactory guiFactory,
+            Optional<BookInputManager> bookInputManager
+    ) {
         super(playerMenuUtility);
-        this.plugin = plugin;
+        this.configManager = configManager;
+        this.playerLanguageManager = playerLanguageManager;
+        this.guiFactory = guiFactory;
+        this.bookInputManager = bookInputManager;
+
         this.regionName = playerMenuUtility.getRegionToEdit();
         this.actionIndex = playerMenuUtility.getActionIndexToEdit();
         this.isNewAction = this.actionIndex == -1;
-        this.plLang = plugin.getPlayerLanguageManager();
     }
 
     @Override
     public String getMenuName() {
         String key = isNewAction ? "gui.menu_titles.region_action_edit_new" : "gui.menu_titles.region_action_edit_existing";
-        return plLang.getMessage(key).replace(plLang.getPrefix(), "");
+        return playerLanguageManager.getMessage(key).replace(playerLanguageManager.getPrefix(), "");
     }
 
     @Override
@@ -48,13 +66,13 @@ public class RegionActionEditGUI extends Menu {
     public void setMenuItems() {
         String configPath = findConfigPathForRegion(regionName);
         if (configPath == null) {
-            plLang.sendMessage(playerMenuUtility.getOwner(), "gui.region.config_path_error");
-            new RegionListGUI(playerMenuUtility, plugin).open();
+            playerLanguageManager.sendMessage(playerMenuUtility.getOwner(), "gui.region.config_path_error");
+            guiFactory.createRegionListGUI(playerMenuUtility).open();
             return;
         }
 
-        if (!plugin.getConfig().isList(configPath + ".actions")) {
-            plugin.getConfig().set(configPath + ".actions", new ArrayList<>());
+        if (!configManager.getRawConfig().isList(configPath + ".actions")) {
+            configManager.getRawConfig().set(configPath + ".actions", new ArrayList<>());
         }
 
         Map<String, Object> action = getActionMap(configPath);
@@ -64,77 +82,77 @@ public class RegionActionEditGUI extends Menu {
         actions.put(11, () -> {
             String newType = type.equalsIgnoreCase("CONSOLE") ? "PLAYER" : "CONSOLE";
             saveAction(configPath, newType, command);
-            new RegionActionEditGUI(playerMenuUtility, plugin).open();
+            guiFactory.createRegionActionEditGUI(playerMenuUtility).open();
         });
         inventory.setItem(11, createGuiItem(Material.NAME_TAG,
-                plLang.getMessage("gui.region_action_edit_menu.change_type_button.name"),
-                plLang.getMessageList("gui.region_action_edit_menu.change_type_button.lore")
+                playerLanguageManager.getMessage("gui.region_action_edit_menu.change_type_button.name"),
+                playerLanguageManager.getMessageList("gui.region_action_edit_menu.change_type_button.lore")
                         .stream().map(l -> l.replace("%type%", type)).toArray(String[]::new)
         ));
 
-        if (plugin.isProtocolLibEnabled()) {
+        if (bookInputManager.isPresent()) {
             actions.put(13, () -> openCommandEditor(configPath, type, command));
             inventory.setItem(13, createGuiItem(Material.WRITABLE_BOOK,
-                    plLang.getMessage("gui.region_action_edit_menu.edit_command_button.name"),
-                    plLang.getMessageList("gui.region_action_edit_menu.edit_command_button.lore")
+                    playerLanguageManager.getMessage("gui.region_action_edit_menu.edit_command_button.name"),
+                    playerLanguageManager.getMessageList("gui.region_action_edit_menu.edit_command_button.lore")
                             .stream().map(l -> l.replace("%command%", StringUtils.abbreviate(command, 35))).toArray(String[]::new)
             ));
         } else {
             inventory.setItem(13, createGuiItem(Material.BOOK,
-                    plLang.getMessage("gui.region_action_edit_menu.edit_command_disabled_button.name"),
-                    plLang.getMessageList("gui.region_action_edit_menu.edit_command_disabled_button.lore").toArray(new String[0])
+                    playerLanguageManager.getMessage("gui.region_action_edit_menu.edit_command_disabled_button.name"),
+                    playerLanguageManager.getMessageList("gui.region_action_edit_menu.edit_command_disabled_button.lore").toArray(new String[0])
             ));
         }
 
         if (!isNewAction) {
             actions.put(15, () -> openDeleteConfirmation(configPath));
             inventory.setItem(15, createGuiItem(Material.TNT,
-                    plLang.getMessage("gui.region_action_edit_menu.delete_action_button.name"),
-                    plLang.getMessageList("gui.region_action_edit_menu.delete_action_button.lore").toArray(new String[0])
+                    playerLanguageManager.getMessage("gui.region_action_edit_menu.delete_action_button.name"),
+                    playerLanguageManager.getMessageList("gui.region_action_edit_menu.delete_action_button.lore").toArray(new String[0])
             ));
         }
 
-        actions.put(22, () -> new RegionActionsListGUI(playerMenuUtility, plugin).open());
-        inventory.setItem(22, createGuiItem(Material.ARROW, plLang.getMessage("gui.region_action_edit_menu.back_button")));
+        actions.put(22, () -> guiFactory.createRegionActionsListGUI(playerMenuUtility).open());
+        inventory.setItem(22, createGuiItem(Material.ARROW, playerLanguageManager.getMessage("gui.region_action_edit_menu.back_button")));
     }
 
     private void openCommandEditor(String configPath, String type, String currentCommand) {
         Player player = playerMenuUtility.getOwner();
         player.closeInventory();
-        plLang.sendMessage(player, "gui.book_input.prompt");
-        plLang.sendMessage(player, "gui.book_input.prompt_info");
+        playerLanguageManager.sendMessage(player, "gui.book_input.prompt");
+        playerLanguageManager.sendMessage(player, "gui.book_input.prompt_info");
         player.playSound(player.getLocation(), Sound.BLOCK_CHEST_OPEN, 1f, 1f);
 
-        plugin.getBookInputManager().ifPresent(manager -> manager.prompt(player, currentCommand, (newCommand) -> {
+        bookInputManager.ifPresent(manager -> manager.prompt(player, currentCommand, (newCommand) -> {
             saveAction(configPath, type, newCommand);
-            plLang.sendMessage(player, "gui.book_input.command_updated");
+            playerLanguageManager.sendMessage(player, "gui.book_input.command_updated");
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_YES, 1f, 1f);
 
-            Bukkit.getScheduler().runTask(plugin, () -> new RegionActionEditGUI(playerMenuUtility, plugin).open());
+            Bukkit.getScheduler().runTask(configManager.getPlugin(), () -> guiFactory.createRegionActionEditGUI(playerMenuUtility).open());
         }));
     }
 
     private void openDeleteConfirmation(String configPath) {
-        new ConfirmationGUI(playerMenuUtility, plugin,
-                plLang.getMessage("gui.region_action_edit_menu.delete_confirmation_title"),
-                createGuiItem(Material.COMMAND_BLOCK, plLang.getMessage("gui.region_action_edit_menu.delete_confirmation_item_name")),
+        guiFactory.createConfirmationGUI(playerMenuUtility,
+                playerLanguageManager.getMessage("gui.region_action_edit_menu.delete_confirmation_title"),
+                createGuiItem(Material.COMMAND_BLOCK, playerLanguageManager.getMessage("gui.region_action_edit_menu.delete_confirmation_item_name")),
                 (e) -> {
                     List<Map<String, Object>> actions = getActionList(configPath);
                     if (actionIndex >= 0 && actionIndex < actions.size()) {
                         actions.remove(actionIndex);
-                        plugin.getConfig().set(configPath + ".actions", actions);
-                        plugin.saveConfig();
-                        plugin.getConfigManager().loadConfig();
-                        plLang.sendMessage(playerMenuUtility.getOwner(), "gui.region.action_deleted");
-                        new RegionActionsListGUI(playerMenuUtility, plugin).open();
+                        configManager.getRawConfig().set(configPath + ".actions", actions);
+                        configManager.saveConfig();
+                        configManager.loadConfig();
+                        playerLanguageManager.sendMessage(playerMenuUtility.getOwner(), "gui.region.action_deleted");
+                        guiFactory.createRegionActionsListGUI(playerMenuUtility).open();
                     }
                 },
-                (e) -> new RegionActionEditGUI(playerMenuUtility, plugin).open()
+                (e) -> guiFactory.createRegionActionEditGUI(playerMenuUtility).open()
         ).open();
     }
 
     private List<Map<String, Object>> getActionList(String configPath) {
-        List<Map<?, ?>> rawList = plugin.getConfig().getMapList(configPath + ".actions");
+        List<Map<?, ?>> rawList = configManager.getRawConfig().getMapList(configPath + ".actions");
         List<Map<String, Object>> actionList = new ArrayList<>();
         for (Map<?, ?> rawMap : rawList) {
             Map<String, Object> actionMap = new HashMap<>();
@@ -174,14 +192,14 @@ public class RegionActionEditGUI extends Menu {
             }
         }
 
-        plugin.getConfig().set(configPath + ".actions", actions);
-        plugin.saveConfig();
-        plugin.getConfigManager().loadConfig();
+        configManager.getRawConfig().set(configPath + ".actions", actions);
+        configManager.saveConfig();
+        configManager.loadConfig();
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.2f);
     }
 
     private String findConfigPathForRegion(String name) {
-        ConfigurationSection regionSection = plugin.getConfig().getConfigurationSection("worldguard_integration.region_overrides");
+        ConfigurationSection regionSection = configManager.getRawConfig().getConfigurationSection("worldguard_integration.region_overrides");
         if (regionSection == null) return null;
         for (String key : regionSection.getKeys(false)) {
             if (name.equalsIgnoreCase(regionSection.getString(key + ".region"))) {

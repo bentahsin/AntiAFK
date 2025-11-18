@@ -5,6 +5,8 @@ import com.bentahsin.antiafk.managers.DebugManager;
 import com.bentahsin.antiafk.models.PlayerStats;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
@@ -15,6 +17,7 @@ import java.util.concurrent.TimeUnit;
  * Oyuncu istatistiklerini (PlayerStats) veritabanı ve bir önbellek (cache) katmanı
  * arasında yönetir. Bu, veritabanına yapılan okuma isteklerini büyük ölçüde azaltır.
  */
+@Singleton
 public class PlayerStatsManager {
 
     private final DatabaseManager databaseManager;
@@ -22,9 +25,10 @@ public class PlayerStatsManager {
 
     private final Cache<UUID, PlayerStats> statsCache;
 
-    public PlayerStatsManager(AntiAFKPlugin plugin, DatabaseManager databaseManager) {
+    @Inject
+    public PlayerStatsManager(AntiAFKPlugin plugin, DatabaseManager databaseManager, DebugManager debugManager) {
         this.databaseManager = databaseManager;
-        this.debugMgr = plugin.getDebugManager();
+        this.debugMgr = debugManager;
 
         this.statsCache = Caffeine.newBuilder()
                 .maximumSize(1000)

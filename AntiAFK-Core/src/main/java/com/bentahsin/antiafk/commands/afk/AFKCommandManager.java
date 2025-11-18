@@ -1,7 +1,8 @@
 package com.bentahsin.antiafk.commands.afk;
 
-import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,21 +15,16 @@ import java.util.List;
 /**
  * /afk ana komutunu yöneten ve ilgili alt komuta yönlendiren sınıf.
  */
+@Singleton
 public class AFKCommandManager implements CommandExecutor, TabCompleter {
 
     private final PlayerLanguageManager plLang;
-    private IAFKSubCommand mainCommand;
+    private final IAFKSubCommand mainCommand;
 
-    public AFKCommandManager(AntiAFKPlugin plugin) {
-        this.plLang = plugin.getPlayerLanguageManager();
-    }
-
-    /**
-     * Komutun ana (varsayılan) işlevini kaydeder.
-     * @param subCommand Varsayılan alt komut.
-     */
-    public void registerMainCommand(IAFKSubCommand subCommand) {
-        this.mainCommand = subCommand;
+    @Inject
+    public AFKCommandManager(PlayerLanguageManager plLang, ToggleAFKCommand toggleAFKCommand) {
+        this.plLang = plLang;
+        this.mainCommand = toggleAFKCommand;
     }
 
     @Override

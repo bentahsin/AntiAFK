@@ -5,7 +5,8 @@ import com.bentahsin.antiafk.behavior.util.TrajectoryComparator;
 import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.DebugManager;
-import com.bentahsin.antiafk.turing.CaptchaManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -14,20 +15,19 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 
 /**
- * DEĞİŞİKLİK: Bu görev artık ağır analizleri asenkron olarak yapar ve sadece sonuçları
- * ana thread'e bildirir. Bu, sunucu performansını korur.
+ * Oyuncu hareket yörüngelerini asenkron olarak analiz ederek
+ * bot benzeri tekrarlayan davranışları tespit eder.
  */
+@Singleton
 public class BehaviorAnalysisTask extends BukkitRunnable {
 
     private final AntiAFKPlugin plugin;
     private final BehaviorAnalysisManager analysisManager;
-    private final ConfigManager cm;
-    private final DebugManager debugMgr;
-    private final AFKManager afkMgr;
-    private final Optional<CaptchaManager> capm;
+    private final ConfigManager configManager;
+    private final DebugManager debugManager;
+    private final AFKManager afkManager;
 
     private final int minTrajectoryPoints;
     private final int maxTrajectoryPoints;
@@ -36,13 +36,19 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
     private final double similarityThreshold;
     private final int maxRepeats;
 
-    public BehaviorAnalysisTask(AntiAFKPlugin plugin, BehaviorAnalysisManager manager) {
+    @Inject
+    public BehaviorAnalysisTask(
+            AntiAFKPlugin plugin,
+            BehaviorAnalysisManager analysisManager,
+            ConfigManager configManager,
+            DebugManager debugManager,
+            AFKManager afkManager
+    ) {
         this.plugin = plugin;
-        this.analysisManager = manager;
-        this.cm = plugin.getConfigManager();
-        this.debugMgr = plugin.getDebugManager();
-        this.afkMgr = plugin.getAfkManager();
-        this.capm = plugin.getCaptchaManager();
+        this.analysisManager = analysisManager;
+        this.configManager = configManager;
+        this.debugManager = debugManager;
+        this.afkManager = afkManager;
 
         this.minTrajectoryPoints = plugin.getConfig().getInt("behavioral-analysis.min-trajectory-points", 20);
         this.maxTrajectoryPoints = plugin.getConfig().getInt("behavioral-analysis.max-trajectory-points", 300);
@@ -55,7 +61,7 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
     @Override
     public void run() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (player.hasPermission("antiafk.bypass.behavior") || !player.isOnline()) {
+            if (player.hasPermission(configManager.getPermBypassBehavioral()) || !player.isOnline()) {
                 continue;
             }
 
@@ -77,6 +83,7 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
 
                     for (int i = history.size() - (currentLength * 2); i >= 0; i--) {
                         if (i + currentLength > history.size()) continue;
+
                         pastTrajectory.clear();
                         pastTrajectory.addAll(history.subList(i, i + currentLength));
 
@@ -93,11 +100,11 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
 
                             data.setLastRepeatTimestamp(now);
 
-                            if (debugMgr.isEnabled(DebugManager.DebugModule.BEHAVIORAL_ANALYSIS)) {
+                            if (debugManager.isEnabled(DebugManager.DebugModule.BEHAVIORAL_ANALYSIS)) {
                                 final int count = data.getConsecutiveRepeatCount();
                                 final double time = (double) currentLength / 20.0;
 
-                                debugMgr.log(DebugManager.DebugModule.BEHAVIORAL_ANALYSIS,
+                                debugManager.log(DebugManager.DebugModule.BEHAVIORAL_ANALYSIS,
                                         "Repetition found for %s. Time: %.1fs, Similarity: high, Count: %d/%d",
                                         player.getName(), time, count, maxRepeats
                                 );
@@ -105,7 +112,7 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
 
                             if (data.getConsecutiveRepeatCount() >= maxRepeats) {
                                 Bukkit.getScheduler().runTask(plugin, () ->
-                                        afkMgr.getBotDetectionManager().triggerSuspicionAndChallenge(player, "behavior.afk_detected")
+                                        afkManager.getBotDetectionManager().triggerSuspicionAndChallenge(player, "behavior.afk_detected")
                                 );
                                 data.reset();
                                 break;

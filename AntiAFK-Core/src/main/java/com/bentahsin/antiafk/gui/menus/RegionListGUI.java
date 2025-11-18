@@ -2,11 +2,15 @@ package com.bentahsin.antiafk.gui.menus;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.gui.Menu;
+import com.bentahsin.antiafk.gui.factory.GUIFactory;
 import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
 import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.models.RegionOverride;
+import com.bentahsin.antiafk.platform.IInputCompatibility;
 import com.bentahsin.antiafk.utils.TimeUtil;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
@@ -22,19 +26,31 @@ import java.util.List;
 public class RegionListGUI extends Menu {
 
     private final AntiAFKPlugin plugin;
-    private final PlayerLanguageManager plLang;
-    private final ConfigManager cm;
+    private final PlayerLanguageManager playerLanguageManager;
+    private final ConfigManager configManager;
+    private final IInputCompatibility inputCompatibility;
+    private final GUIFactory guiFactory;
 
-    public RegionListGUI(PlayerMenuUtility playerMenuUtility, AntiAFKPlugin plugin) {
+    @Inject
+    public RegionListGUI(
+            @Assisted PlayerMenuUtility playerMenuUtility,
+            AntiAFKPlugin plugin,
+            PlayerLanguageManager playerLanguageManager,
+            ConfigManager configManager,
+            IInputCompatibility inputCompatibility,
+            GUIFactory guiFactory
+    ) {
         super(playerMenuUtility);
         this.plugin = plugin;
-        this.plLang = plugin.getPlayerLanguageManager();
-        this.cm = plugin.getConfigManager();
+        this.playerLanguageManager = playerLanguageManager;
+        this.configManager = configManager;
+        this.inputCompatibility = inputCompatibility;
+        this.guiFactory = guiFactory;
     }
 
     @Override
     public String getMenuName() {
-        return plLang.getMessage("gui.menu_titles.region_list").replace(plLang.getPrefix(), "");
+        return playerLanguageManager.getMessage("gui.menu_titles.region_list").replace(playerLanguageManager.getPrefix(), "");
     }
 
     @Override
@@ -44,7 +60,7 @@ public class RegionListGUI extends Menu {
 
     @Override
     public void setMenuItems() {
-        List<RegionOverride> regionOverrides = cm.getRegionOverrides();
+        List<RegionOverride> regionOverrides = configManager.getRegionOverrides();
 
         if (regionOverrides != null && !regionOverrides.isEmpty()) {
             for (int i = 0; i < regionOverrides.size(); i++) {
@@ -54,19 +70,19 @@ public class RegionListGUI extends Menu {
 
                 String afkTimeDisplay;
                 if (override.getMaxAfkTime() < 0) {
-                    afkTimeDisplay = plLang.getMessage("gui.region_list_menu.time_disabled");
+                    afkTimeDisplay = playerLanguageManager.getMessage("gui.region_list_menu.time_disabled");
                 } else {
                     afkTimeDisplay = "§e" + TimeUtil.formatTime(override.getMaxAfkTime());
                 }
 
                 actions.put(i, () -> {
                     playerMenuUtility.setRegionToEdit(override.getRegionName());
-                    new RegionEditGUI(playerMenuUtility, plugin).open();
+                    guiFactory.createRegionEditGUI(playerMenuUtility).open();
                 });
 
                 inventory.setItem(i, createGuiItem(Material.GRASS_BLOCK,
-                        plLang.getMessage("gui.region_list_menu.region_item.name", "%region%", override.getRegionName()),
-                        plLang.getMessageList("gui.region_list_menu.region_item.lore").stream()
+                        playerLanguageManager.getMessage("gui.region_list_menu.region_item.name", "%region%", override.getRegionName()),
+                        playerLanguageManager.getMessageList("gui.region_list_menu.region_item.lore").stream()
                                 .map(line -> line
                                         .replace("%afk_time%", afkTimeDisplay)
                                         .replace("%count%", String.valueOf(override.getActions().size()))
@@ -75,26 +91,24 @@ public class RegionListGUI extends Menu {
             }
         }
 
-
         actions.put(48, this::handleAddNewRule);
-
         inventory.setItem(48, createGuiItem(Material.EMERALD,
-                plLang.getMessage("gui.region_list_menu.add_new_rule_button.name"),
-                plLang.getMessageList("gui.region_list_menu.add_new_rule_button.lore").toArray(new String[0])
+                playerLanguageManager.getMessage("gui.region_list_menu.add_new_rule_button.name"),
+                playerLanguageManager.getMessageList("gui.region_list_menu.add_new_rule_button.lore").toArray(new String[0])
         ));
 
-        actions.put(49, () -> new AdminPanelGUI(playerMenuUtility, plugin).open());
+        actions.put(49, () -> guiFactory.createAdminPanelGUI(playerMenuUtility).open());
         inventory.setItem(49, createGuiItem(Material.BARRIER,
-                plLang.getMessage("gui.region_list_menu.back_button.name"),
-                plLang.getMessageList("gui.region_list_menu.back_button.lore").toArray(new String[0])
+                playerLanguageManager.getMessage("gui.region_list_menu.back_button.name"),
+                playerLanguageManager.getMessageList("gui.region_list_menu.back_button.lore").toArray(new String[0])
         ));
     }
 
     private void handleAddNewRule() {
         Player player = playerMenuUtility.getOwner();
-        String title = plLang.getRawMessage("gui.region.input_prompt_title");
+        String title = playerLanguageManager.getRawMessage("gui.region.input_prompt_title");
 
-        plugin.getInputCompatibility().promptForInput(
+        inputCompatibility.promptForInput(
                 player,
                 title,
                 regionName -> processRegionInput(player, regionName),
@@ -104,14 +118,14 @@ public class RegionListGUI extends Menu {
 
     private void processRegionInput(Player player, String regionName) {
         if (!isValidWorldGuardRegion(regionName)) {
-            plLang.sendMessage(player, "gui.region.invalid_region", "%region%", regionName);
-            Bukkit.getScheduler().runTaskLater(plugin, this::open, 1L);
+            playerLanguageManager.sendMessage(player, "gui.region.invalid_region", "%region%", regionName);
+            Bukkit.getScheduler().runTaskLater(configManager.getPlugin(), this::open, 1L);
             return;
         }
 
-        if (cm.getRegionOverrides().stream().anyMatch(ro -> ro.getRegionName().equalsIgnoreCase(regionName))) {
-            plLang.sendMessage(player, "gui.region.rule_exists", "%region%", regionName);
-            Bukkit.getScheduler().runTaskLater(plugin, this::open, 1L);
+        if (configManager.getRegionOverrides().stream().anyMatch(ro -> ro.getRegionName().equalsIgnoreCase(regionName))) {
+            playerLanguageManager.sendMessage(player, "gui.region.rule_exists", "%region%", regionName);
+            Bukkit.getScheduler().runTaskLater(configManager.getPlugin(), this::open, 1L);
             return;
         }
 
@@ -131,7 +145,7 @@ public class RegionListGUI extends Menu {
     }
 
     private void addNewRegionRule(Player player, String regionName) {
-        ConfigurationSection regionSection = plugin.getConfig().getConfigurationSection("worldguard_integration.region_overrides");
+        ConfigurationSection regionSection = configManager.getRawConfig().getConfigurationSection("worldguard_integration.region_overrides");
 
         int nextId = 0;
         if (regionSection != null) {
@@ -147,12 +161,12 @@ public class RegionListGUI extends Menu {
         }
 
         String path = "worldguard_integration.region_overrides." + nextId;
-        plugin.getConfig().set(path + ".region", regionName);
-        plugin.getConfig().set(path + ".max_af_time", "15m");
-        plugin.saveConfig();
-        plugin.getConfigManager().loadConfig();
-        plLang.sendMessage(player, "gui.region.rule_created", "%region%", regionName);
+        configManager.getRawConfig().set(path + ".region", regionName);
+        configManager.getRawConfig().set(path + ".max_afk_time", "15m");
+        configManager.saveConfig();
+        configManager.loadConfig();
+        playerLanguageManager.sendMessage(player, "gui.region.rule_created", "%region%", regionName);
         playerMenuUtility.setRegionToEdit(regionName);
-        new RegionEditGUI(playerMenuUtility, plugin).open();
+        guiFactory.createRegionEditGUI(playerMenuUtility).open();
     }
 }

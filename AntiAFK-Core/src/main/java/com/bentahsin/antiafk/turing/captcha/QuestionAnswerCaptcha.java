@@ -1,10 +1,14 @@
 package com.bentahsin.antiafk.turing.captcha;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
+import com.bentahsin.antiafk.managers.DebugManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
-import com.bentahsin.antiafk.turing.CaptchaManager;
+import com.bentahsin.antiafk.storage.DatabaseManager;
 import com.bentahsin.antiafk.utils.ChatUtil;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -17,19 +21,34 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@Singleton
 public class QuestionAnswerCaptcha implements ICaptcha {
 
     private final AntiAFKPlugin plugin;
-    private final CaptchaManager captchaManager;
-    private final ConfigManager cfgMgr;
+    private final ConfigManager configManager;
+    private final DebugManager debugManager;
+    private final DatabaseManager databaseManager;
+    private final PlayerLanguageManager playerLanguageManager;
+    private final AFKManager afkManager;
     private final Map<UUID, ActiveQATest> activeTests = new ConcurrentHashMap<>();
     private final List<Map.Entry<String, List<String>>> questionPool = new ArrayList<>();
     private final Random random = new Random();
 
-    public QuestionAnswerCaptcha(AntiAFKPlugin plugin, CaptchaManager captchaManager) {
+    @Inject
+    public QuestionAnswerCaptcha(
+            AntiAFKPlugin plugin,
+            ConfigManager configManager,
+            PlayerLanguageManager playerLanguageManager,
+            AFKManager afkManager,
+            DatabaseManager databaseManager,
+            DebugManager debugManager
+    ) {
         this.plugin = plugin;
-        this.captchaManager = captchaManager;
-        this.cfgMgr = plugin.getConfigManager();
+        this.configManager = configManager;
+        this.playerLanguageManager = playerLanguageManager;
+        this.afkManager = afkManager;
+        this.databaseManager = databaseManager;
+        this.debugManager = debugManager;
         loadQuestions();
     }
 
@@ -62,26 +81,25 @@ public class QuestionAnswerCaptcha implements ICaptcha {
     @Override
     public void start(Player player) {
         if (questionPool.isEmpty()) {
-            captchaManager.failChallenge(player, "Soru havuzu boş.");
+            failChallenge(player, "Soru havuzu boş.");
             return;
         }
 
         Map.Entry<String, List<String>> randomEntry = questionPool.get(random.nextInt(questionPool.size()));
         String question = randomEntry.getKey();
         final List<String> answers = randomEntry.getValue().stream().map(String::toLowerCase).collect(Collectors.toList());
-        final int timeoutSeconds = cfgMgr.getQaCaptchaTimeoutSeconds();
+        final int timeoutSeconds = configManager.getQaCaptchaTimeoutSeconds();
 
         BukkitTask timeoutTask = Bukkit.getScheduler().runTaskLater(plugin,
-                () -> captchaManager.failChallenge(player, "Süre doldu."),
+                () -> failChallenge(player, "Süre doldu."),
                 timeoutSeconds * 20L
         );
 
         activeTests.put(player.getUniqueId(), new ActiveQATest(question, answers, timeoutTask, System.currentTimeMillis()));
 
-        PlayerLanguageManager lang = plugin.getPlayerLanguageManager();
-        lang.sendMessage(player, "turing_test.header");
+        playerLanguageManager.sendMessage(player, "turing_test.header");
         player.sendMessage(ChatUtil.color("  " + question));
-        lang.sendMessage(player, "turing_test.instruction", "%seconds%", String.valueOf(timeoutSeconds));
+        playerLanguageManager.sendMessage(player, "turing_test.instruction", "%seconds%", String.valueOf(timeoutSeconds));
     }
 
     @Override
@@ -89,9 +107,9 @@ public class QuestionAnswerCaptcha implements ICaptcha {
         ActiveQATest test = activeTests.get(player.getUniqueId());
         if (test != null) {
             long timePassedMillis = System.currentTimeMillis() - test.getStartTimeMillis();
-            long timeLeftSeconds = Math.max(0, cfgMgr.getQaCaptchaTimeoutSeconds() - (timePassedMillis / 1000));
+            long timeLeftSeconds = Math.max(0, configManager.getQaCaptchaTimeoutSeconds() - (timePassedMillis / 1000));
 
-            plugin.getPlayerLanguageManager().sendMessage(player, "turing_test.test_command.qa_reprompt",
+            playerLanguageManager.sendMessage(player, "turing_test.test_command.qa_reprompt",
                     "%question%", test.getQuestion(),
                     "%time_left%", String.valueOf(timeLeftSeconds)
             );
@@ -101,14 +119,14 @@ public class QuestionAnswerCaptcha implements ICaptcha {
     public void handleAnswer(Player player, String answer) {
         ActiveQATest test = activeTests.get(player.getUniqueId());
         if (test == null) {
-            plugin.getPlayerLanguageManager().sendMessage(player, "turing_test.no_active_test");
+            playerLanguageManager.sendMessage(player, "turing_test.no_active_test");
             return;
         }
 
         if (test.getCorrectAnswers().contains(answer.toLowerCase().trim())) {
-            captchaManager.passChallenge(player);
+            passChallenge(player);
         } else {
-            captchaManager.failChallenge(player, "Yanlış cevap.");
+            failChallenge(player, "Yanlış cevap.");
         }
     }
 
@@ -118,6 +136,34 @@ public class QuestionAnswerCaptcha implements ICaptcha {
         if (test != null) {
             test.getTimeoutTask().cancel();
         }
+    }
+
+    /**
+     * CaptchaManager'daki passChallenge mantığını bu sınıfa taşır.
+     */
+    private void passChallenge(Player player) {
+        cleanUp(player);
+        databaseManager.incrementTestsPassed(player.getUniqueId());
+        afkManager.getBotDetectionManager().resetSuspicion(player);
+        playerLanguageManager.sendMessage(player, "turing_test.success");
+    }
+
+    /**
+     * CaptchaManager'daki failChallenge mantığını bu sınıfa taşır.
+     */
+    private void failChallenge(Player player, String reason) {
+        cleanUp(player);
+        databaseManager.incrementTestsFailed(player.getUniqueId());
+
+        List<Map<String, String>> actions = configManager.getCaptchaFailureActions();
+        if (actions != null && !actions.isEmpty()) {
+            afkManager.getPunishmentManager().executeActions(player, actions, afkManager.getStateManager());
+        } else {
+            afkManager.getStateManager().setManualAFK(player, "behavior.turing_test_failed");
+        }
+
+        playerLanguageManager.sendMessage(player, "turing_test.failure");
+        debugManager.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Player %s failed captcha. Reason: %s", player.getName(), reason);
     }
 
     private static class ActiveQATest {

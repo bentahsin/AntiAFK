@@ -2,6 +2,8 @@ package com.bentahsin.antiafk.tasks;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.managers.AFKManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -21,6 +23,7 @@ import java.util.List;
  * 2. Oyuncu kontrol yükü, 1 saniyelik (20 tick) zaman dilimine eşit olarak dağıtılır.
  *    Bu, ani performans düşüşlerini (spikes) engeller.
  */
+@Singleton
 public class AFKCheckTask extends BukkitRunnable {
 
     private final AFKManager afkMgr;
@@ -30,8 +33,9 @@ public class AFKCheckTask extends BukkitRunnable {
     private int tickCounter;
     private static final int UPDATE_INTERVAL_TICKS = 20;
 
-    public AFKCheckTask(AntiAFKPlugin plugin) {
-        this.afkMgr = plugin.getAfkManager();
+    @Inject
+    public AFKCheckTask(AFKManager afkMgr) {
+        this.afkMgr = afkMgr;
         this.onlinePlayersCache = Collections.emptyList();
         this.tickCounter = 0;
     }

@@ -1,7 +1,9 @@
 package com.bentahsin.antiafk.geyser;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.platform.IInputCompatibility;
+import com.google.inject.Inject;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -15,17 +17,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 /**
- * GeyserMC ile uyumluluğu yönetir. Bedrock oyuncularına özel
- * davranışlar ve alternatif arayüzler sunar.
+ * IInputCompatibility arayüzünün Geyser (Bedrock) oyuncuları için
+ * özel mantık içeren implementasyonu. Bu sınıf, Geyser modülü içinde yer alır
+ * ve Guice tarafından yönetilir.
  */
 public class GeyserCompatibilityManager implements IInputCompatibility {
 
     private final AntiAFKPlugin plugin;
+    private final PlayerLanguageManager playerLanguageManager;
     private boolean geyserInstalled = false;
     private GeyserApi geyserApi;
 
-    public GeyserCompatibilityManager(AntiAFKPlugin plugin) {
+    @Inject
+    public GeyserCompatibilityManager(AntiAFKPlugin plugin, PlayerLanguageManager playerLanguageManager) {
         this.plugin = plugin;
+        this.playerLanguageManager = playerLanguageManager;
+
         if (plugin.getServer().getPluginManager().getPlugin("Geyser-Spigot") != null) {
             try {
                 this.geyserApi = GeyserApi.api();
@@ -38,19 +45,10 @@ public class GeyserCompatibilityManager implements IInputCompatibility {
         }
     }
 
-    /**
-     * Geyser entegrasyonunun aktif olup olmadığını döndürür.
-     * @return Geyser yüklü ve API erişilebilir ise true.
-     */
     public boolean isGeyserInstalled() {
         return geyserInstalled;
     }
 
-    /**
-     * Bir oyuncunun Bedrock istemcisinden bağlanıp bağlanmadığını kontrol eder.
-     * @param playerUUID Kontrol edilecek oyuncunun UUID'si.
-     * @return Oyuncu Bedrock'tan bağlıysa true.
-     */
     @Override
     public boolean isBedrockPlayer(UUID playerUUID) {
         if (!isGeyserInstalled()) {
@@ -59,14 +57,6 @@ public class GeyserCompatibilityManager implements IInputCompatibility {
         return geyserApi.isBedrockPlayer(playerUUID);
     }
 
-    /**
-     * Bir oyuncudan metin girdisi ister. Oyuncunun platformuna göre
-     * en uygun yöntemi (Sohbet, Form vb.) seçer.
-     *
-     * @param player Girdi istenecek oyuncu.
-     * @param title Oyuncuya gösterilecek başlık veya talimat.
-     * @param onConfirm Girdi alındığında çalıştırılacak fonksiyon.
-     */
     @Override
     public void promptForInput(Player player, String title, String initialText, Consumer<String> onConfirm, Runnable onCancel) {
         if (isBedrockPlayer(player.getUniqueId())) {
@@ -81,18 +71,14 @@ public class GeyserCompatibilityManager implements IInputCompatibility {
         promptForInput(player, title, "", onConfirm, onCancel);
     }
 
-    /**
-     * Bedrock oyuncuları için sohbet tabanlı bir girdi isteme yöntemi.
-     * Bu, en basit ve en güvenilir alternatiftir.
-     */
     private void promptViaChat(Player player, String title, Consumer<String> callback) {
         plugin.getPlayersInChatInput().add(player.getUniqueId());
         plugin.getChatInputCallbacks().put(player.getUniqueId(), callback);
 
         player.closeInventory();
 
-        plugin.getPlayerLanguageManager().sendMessage(player, "gui.region.input_prompt_geyser_title", "%title%", title);
-        plugin.getPlayerLanguageManager().sendMessage(player, "gui.region.input_prompt_geyser_instruction");
+        playerLanguageManager.sendMessage(player, "gui.region.input_prompt_geyser_title", "%title%", title);
+        playerLanguageManager.sendMessage(player, "gui.region.input_prompt_geyser_instruction");
     }
 
     private void promptViaAnvil(Player player, String title, String initialText, Consumer<String> onConfirm, Runnable onCancel) {

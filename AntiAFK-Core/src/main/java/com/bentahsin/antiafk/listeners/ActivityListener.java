@@ -1,11 +1,13 @@
 package com.bentahsin.antiafk.listeners;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.behavior.BehaviorAnalysisManager;
 import com.bentahsin.antiafk.data.PointlessActivityData;
 import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.DebugManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.google.inject.Inject;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -22,21 +24,29 @@ import java.util.UUID;
  */
 public abstract class ActivityListener {
 
-    private final AntiAFKPlugin plugin;
-    private final AFKManager afkManager;
-    private final ConfigManager configManager;
-    private final DebugManager debugMgr;
-    private final PlayerLanguageManager languageManager;
+    protected final AntiAFKPlugin plugin;
+    protected final AFKManager afkManager;
+    protected final ConfigManager configManager;
+    protected final DebugManager debugMgr;
+    protected final PlayerLanguageManager languageManager;
+    protected final BehaviorAnalysisManager behaviorAnalysisManager;
 
     private static final Map<UUID, Long> lastWorldChangeTime = new HashMap<>();
     private static final Map<UUID, Integer> worldChangeCounts = new HashMap<>();
 
-    public ActivityListener(AntiAFKPlugin plugin) {
+    @Inject
+    public ActivityListener(AntiAFKPlugin plugin,
+                            AFKManager afkManager,
+                            ConfigManager configManager,
+                            DebugManager debugMgr,
+                            PlayerLanguageManager languageManager,
+                            BehaviorAnalysisManager behaviorAnalysisManager) {
         this.plugin = plugin;
-        this.afkManager = plugin.getAfkManager();
-        this.configManager = plugin.getConfigManager();
-        this.debugMgr = plugin.getDebugManager();
-        this.languageManager = plugin.getPlayerLanguageManager();
+        this.afkManager = afkManager;
+        this.configManager = configManager;
+        this.debugMgr = debugMgr;
+        this.languageManager = languageManager;
+        this.behaviorAnalysisManager = behaviorAnalysisManager;
     }
 
     /**
@@ -120,8 +130,8 @@ public abstract class ActivityListener {
         afkManager.getStateManager().updateActivity(player);
         debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "AFK timer reset for %s.", player.getName());
 
-        if (!isMovementEvent && plugin.getBehaviorAnalysisManager().isEnabled()) {
-            plugin.getBehaviorAnalysisManager().getPlayerData(player).reset();
+        if (!isMovementEvent && behaviorAnalysisManager.isEnabled()) {
+            behaviorAnalysisManager.getPlayerData(player).reset();
             debugMgr.log(DebugManager.DebugModule.BEHAVIORAL_ANALYSIS, "Behavioral analysis data reset for %s due to non-movement activity.", player.getName());
         }
     }
@@ -178,9 +188,4 @@ public abstract class ActivityListener {
                 event instanceof org.bukkit.event.player.PlayerCommandPreprocessEvent ||
                 event instanceof org.bukkit.event.inventory.InventoryOpenEvent;
     }
-
-    protected AntiAFKPlugin getPlugin() { return plugin; }
-    protected AFKManager getAfkManager() { return afkManager; }
-    protected ConfigManager getConfigManager() { return configManager; }
-    protected PlayerLanguageManager getLanguageManager() { return languageManager; }
 }

@@ -6,6 +6,7 @@ import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.utils.PlaceholderUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.inject.Singleton;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
@@ -20,6 +21,7 @@ import java.util.logging.Logger;
 /**
  * Oyuncuları AFK limitlerine yaklaştıkça uyarmaktan sorumlu yönetici.
  */
+@Singleton
 public class WarningManager {
 
     private final AntiAFKPlugin plugin;
@@ -36,7 +38,6 @@ public class WarningManager {
         this.configManager = configManager;
         this.plLang = plLang;
         this.sysLang = sysLang;
-
         this.lastWarningTime = Caffeine.newBuilder()
                 .expireAfterAccess(30, TimeUnit.MINUTES)
                 .build();

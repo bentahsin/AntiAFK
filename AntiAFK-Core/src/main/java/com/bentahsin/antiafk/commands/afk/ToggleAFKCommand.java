@@ -1,8 +1,10 @@
 package com.bentahsin.antiafk.commands.afk;
 
-import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.managers.AFKManager;
+import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -12,16 +14,20 @@ import java.util.List;
 /**
  * /afk ve /afk <sebep> komutlarının mantığını işleyen alt komut.
  */
+@Singleton
 public class ToggleAFKCommand implements IAFKSubCommand {
 
-    private final AntiAFKPlugin plugin;
     private final AFKManager afkManager;
     private final PlayerLanguageManager plLang;
+    private final ConfigManager configManager;
 
-    public ToggleAFKCommand(AntiAFKPlugin plugin) {
-        this.plugin = plugin;
-        this.afkManager = plugin.getAfkManager();
-        this.plLang = plugin.getPlayerLanguageManager();
+    @Inject
+    public ToggleAFKCommand(AFKManager afkManager,
+                            PlayerLanguageManager plLang,
+                            ConfigManager configManager) {
+        this.afkManager = afkManager;
+        this.plLang = plLang;
+        this.configManager = configManager;
     }
 
     @Override
@@ -31,7 +37,7 @@ public class ToggleAFKCommand implements IAFKSubCommand {
 
     @Override
     public String getPermission() {
-        return plugin.getConfigManager().getPermAfkCommandUse();
+        return configManager.getPermAfkCommandUse();
     }
 
     @Override
@@ -43,7 +49,7 @@ public class ToggleAFKCommand implements IAFKSubCommand {
 
         Player player = (Player) sender;
 
-        if (!plugin.getConfigManager().isAfkCommandEnabled()) {
+        if (!configManager.isAfkCommandEnabled()) {
             plLang.sendMessage(player, "command.afk.command_disabled");
             return;
         }
@@ -53,7 +59,7 @@ public class ToggleAFKCommand implements IAFKSubCommand {
         } else {
             String reason = args.length > 0
                     ? String.join(" ", args)
-                    : plugin.getConfigManager().getAfkDefaultReason();
+                    : configManager.getAfkDefaultReason();
             afkManager.getStateManager().setManualAFK(player, reason);
         }
     }

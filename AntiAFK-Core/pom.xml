@@ -22,6 +22,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.bentahsin</groupId>
+            <artifactId>AntiAFK-API</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
         </dependency>
@@ -60,6 +66,10 @@
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject.extensions</groupId>
+            <artifactId>guice-assistedinject</artifactId>
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>
@@ -137,6 +147,9 @@
                                 <relocation>
                                     <pattern>com.google.inject</pattern>
                                     <shadedPattern>com.bentahsin.antiafk.libs.guice</shadedPattern>
+                                    <excludes>
+                                        <exclude>com.bentahsin.antiafk.**</exclude>
+                                    </excludes>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.esotericsoftware.kryo</pattern>

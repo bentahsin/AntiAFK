@@ -9,6 +9,7 @@ import com.bentahsin.antiafk.utils.PlaceholderUtil;
 import com.bentahsin.antiafk.utils.TimeUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.inject.Singleton;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -22,6 +23,7 @@ import java.util.concurrent.TimeUnit;
  * Oyunculara verilecek cezaları (artan, bölgesel) hesaplayan,
  * eylemleri yürüten ve yeniden giriş korumasını yöneten yönetici.
  */
+@Singleton
 public class PunishmentManager {
 
     private final AntiAFKPlugin plugin;
@@ -30,17 +32,20 @@ public class PunishmentManager {
     private final PlayerStateManager stateManager;
     private final PlayerLanguageManager plLang;
     private final DebugManager debugMgr;
+    private final DiscordWebhookUtil discordWebhookUtil;
 
     private final Cache<UUID, Long> rejoinProtectedPlayers;
 
     public PunishmentManager(AntiAFKPlugin plugin, ConfigManager configManager, DatabaseManager databaseManager,
-                             PlayerStateManager stateManager, PlayerLanguageManager plLang, DebugManager debugMgr) {
+                             PlayerStateManager stateManager, PlayerLanguageManager plLang, DebugManager debugMgr,
+                             DiscordWebhookUtil discordWebhookUtil) {
         this.plugin = plugin;
         this.configManager = configManager;
         this.databaseManager = databaseManager;
         this.stateManager = stateManager;
         this.plLang = plLang;
         this.debugMgr = debugMgr;
+        this.discordWebhookUtil = discordWebhookUtil;
 
         this.rejoinProtectedPlayers = Caffeine.newBuilder()
                 .expireAfterWrite(Math.max(10, configManager.getRejoinCooldownSeconds() * 2), TimeUnit.SECONDS)
@@ -169,7 +174,7 @@ public class PunishmentManager {
                 message = PlaceholderUtil.applyPlaceholders(
                         plugin, stateManager, player, message, 0, maxAfkTimeForAction
                 );
-                DiscordWebhookUtil.sendMessage(plugin, message);
+                discordWebhookUtil.sendMessage(message);
                 continue;
             }
 

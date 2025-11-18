@@ -1,7 +1,8 @@
 package com.bentahsin.antiafk.utils;
-
-import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.DebugManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -12,26 +13,35 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * Discord Webhook'larına asenkron olarak mesaj gönderen yardımcı sınıf.
+ * Discord Webhook'larına asenkron olarak mesaj gönderen servis.
+ * Bu sınıf Guice tarafından yönetilir ve bir singleton olarak çalışır.
  */
+@Singleton
 public final class DiscordWebhookUtil {
 
-    private DiscordWebhookUtil() {}
+    private final ConfigManager configManager;
+    private final DebugManager debugManager;
+    private final Logger logger;
+
+    @Inject
+    public DiscordWebhookUtil(ConfigManager configManager, DebugManager debugManager, Logger logger) {
+        this.configManager = configManager;
+        this.debugManager = debugManager;
+        this.logger = logger;
+    }
 
     /**
      * Discord'a bir webhook mesajı gönderir.
-     * @param plugin Ana eklenti örneği (ayarlar ve loglama için).
      * @param message Gönderilecek mesaj.
      */
-    public static void sendMessage(AntiAFKPlugin plugin, String message) {
-        DebugManager debugManager = plugin.getDebugManager();
-
-        boolean isEnabled = plugin.getConfig().getBoolean("discord_webhook.enabled", false);
-        String webhookUrl = plugin.getConfig().getString("discord_webhook.webhook_url", "");
-        String botName = plugin.getConfig().getString("discord_webhook.bot_name", "AntiAFK Guard");
-        String avatarUrl = plugin.getConfig().getString("discord_webhook.avatar_url", "");
+    public void sendMessage(String message) {
+        boolean isEnabled = configManager.isDiscordWebhookEnabled();
+        String webhookUrl = configManager.getDiscordWebhookUrl();
+        String botName = configManager.getDiscordBotName();
+        String avatarUrl = configManager.getDiscordAvatarUrl();
 
         boolean isUrlValid = !Objects.requireNonNull(webhookUrl).isEmpty() && !webhookUrl.equals("BURAYA_WEBHOOK_URL'NİZİ_YAPIŞTIRIN");
         debugManager.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Webhook check started. Enabled: %b, URL Valid: %b", isEnabled, isUrlValid);
@@ -64,21 +74,21 @@ public final class DiscordWebhookUtil {
                 debugManager.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Discord webhook response received. Code: %d", responseCode);
 
                 if (responseCode < 200 || responseCode >= 300) {
-                    plugin.getLogger().warning("Discord webhook returned a non-successful status code: " + responseCode);
+                    logger.warning("Discord webhook returned a non-successful status code: " + responseCode);
                     try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8))) {
                         StringBuilder response = new StringBuilder();
                         String responseLine;
                         while ((responseLine = br.readLine()) != null) {
                             response.append(responseLine.trim());
                         }
-                        plugin.getLogger().warning("Discord API Error Response: " + response);
+                        logger.warning("Discord API Error Response: " + response);
                     }
                 }
 
                 connection.disconnect();
 
             } catch (Exception e) {
-                plugin.getLogger().log(Level.SEVERE, "Discord webhook mesajı gönderilirken kritik bir hata oluştu:", e);
+                logger.log(Level.SEVERE, "Discord webhook mesajı gönderilirken kritik bir hata oluştu:", e);
             }
         });
     }

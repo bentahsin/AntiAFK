@@ -5,6 +5,8 @@ import com.bentahsin.antiafk.language.Lang;
 import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.learning.MovementVector;
 import com.bentahsin.antiafk.managers.DebugManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -15,6 +17,7 @@ import java.util.logging.Level;
 /**
  * MovementVector nesne havuzunu yönetir.
  */
+@Singleton
 public class VectorPoolManager {
 
     private final GenericObjectPool<MovementVector> pool;
@@ -22,10 +25,11 @@ public class VectorPoolManager {
     private final SystemLanguageManager sysLang;
     private final DebugManager debugMgr;
 
-    public VectorPoolManager(AntiAFKPlugin plugin) {
+    @Inject
+    public VectorPoolManager(AntiAFKPlugin plugin, DebugManager debugMgr, SystemLanguageManager sysLang) {
         this.plugin = plugin;
-        this.sysLang = plugin.getSystemLanguageManager();
-        this.debugMgr = plugin.getDebugManager();
+        this.sysLang = sysLang;
+        this.debugMgr = debugMgr;
 
         GenericObjectPoolConfig<MovementVector> config = new GenericObjectPoolConfig<>();
         config.setMaxTotal(2000);

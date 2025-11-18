@@ -1,25 +1,28 @@
 package com.bentahsin.antiafk.commands.antiafk.subcommands;
 
-import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.commands.antiafk.ISubCommand;
 import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.utils.TimeUtil;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Collections;
 import java.util.List;
 
+@Singleton
 public class ListCommand implements ISubCommand {
 
     private final PlayerLanguageManager plLang;
     private final AFKManager afkManager;
     private static final int ITEMS_PER_PAGE = 10;
 
-    public ListCommand(AntiAFKPlugin plugin) {
-        this.plLang = plugin.getPlayerLanguageManager();
-        this.afkManager = plugin.getAfkManager();
+    @Inject
+    public ListCommand(PlayerLanguageManager plLang, AFKManager afkManager) {
+        this.plLang = plLang;
+        this.afkManager = afkManager;
     }
 
     @Override

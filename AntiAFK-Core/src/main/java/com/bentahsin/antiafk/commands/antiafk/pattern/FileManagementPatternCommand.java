@@ -8,6 +8,8 @@ import com.bentahsin.antiafk.learning.serialization.ISerializer;
 import com.bentahsin.antiafk.learning.serialization.JsonPatternSerializer;
 import com.bentahsin.antiafk.learning.serialization.KryoPatternSerializer;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
 
@@ -24,6 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+@Singleton
 public class FileManagementPatternCommand implements IPatternSubCommand {
 
     private final AntiAFKPlugin plugin;
@@ -31,11 +34,12 @@ public class FileManagementPatternCommand implements IPatternSubCommand {
     private final PlayerLanguageManager plLang;
     private final SystemLanguageManager sysLang;
 
-    public FileManagementPatternCommand(AntiAFKPlugin plugin) {
+    @Inject
+    public FileManagementPatternCommand(AntiAFKPlugin plugin, PlayerLanguageManager plLang, SystemLanguageManager sysLang) {
         this.plugin = plugin;
         this.logger = plugin.getLogger();
-        this.plLang = plugin.getPlayerLanguageManager();
-        this.sysLang = plugin.getSystemLanguageManager();
+        this.plLang = plLang;
+        this.sysLang = sysLang;
     }
 
     @Override

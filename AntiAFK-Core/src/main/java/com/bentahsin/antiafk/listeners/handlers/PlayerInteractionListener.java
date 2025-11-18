@@ -1,7 +1,12 @@
 package com.bentahsin.antiafk.listeners.handlers;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.behavior.BehaviorAnalysisManager;
 import com.bentahsin.antiafk.listeners.ActivityListener;
+import com.bentahsin.antiafk.managers.AFKManager;
+import com.bentahsin.antiafk.managers.ConfigManager;
+import com.bentahsin.antiafk.managers.DebugManager;
+import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -17,21 +22,25 @@ import org.bukkit.event.player.PlayerEditBookEvent;
 public class PlayerInteractionListener extends ActivityListener implements org.bukkit.event.Listener {
 
 
-    public PlayerInteractionListener(AntiAFKPlugin plugin) {
-        super(plugin);
+    public PlayerInteractionListener(
+            AntiAFKPlugin plugin, AFKManager afkManager, ConfigManager configManager,
+            DebugManager debugManager, PlayerLanguageManager languageManager,
+            BehaviorAnalysisManager behaviorAnalysisManager
+    ) {
+        super(plugin, afkManager, configManager, debugManager, languageManager, behaviorAnalysisManager);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        if (getConfigManager().isCheckInteraction()) {
+        if (configManager.isCheckInteraction()) {
             handleActivity(player, event, false);
         }
 
-        if (getConfigManager().isAutoClickerEnabled() &&
+        if (configManager.isAutoClickerEnabled() &&
                 (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) &&
                 shouldTrackAutoClicker(player)) {
-            getAfkManager().getBotDetectionManager().trackClick(player);
+            afkManager.getBotDetectionManager().trackClick(player);
         }
     }
 
@@ -43,7 +52,7 @@ public class PlayerInteractionListener extends ActivityListener implements org.b
     public void onPlayerToggleSneak(PlayerToggleSneakEvent event) {
         Player player = event.getPlayer();
 
-        if (getConfigManager().isCheckToggleSneak()) {
+        if (configManager.isCheckToggleSneak()) {
             handleActivity(player, event, false);
         }
     }
@@ -52,19 +61,19 @@ public class PlayerInteractionListener extends ActivityListener implements org.b
     public void onPlayerAttack(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player) {
             Player player = (Player) event.getDamager();
-            if (getConfigManager().isCheckPlayerAttack()) {
+            if (configManager.isCheckPlayerAttack()) {
                 handleActivity(player, null, false);
             }
 
-            if (getConfigManager().isAutoClickerEnabled() && shouldTrackAutoClicker(player)) {
-                getAfkManager().getBotDetectionManager().trackClick(player);
+            if (configManager.isAutoClickerEnabled() && shouldTrackAutoClicker(player)) {
+                afkManager.getBotDetectionManager().trackClick(player);
             }
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBookEdit(PlayerEditBookEvent event) {
-        if (getConfigManager().isCheckBookActivity()) {
+        if (configManager.isCheckBookActivity()) {
             handleActivity(event.getPlayer(), null, false);
         }
     }

@@ -1,10 +1,13 @@
 package com.bentahsin.antiafk.gui.menus;
 
-import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.gui.Menu;
+import com.bentahsin.antiafk.gui.factory.GUIFactory;
 import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
+import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.models.RegionOverride;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 
@@ -14,37 +17,46 @@ import java.util.Optional;
 
 public class RegionActionsListGUI extends Menu {
 
-    private final AntiAFKPlugin plugin;
+    private final PlayerLanguageManager playerLanguageManager;
+    private final ConfigManager configManager;
+    private final GUIFactory guiFactory;
+
     private final String regionName;
     private final RegionOverride regionOverride;
     private final boolean isUsingGlobalActions;
-    private final PlayerLanguageManager plLang;
 
-    public RegionActionsListGUI(PlayerMenuUtility playerMenuUtility, AntiAFKPlugin plugin) {
+    @Inject
+    public RegionActionsListGUI(
+            @Assisted PlayerMenuUtility playerMenuUtility,
+            PlayerLanguageManager playerLanguageManager,
+            ConfigManager configManager,
+            GUIFactory guiFactory
+    ) {
         super(playerMenuUtility);
-        this.plugin = plugin;
-        this.regionName = playerMenuUtility.getRegionToEdit();
-        this.plLang = plugin.getPlayerLanguageManager();
+        this.playerLanguageManager = playerLanguageManager;
+        this.configManager = configManager;
+        this.guiFactory = guiFactory;
 
-        Optional<RegionOverride> overrideOpt = plugin.getConfigManager().getRegionOverrides().stream()
+        this.regionName = playerMenuUtility.getRegionToEdit();
+
+        Optional<RegionOverride> overrideOpt = configManager.getRegionOverrides().stream()
                 .filter(ro -> ro.getRegionName().equalsIgnoreCase(this.regionName))
                 .findFirst();
 
         if (!overrideOpt.isPresent()) {
-            plLang.sendMessage(playerMenuUtility.getOwner(), "gui.region.rule_not_found");
+            playerLanguageManager.sendMessage(playerMenuUtility.getOwner(), "gui.region.rule_not_found");
             this.regionOverride = null;
             this.isUsingGlobalActions = true;
-            return;
+        } else {
+            this.regionOverride = overrideOpt.get();
+            this.isUsingGlobalActions = regionOverride.getActions() == configManager.getActions();
         }
-
-        this.regionOverride = overrideOpt.get();
-        this.isUsingGlobalActions = regionOverride.getActions() == plugin.getConfigManager().getActions();
     }
 
     @Override
     public String getMenuName() {
-        return plLang.getMessage("gui.menu_titles.region_actions_list", "%region%", StringUtils.abbreviate(regionName, 20))
-                .replace(plLang.getPrefix(), "");
+        return playerLanguageManager.getMessage("gui.menu_titles.region_actions_list", "%region%", StringUtils.abbreviate(regionName, 20))
+                .replace(playerLanguageManager.getPrefix(), "");
     }
 
     @Override
@@ -55,7 +67,7 @@ public class RegionActionsListGUI extends Menu {
     @Override
     public void setMenuItems() {
         if (regionOverride == null) {
-            new RegionEditGUI(playerMenuUtility, plugin).open();
+            guiFactory.createRegionEditGUI(playerMenuUtility).open();
             return;
         }
 
@@ -71,32 +83,31 @@ public class RegionActionsListGUI extends Menu {
                 final int actionIndex = i;
                 this.actions.put(i, () -> {
                     playerMenuUtility.setActionIndexToEdit(actionIndex);
-                    new RegionActionEditGUI(playerMenuUtility, plugin).open();
+                    guiFactory.createRegionActionEditGUI(playerMenuUtility).open();
                 });
-
 
                 inventory.setItem(i, createGuiItem(
                         type.equalsIgnoreCase("CONSOLE") ? Material.COMMAND_BLOCK : Material.PLAYER_HEAD,
-                        plLang.getMessage("gui.region_actions_list_menu.action_item.name", "%type%", type),
-                        plLang.getMessageList("gui.region_actions_list_menu.action_item.lore")
+                        playerLanguageManager.getMessage("gui.region_actions_list_menu.action_item.name", "%type%", type),
+                        playerLanguageManager.getMessageList("gui.region_actions_list_menu.action_item.lore")
                                 .stream()
                                 .map(line -> line.replace("%command%", StringUtils.abbreviate(command, 40))).toArray(String[]::new)
                 ));
             }
         } else {
             inventory.setItem(22, createGuiItem(Material.BARRIER,
-                    plLang.getMessage("gui.region_actions_list_menu.using_global_actions_item.name"),
-                    plLang.getMessageList("gui.region_actions_list_menu.using_global_actions_item.lore").toArray(new String[0])
+                    playerLanguageManager.getMessage("gui.region_actions_list_menu.using_global_actions_item.name"),
+                    playerLanguageManager.getMessageList("gui.region_actions_list_menu.using_global_actions_item.lore").toArray(new String[0])
             ));
         }
 
         this.actions.put(48, () -> {
             playerMenuUtility.setActionIndexToEdit(-1);
-            new RegionActionEditGUI(playerMenuUtility, plugin).open();
+            guiFactory.createRegionActionEditGUI(playerMenuUtility).open();
         });
         inventory.setItem(48, createGuiItem(Material.EMERALD, "&aYeni Aksiyon Ekle", "&7Bu bölgeye özel yeni bir", "&7aksiyon tanımla."));
 
-        this.actions.put(49, () -> new RegionEditGUI(playerMenuUtility, plugin).open());
+        this.actions.put(49, () -> guiFactory.createRegionEditGUI(playerMenuUtility).open());
         inventory.setItem(49, createGuiItem(Material.ARROW, "&cGeri Dön"));
     }
 }

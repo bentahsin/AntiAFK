@@ -7,6 +7,7 @@ import com.bentahsin.antiafk.models.RegionOverride;
 import com.bentahsin.antiafk.utils.TimeUtil;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.inject.Singleton;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
@@ -21,6 +22,7 @@ import org.bukkit.entity.Player;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+@Singleton
 public class ConfigManager {
 
     private final AntiAFKPlugin plugin;
@@ -362,4 +364,37 @@ public class ConfigManager {
     public int getMaxVectorsPerPattern() { return maxVectorsPerPattern; }
     public double getPreFilterSizeRatio() { return preFilterSizeRatio; }
     public SupportedLanguage getLang() { return language; }
+    public int getBehaviorHistorySizeTicks() { return plugin.getConfig().getInt("behavioral-analysis.history-size-ticks", 600); }
+    public boolean isBehaviorAnalysisEnabled() { return plugin.getConfig().getBoolean("behavioral-analysis.enabled", false); }
+    public boolean isDiscordWebhookEnabled() { return plugin.getConfig().getBoolean("discord_webhook.enabled", false); }
+    public String getDiscordWebhookUrl() { return plugin.getConfig().getString("discord_webhook.webhook_url", ""); }
+    public String getDiscordBotName() { return plugin.getConfig().getString("discord_webhook.bot_name", "AntiAFK Guard"); }
+    public String getDiscordAvatarUrl() { return plugin.getConfig().getString("discord_webhook.avatar_url", ""); }
+
+    /**
+     * Ham FileConfiguration nesnesini döndürür.
+     * Bu, GUI gibi sınıfların config'e doğrudan yazma işlemi yapması için gereklidir.
+     * @return Eklentinin FileConfiguration nesnesi.
+     */
+    public FileConfiguration getRawConfig() {
+        return plugin.getConfig();
+    }
+
+
+    /**
+     * Yapılan değişiklikleri config.yml dosyasına kaydeder.
+     */
+    public void saveConfig() {
+        plugin.saveConfig();
+    }
+
+    /**
+     * Ana plugin nesnesini döndürür.
+     * Bu, Bukkit scheduler gibi plugin'e doğrudan bağımlı olan
+     * nadir durumlar için bir kaçış yolu olarak kullanılabilir.
+     * @return AntiAFKPlugin örneği.
+     */
+    public AntiAFKPlugin getPlugin() {
+        return plugin;
+    }
 }

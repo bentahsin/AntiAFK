@@ -1,9 +1,15 @@
 package com.bentahsin.antiafk.managers;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.behavior.BehaviorAnalysisManager;
 import com.bentahsin.antiafk.data.PointlessActivityData;
+import com.bentahsin.antiafk.platform.IInputCompatibility;
+import com.bentahsin.antiafk.turing.CaptchaManager;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -14,17 +20,25 @@ import java.util.concurrent.TimeUnit;
  * Otomatik tıklama gibi bot benzeri davranışları tespit etmekten
  * ve şüphe durumunu yönetmekten sorumlu yönetici.
  */
+@Singleton
 public class BotDetectionManager {
 
     private final AntiAFKPlugin plugin;
+    private final IInputCompatibility inputCompatibility;
+    private final Provider<CaptchaManager> captchaManagerProvider;
+    private final BehaviorAnalysisManager behaviorAnalysisManager;
     private final ConfigManager configManager;
     private final PlayerStateManager stateManager;
     private final DebugManager debugMgr;
 
     private final Cache<UUID, PointlessActivityData> botDetectionData;
 
-    public BotDetectionManager(AntiAFKPlugin plugin, ConfigManager configManager, PlayerStateManager stateManager, DebugManager debugMgr) {
+    @Inject
+    public BotDetectionManager(AntiAFKPlugin plugin, IInputCompatibility inputCompatibility, Provider<CaptchaManager> capMgr, BehaviorAnalysisManager bhvMgr, ConfigManager configManager, PlayerStateManager stateManager, DebugManager debugMgr) {
         this.plugin = plugin;
+        this.inputCompatibility = inputCompatibility;
+        this.captchaManagerProvider = capMgr;
+        this.behaviorAnalysisManager = bhvMgr;
         this.configManager = configManager;
         this.stateManager = stateManager;
         this.debugMgr = debugMgr;
@@ -41,7 +55,7 @@ public class BotDetectionManager {
      * @param player Tıklama yapan oyuncu.
      */
     public void trackClick(Player player) {
-        if (plugin.getInputCompatibility().isBedrockPlayer(player.getUniqueId())) {
+        if (inputCompatibility.isBedrockPlayer(player.getUniqueId())) {
             return;
         }
 
@@ -110,16 +124,16 @@ public class BotDetectionManager {
             return;
         }
 
-        boolean captchaEnabled = configManager.isTuringTestEnabled() && plugin.getCaptchaManager().isPresent();
+        CaptchaManager captchaManager = configManager.isTuringTestEnabled() ? captchaManagerProvider.get() : null;
 
-        if (!captchaEnabled) {
+        if (captchaManager == null) {
             stateManager.setManualAFK(player, reasonKey);
             return;
         }
 
         debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Player %s is being marked as suspicious. Reason: %s", player.getName(), reasonKey);
         stateManager.setSuspicious(player);
-        plugin.getCaptchaManager().ifPresent(manager -> manager.startChallenge(player));
+        captchaManager.startChallenge(player);
     }
 
     /**
@@ -145,8 +159,8 @@ public class BotDetectionManager {
     public void resetSuspicion(Player player) {
         stateManager.resetSuspicionState(player);
         resetBotDetectionData(player.getUniqueId());
-        if (plugin.getBehaviorAnalysisManager().isEnabled()) {
-            plugin.getBehaviorAnalysisManager().getPlayerData(player).reset();
+        if (behaviorAnalysisManager.isEnabled()) {
+            behaviorAnalysisManager.getPlayerData(player).reset();
         }
     }
 }

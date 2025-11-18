@@ -2,6 +2,8 @@ package com.bentahsin.antiafk.commands.antiafk.pattern;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
 
@@ -11,14 +13,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+@Singleton
 public class ListPatternCommand implements IPatternSubCommand {
 
     private final AntiAFKPlugin plugin;
     private final PlayerLanguageManager plLang;
 
-    public ListPatternCommand(AntiAFKPlugin plugin) {
+    @Inject
+    public ListPatternCommand(AntiAFKPlugin plugin, PlayerLanguageManager plLang) {
         this.plugin = plugin;
-        this.plLang = plugin.getPlayerLanguageManager();
+        this.plLang = plLang;
     }
 
     @Override

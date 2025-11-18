@@ -3,8 +3,11 @@ package com.bentahsin.antiafk.storage;
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.language.Lang;
 import com.bentahsin.antiafk.language.SystemLanguageManager;
+import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.models.PlayerStats;
 import com.bentahsin.antiafk.models.TopEntry;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import java.io.File;
 import java.sql.*;
@@ -18,17 +21,23 @@ import java.util.logging.Logger;
 /**
  * SQLite veritabanı bağlantısını ve işlemlerini yönetir.
  */
+@Singleton
 public class DatabaseManager {
 
     private final AntiAFKPlugin plugin;
     private final Logger logger;
     private final SystemLanguageManager sysLang;
+    private final PlayerStatsManager playerStatsManager;
+    private final ConfigManager configManager;
     private Connection connection;
 
-    public DatabaseManager(AntiAFKPlugin plugin) {
+    @Inject
+    public DatabaseManager(AntiAFKPlugin plugin, SystemLanguageManager sysLang, PlayerStatsManager playerStatsManager, ConfigManager configManager) {
         this.plugin = plugin;
         this.logger = plugin.getLogger();
-        this.sysLang = plugin.getSystemLanguageManager();
+        this.sysLang = sysLang;
+        this.playerStatsManager = playerStatsManager;
+        this.configManager = configManager;
     }
 
     /**
@@ -92,7 +101,7 @@ public class DatabaseManager {
                 long lastPunishmentTime = rs.getLong("last_punishment_time");
                 int timesPunished = rs.getInt("times_punished");
 
-                long resetAfterMillis = plugin.getConfigManager().getPunishmentResetMillis();
+                long resetAfterMillis = configManager.getPunishmentResetMillis();
 
                 if (resetAfterMillis > 0 && timesPunished > 0 &&
                         (System.currentTimeMillis() - lastPunishmentTime) > resetAfterMillis) {
@@ -138,7 +147,7 @@ public class DatabaseManager {
             } catch (SQLException e) {
                 logger.log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_RESET_PUNISHMENT_TO_ZERO_ERROR, uuid.toString()), e);
             }
-        }).thenRun(() -> plugin.getPlayerStatsManager().invalidateCache(uuid));
+        }).thenRun(() -> playerStatsManager.invalidateCache(uuid));
     }
 
     /**
@@ -206,7 +215,7 @@ public class DatabaseManager {
             } catch (SQLException e) {
                 logger.log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_INCREMENT_PUNISHMENT_COUNT_ERROR, uuid.toString()), e);
             }
-        }).thenRun(() -> plugin.getPlayerStatsManager().invalidateCache(uuid));
+        }).thenRun(() -> playerStatsManager.invalidateCache(uuid));
     }
 
     /**
@@ -224,7 +233,7 @@ public class DatabaseManager {
             } catch (SQLException e) {
                 logger.log(Level.SEVERE, sysLang.getSystemMessage(Lang.DB_UPDATE_AFK_TIME_ERROR, uuid.toString()), e);
             }
-        }).thenRun(() -> plugin.getPlayerStatsManager().invalidateCache(uuid));
+        }).thenRun(() -> playerStatsManager.invalidateCache(uuid));
     }
 
     /**

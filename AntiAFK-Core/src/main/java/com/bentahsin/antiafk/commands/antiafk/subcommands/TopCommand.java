@@ -4,7 +4,10 @@ import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.commands.antiafk.ISubCommand;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.models.TopEntry;
+import com.bentahsin.antiafk.storage.DatabaseManager;
 import com.bentahsin.antiafk.utils.TimeUtil;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
@@ -14,14 +17,18 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+@Singleton
 public class TopCommand implements ISubCommand {
 
     private final AntiAFKPlugin plugin;
     private final PlayerLanguageManager plLang;
+    private final DatabaseManager dbm;
 
-    public TopCommand(AntiAFKPlugin plugin) {
+    @Inject
+    public TopCommand(AntiAFKPlugin plugin, PlayerLanguageManager plLang, DatabaseManager dbm) {
         this.plugin = plugin;
-        this.plLang = plugin.getPlayerLanguageManager();
+        this.plLang = plLang;
+        this.dbm = dbm;
     }
 
     @Override
@@ -43,13 +50,13 @@ public class TopCommand implements ISubCommand {
 
         String category = args[0].toLowerCase();
         if (category.equals("time")) {
-            plugin.getDatabaseManager().getTopPlayers("total_afk_time", 10).thenAccept(topPlayers -> {
+            dbm.getTopPlayers("total_afk_time", 10).thenAccept(topPlayers -> {
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     displayTopList(sender, topPlayers, "command.antiafk.top.header_time", true);
                 });
             });
         } else if (category.equals("punishments")) {
-            plugin.getDatabaseManager().getTopPlayers("times_punished", 10).thenAccept(topPlayers -> {
+            dbm.getTopPlayers("times_punished", 10).thenAccept(topPlayers -> {
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     displayTopList(sender, topPlayers, "command.antiafk.top.header_punishments", false);
                 });

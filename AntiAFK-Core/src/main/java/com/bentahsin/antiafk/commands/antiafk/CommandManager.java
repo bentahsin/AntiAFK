@@ -1,8 +1,9 @@
 package com.bentahsin.antiafk.commands.antiafk;
 
-import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.commands.antiafk.subcommands.*;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,41 +15,47 @@ import java.util.stream.Collectors;
 
 /**
  * Ana /antiafk komutunu yöneten ve alt komutlara yönlendiren sınıf.
- * Bu sınıf, komut mantığını içermez, sadece bir yönlendirici görevi görür.
+ * Bu sınıf, Guice tarafından yönetilir ve tüm alt komutlarını
+ * enjeksiyon yoluyla alır.
  */
+@Singleton
 public class CommandManager implements CommandExecutor, TabCompleter {
 
-    private final AntiAFKPlugin plugin;
-    private final PlayerLanguageManager plLang;
+    private final PlayerLanguageManager playerLanguageManager;
     private final Map<String, ISubCommand> subCommands = new HashMap<>();
 
-    public CommandManager(AntiAFKPlugin plugin) {
-        this.plugin = plugin;
-        this.plLang = plugin.getPlayerLanguageManager();
-        registerSubCommands();
+    @Inject
+    public CommandManager(
+            PlayerLanguageManager playerLanguageManager,
+            ReloadCommand reloadCommand,
+            PanelCommand panelCommand,
+            ListCommand listCommand,
+            CheckCommand checkCommand,
+            TopCommand topCommand,
+            PatternCommand patternCommand
+    ) {
+        this.playerLanguageManager = playerLanguageManager;
+
+        registerCommand(reloadCommand);
+        registerCommand(panelCommand);
+        registerCommand(listCommand);
+        registerCommand(checkCommand);
+        registerCommand(topCommand);
+        registerCommand(patternCommand);
     }
 
     /**
-     * Yeni bir alt komutu kaydeder.
+     * Verilen bir alt komutu dahili haritaya kaydeder.
      * @param subCommand Kaydedilecek alt komut.
      */
-    public void registerCommand(ISubCommand subCommand) {
+    private void registerCommand(ISubCommand subCommand) {
         subCommands.put(subCommand.getName().toLowerCase(), subCommand);
-    }
-
-    private void registerSubCommands() {
-        registerCommand(new ReloadCommand(plugin));
-        registerCommand(new PanelCommand(plugin));
-        registerCommand(new ListCommand(plugin));
-        registerCommand(new CheckCommand(plugin));
-        registerCommand(new TopCommand(plugin));
-        registerCommand(new PatternCommand(plugin));
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         if (args.length == 0) {
-            plLang.sendMessage(sender, "command.antiafk.usage", "%label%", label);
+            playerLanguageManager.sendMessage(sender, "command.antiafk.usage", "%label%", label);
             return true;
         }
 
@@ -56,12 +63,12 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         ISubCommand subCommand = subCommands.get(subCommandName);
 
         if (subCommand == null) {
-            plLang.sendMessage(sender, "command.antiafk.usage", "%label%", label);
+            playerLanguageManager.sendMessage(sender, "command.antiafk.usage", "%label%", label);
             return true;
         }
 
         if (subCommand.getPermission() != null && !sender.hasPermission(subCommand.getPermission())) {
-            plLang.sendMessage(sender, "error.no_permission");
+            playerLanguageManager.sendMessage(sender, "error.no_permission");
             return true;
         }
 

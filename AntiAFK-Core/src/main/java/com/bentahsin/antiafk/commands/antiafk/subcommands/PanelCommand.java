@@ -2,22 +2,29 @@ package com.bentahsin.antiafk.commands.antiafk.subcommands;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.commands.antiafk.ISubCommand;
+import com.bentahsin.antiafk.gui.factory.GUIFactory;
 import com.bentahsin.antiafk.gui.menus.AdminPanelGUI;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Collections;
 import java.util.List;
 
+@Singleton
 public class PanelCommand implements ISubCommand {
 
     private final AntiAFKPlugin plugin;
     private final PlayerLanguageManager plLang;
+    private final GUIFactory guiFactory;
 
-    public PanelCommand(AntiAFKPlugin plugin) {
+    @Inject
+    public PanelCommand(AntiAFKPlugin plugin, PlayerLanguageManager plLang, GUIFactory guiFactory) {
         this.plugin = plugin;
-        this.plLang = plugin.getPlayerLanguageManager();
+        this.plLang = plLang;
+        this.guiFactory = guiFactory;
     }
 
     @Override
@@ -38,7 +45,7 @@ public class PanelCommand implements ISubCommand {
         }
 
         Player player = (Player) sender;
-        new AdminPanelGUI(plugin.getPlayerMenuUtility(player), plugin).open();
+        guiFactory.createAdminPanelGUI(plugin.getPlayerMenuUtility(player)).open();
     }
 
     @Override

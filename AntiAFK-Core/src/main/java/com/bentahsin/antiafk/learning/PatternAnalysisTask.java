@@ -1,6 +1,7 @@
 package com.bentahsin.antiafk.learning;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.api.enums.DetectionType;
 import com.bentahsin.antiafk.learning.dtw.MovementVectorDistanceFn;
 import com.bentahsin.antiafk.learning.pool.VectorPoolManager;
 import com.bentahsin.antiafk.learning.util.LimitedQueue;
@@ -112,7 +113,7 @@ public class PatternAnalysisTask extends BukkitRunnable {
                             player.getName(), knownPattern.getName(), info.getDistance()
                     );
                     Bukkit.getScheduler().runTask(plugin, () ->
-                            afkMgr.getBotDetectionManager().triggerSuspicionAndChallenge(player, "Öğrenilmiş bot deseni (" + knownPattern.getName() + ")")
+                            afkMgr.getBotDetectionManager().triggerSuspicionAndChallenge(player, "behavior.learned_pattern_detected", DetectionType.LEARNED_PATTERN)
                     );
                     break;
                 }

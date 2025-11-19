@@ -36,6 +36,8 @@ turing_test:
     success: "&aDoğrulama başarılı! Teşekkürler." # Bu genel başarı mesajını kullanabiliriz.
     failure_wrong_item: "&cYanlış yüne tıkladın! Test başarısız."
     failure_time_out: "&cSüren doldu! Test başarısız."
+    fail_reason_wrong_item: "Yanlış renge tıklandı."
+    fail_reason_timeout: "Süre doldu."
 
   test_command:
     not_in_test: "&cDevam eden bir bot testin bulunmuyor."
@@ -151,6 +153,7 @@ behavior:
   autoclicker_detected: "Auto-clicker tespiti."
   rapid_world_change: "Sürekli dünya değiştirme tespiti."
   turing_test_failed: "Bot testi başarısız."
+  learned_pattern_detected: "Öğrenilmiş bot deseni (%pattern%)"
   debug:
     suspicion: "!§8[AntiAFK-Debug] Yörünge şüphesi. Analiz başlıyor."
     repetition: "!§8[AntiAFK-Debug] %time%s'lik yörünge tekrarı! Sayaç: %count%/%max_repeats%"

@@ -8,7 +8,7 @@ import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.platform.IInputCompatibility;
 import com.bentahsin.antiafk.storage.DatabaseManager;
 import com.bentahsin.antiafk.turing.captcha.ColorPaletteCaptcha;
-import com.bentahsin.antiafk.turing.captcha.ICaptcha;
+import com.bentahsin.antiafk.api.turing.ICaptcha;
 import com.bentahsin.antiafk.turing.captcha.QuestionAnswerCaptcha;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -62,8 +62,15 @@ public class CaptchaManager {
         loadPalettes();
     }
 
-    private void registerCaptcha(ICaptcha captcha) {
-        captchaRegistry.put(captcha.getTypeName(), captcha);
+    public void registerCaptcha(ICaptcha captcha) {
+        if (captcha == null) {
+            throw new IllegalArgumentException("Captcha cannot be null");
+        }
+        String typeName = captcha.getTypeName();
+        if (typeName == null || typeName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Captcha type name cannot be null or empty");
+        }
+        captchaRegistry.put(typeName, captcha);
     }
 
     private void loadPalettes() {
@@ -160,6 +167,7 @@ public class CaptchaManager {
     }
 
     public void passChallenge(Player player) {
+        if (player == null) throw new IllegalArgumentException("Player cannot be null");
         ICaptcha captcha = activePlayerCaptcha.get(player.getUniqueId());
         if (captcha != null) {
             captcha.cleanUp(player);
@@ -168,6 +176,12 @@ public class CaptchaManager {
         databaseManager.incrementTestsPassed(player.getUniqueId());
         afkManager.getBotDetectionManager().resetSuspicion(player);
         plLang.sendMessage(player, "turing_test.success");
+        plugin.getServer().getPluginManager().callEvent(
+                new com.bentahsin.antiafk.api.events.AntiAFKTuringTestResultEvent(
+                        player,
+                        com.bentahsin.antiafk.api.events.AntiAFKTuringTestResultEvent.Result.PASSED
+                )
+        );
     }
 
     public void failChallenge(Player player, String reason) {
@@ -176,6 +190,13 @@ public class CaptchaManager {
             captcha.cleanUp(player);
             activePlayerCaptcha.remove(player.getUniqueId());
         }
+
+        plugin.getServer().getPluginManager().callEvent(
+                new com.bentahsin.antiafk.api.events.AntiAFKTuringTestResultEvent(
+                        player,
+                        com.bentahsin.antiafk.api.events.AntiAFKTuringTestResultEvent.Result.FAILED
+                )
+        );
 
         databaseManager.incrementTestsFailed(player.getUniqueId());
 

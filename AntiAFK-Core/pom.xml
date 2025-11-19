@@ -92,6 +92,10 @@
             <artifactId>BenthPAPIManager</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.github.bentahsin</groupId>
+            <artifactId>configuration</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
         </dependency>

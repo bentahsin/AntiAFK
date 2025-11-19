@@ -1,6 +1,8 @@
 package com.bentahsin.antiafk.managers;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.api.enums.DetectionType;
+import com.bentahsin.antiafk.api.events.AntiAFKPreDetectEvent;
 import com.bentahsin.antiafk.behavior.BehaviorAnalysisManager;
 import com.bentahsin.antiafk.data.PointlessActivityData;
 import com.bentahsin.antiafk.platform.IInputCompatibility;
@@ -11,6 +13,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.PluginManager;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 @Singleton
 public class BotDetectionManager {
 
-    private final AntiAFKPlugin plugin;
+    private final PluginManager pluginManager;
     private final IInputCompatibility inputCompatibility;
     private final Provider<CaptchaManager> captchaManagerProvider;
     private final BehaviorAnalysisManager behaviorAnalysisManager;
@@ -35,13 +38,13 @@ public class BotDetectionManager {
 
     @Inject
     public BotDetectionManager(AntiAFKPlugin plugin, IInputCompatibility inputCompatibility, Provider<CaptchaManager> capMgr, BehaviorAnalysisManager bhvMgr, ConfigManager configManager, PlayerStateManager stateManager, DebugManager debugMgr) {
-        this.plugin = plugin;
         this.inputCompatibility = inputCompatibility;
         this.captchaManagerProvider = capMgr;
         this.behaviorAnalysisManager = bhvMgr;
         this.configManager = configManager;
         this.stateManager = stateManager;
         this.debugMgr = debugMgr;
+        this.pluginManager = plugin.getServer().getPluginManager();
 
         this.botDetectionData = Caffeine.newBuilder()
                 .expireAfterAccess(1, TimeUnit.HOURS)
@@ -76,7 +79,7 @@ public class BotDetectionManager {
                 if (isConsistentClickPattern(data.getClickIntervals())) {
                     data.incrementAutoClickerDetections();
                     if (data.getAutoClickerDetections() >= configManager.getAutoClickerDetectionsToPunish()) {
-                        triggerSuspicionAndChallenge(player, "behavior.autoclicker_detected");
+                        triggerSuspicionAndChallenge(player, "behavior.autoclicker_detected", DetectionType.AUTO_CLICKER);
 
                         data.resetAutoClickerDetections();
                         data.getClickIntervals().clear();
@@ -119,8 +122,20 @@ public class BotDetectionManager {
      * @param player      Şüpheli bulunan oyuncu.
      * @param reasonKey   Konsola loglanacak olan şüphe sebebi (mesaj anahtarı).
      */
-    public void triggerSuspicionAndChallenge(Player player, String reasonKey) {
+    public void triggerSuspicionAndChallenge(Player player, String reasonKey, DetectionType type) {
         if (stateManager.isSuspicious(player) || player.hasPermission(configManager.getPermBypassAll())) {
+            return;
+        }
+
+        if (stateManager.isExempt(player)) {
+            return;
+        }
+
+        AntiAFKPreDetectEvent event = new AntiAFKPreDetectEvent(player, type, reasonKey);
+        pluginManager.callEvent(event);
+
+        if (event.isCancelled()) {
+            debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Suspicion for %s cancelled by external plugin.", player.getName());
             return;
         }
 

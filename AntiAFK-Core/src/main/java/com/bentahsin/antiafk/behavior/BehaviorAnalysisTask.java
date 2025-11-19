@@ -1,6 +1,7 @@
 package com.bentahsin.antiafk.behavior;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.api.enums.DetectionType;
 import com.bentahsin.antiafk.behavior.util.TrajectoryComparator;
 import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
@@ -112,7 +113,7 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
 
                             if (data.getConsecutiveRepeatCount() >= maxRepeats) {
                                 Bukkit.getScheduler().runTask(plugin, () ->
-                                        afkManager.getBotDetectionManager().triggerSuspicionAndChallenge(player, "behavior.afk_detected")
+                                        afkManager.getBotDetectionManager().triggerSuspicionAndChallenge(player, "behavior.afk_detected", DetectionType.BEHAVIORAL_REPETITION)
                                 );
                                 data.reset();
                                 break;

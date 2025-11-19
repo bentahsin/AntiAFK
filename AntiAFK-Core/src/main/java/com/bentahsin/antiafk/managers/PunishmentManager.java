@@ -1,6 +1,7 @@
 package com.bentahsin.antiafk.managers;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.api.events.AntiAFKPunishEvent;
 import com.bentahsin.antiafk.models.PunishmentLevel;
 import com.bentahsin.antiafk.models.RegionOverride;
 import com.bentahsin.antiafk.storage.DatabaseManager;
@@ -60,6 +61,24 @@ public class PunishmentManager {
      * @param regionOverride   Oyuncunun bulunduğu bölge (null olabilir).
      */
     public void applyPunishment(Player player, RegionOverride regionOverride) {
+        String type;
+        if (regionOverride != null && configManager.isProgressivePunishmentEnabled()) {
+            type = "PROGRESSIVE_REGION";
+        } else if (configManager.isProgressivePunishmentEnabled()) {
+            type = "PROGRESSIVE";
+        } else if (regionOverride != null) {
+            type = "REGION";
+        } else {
+            type = "DEFAULT";
+        }
+
+        AntiAFKPunishEvent event = new AntiAFKPunishEvent(player, type);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return;
+        }
+
         List<Map<String, String>> actionsToExecute;
         UUID playerUUID = player.getUniqueId();
 

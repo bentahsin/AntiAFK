@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +33,7 @@ public class PlayerStateManager {
     private final Cache<UUID, Long> lastActivity;
     private final Cache<UUID, PlayerState> playerStates;
     private final Map<UUID, Long> afkStartTime = new ConcurrentHashMap<>();
+    private final Map<UUID, Set<String>> exemptions = new ConcurrentHashMap<>();
 
     @Inject
     public PlayerStateManager(ConfigManager cm, PlayerLanguageManager plLang, DatabaseManager dbMgr, WarningManager wm) {
@@ -78,6 +80,8 @@ public class PlayerStateManager {
         UUID uuid = player.getUniqueId();
         lastActivity.invalidate(uuid);
         playerStates.invalidate(uuid);
+
+        exemptions.remove(uuid);
     }
 
     /**
@@ -145,9 +149,16 @@ public class PlayerStateManager {
      * Bu metodun event listener'lar tarafından çağrılması güvenlidir.
      * @param player Aktivite gösteren oyuncu.
      */
-    public void unsetAfkStatus(Player player) {
+    public boolean unsetAfkStatus(Player player) {
         PlayerState state = getState(player);
-        if (!state.isEffectivelyAfk()) return;
+        if (!state.isEffectivelyAfk()) return true;
+
+        AntiAFKStatusChangeEvent event = new AntiAFKStatusChangeEvent(player, false, null);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return false;
+        }
 
         saveTotalAfkTime(player);
 
@@ -168,6 +179,8 @@ public class PlayerStateManager {
                         "%player_displayname%", player.getDisplayName());
             }
         }
+
+        return true;
     }
 
     /**
@@ -182,6 +195,10 @@ public class PlayerStateManager {
             Bukkit.getPluginManager().callEvent(event);
 
             if (event.isCancelled()) {
+                state.setManualAfk(false);
+                state.setAutoAfk(false);
+                state.setSystemPunished(false);
+                state.setAfkReason(null);
                 return;
             }
 
@@ -292,5 +309,30 @@ public class PlayerStateManager {
      */
     public void resetSuspicionState(Player player) {
         getState(player).setSuspicious(false);
+    }
+
+    public void addExemption(Player player, String pluginName) {
+        if (isEffectivelyAfk(player)) {
+            if (!unsetAfkStatus(player)) {
+                return;
+            }
+        }
+
+        exemptions.computeIfAbsent(player.getUniqueId(), k -> ConcurrentHashMap.newKeySet()).add(pluginName);
+    }
+
+    public void removeExemption(Player player, String pluginName) {
+        Set<String> plugins = exemptions.get(player.getUniqueId());
+        if (plugins != null) {
+            plugins.remove(pluginName);
+            if (plugins.isEmpty()) {
+                exemptions.remove(player.getUniqueId());
+            }
+        }
+    }
+
+    public boolean isExempt(Player player) {
+        Set<String> plugins = exemptions.get(player.getUniqueId());
+        return plugins != null && !plugins.isEmpty();
     }
 }

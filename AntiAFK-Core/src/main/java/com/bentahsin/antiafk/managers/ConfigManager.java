@@ -1,12 +1,14 @@
 package com.bentahsin.antiafk.managers;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.api.region.IRegionProvider;
 import com.bentahsin.antiafk.language.SupportedLanguage;
 import com.bentahsin.antiafk.models.PunishmentLevel;
 import com.bentahsin.antiafk.models.RegionOverride;
 import com.bentahsin.antiafk.utils.TimeUtil;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.WorldGuard;
@@ -20,6 +22,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 @Singleton
@@ -28,6 +31,8 @@ public class ConfigManager {
     private final AntiAFKPlugin plugin;
 
     private SupportedLanguage language;
+
+    private final List<IRegionProvider> regionProviders = new CopyOnWriteArrayList<>();
 
     private long maxAfkTimeSeconds;
     private boolean checkCamera, checkChat, checkInteraction, checkToggleSneak, checkItemDrop;
@@ -92,6 +97,7 @@ public class ConfigManager {
 
     private final LoadingCache<UUID, Optional<RegionOverride>> regionCache;
 
+    @Inject
     public ConfigManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
         this.regionCache = Caffeine.newBuilder()
@@ -106,6 +112,12 @@ public class ConfigManager {
         loadConfig();
     }
 
+    public void registerRegionProvider(IRegionProvider provider) {
+        if (provider == null) throw new IllegalArgumentException("Region provider cannot be null");
+        regionProviders.add(provider);
+        plugin.getLogger().info("Registered new region provider: " + provider.getName());
+    }
+
     private Map<String, String> convertToStringMap(Map<?, ?> rawMap) {
         Map<String, String> result = new HashMap<>();
         for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
@@ -114,7 +126,39 @@ public class ConfigManager {
         return result;
     }
 
+    /**
+     * Asıl bölge kontrol mantığı (Cache tarafından çağrılır).
+     * Hem WorldGuard'ı hem de kayıtlı diğer sağlayıcıları kontrol eder.
+     */
     private Optional<RegionOverride> findRegionOverrideForPlayer(Player player) {
+        if (worldGuardEnabled && plugin.isWorldGuardHooked()) {
+            Optional<RegionOverride> wgOverride = checkWorldGuardRegion(player);
+
+            if (wgOverride.isPresent()) {
+                return wgOverride;
+            }
+        }
+
+        for (IRegionProvider provider : regionProviders) {
+            try {
+                List<String> regionNames = provider.getRegionNames(player.getLocation());
+                if (regionNames == null || regionNames.isEmpty()) continue;
+
+                for (String regionName : regionNames) {
+                    RegionOverride override = regionOverrideMap.get(regionName.toLowerCase());
+                    if (override != null) {
+                        return Optional.of(override);
+                    }
+                }
+            } catch (Exception e) {
+                plugin.getLogger().warning("Bölge sağlayıcısı '" + provider.getName() + "' hata verdi: " + e.getMessage());
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private Optional<RegionOverride> checkWorldGuardRegion(Player player) {
         RegionContainer regionContainer = WorldGuard.getInstance().getPlatform().getRegionContainer();
         RegionQuery query = regionContainer.createQuery();
         ApplicableRegionSet applicableRegions = query.getApplicableRegions(BukkitAdapter.adapt(player.getLocation()));
@@ -299,7 +343,6 @@ public class ConfigManager {
     }
 
     public RegionOverride getRegionOverrideForPlayer(Player player) {
-        if (!worldGuardEnabled || !plugin.isWorldGuardHooked()) return null;
         return Objects.requireNonNull(regionCache.get(player.getUniqueId())).orElse(null);
     }
 

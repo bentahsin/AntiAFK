@@ -6,7 +6,7 @@ import com.bentahsin.antiafk.gui.factory.GUIFactory;
 import com.bentahsin.antiafk.platform.IInputCompatibility;
 import com.bentahsin.antiafk.platform.JavaInputCompatibility;
 import com.bentahsin.antiafk.turing.captcha.ColorPaletteCaptcha;
-import com.bentahsin.antiafk.turing.captcha.ICaptcha;
+import com.bentahsin.antiafk.api.turing.ICaptcha;
 import com.bentahsin.antiafk.turing.captcha.QuestionAnswerCaptcha;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;

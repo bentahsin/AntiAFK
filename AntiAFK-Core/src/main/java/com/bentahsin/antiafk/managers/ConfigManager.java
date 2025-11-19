@@ -164,7 +164,6 @@ public class ConfigManager {
      * Raw warnings data loaded from configuration.
      * This field is only intended to be accessed during configuration loading (e.g., in postLoad()).
      * It should not be used elsewhere at runtime, as it may get out of sync with the processed warnings list.
-     *
      * After processing, use the 'warnings' field for all runtime logic.
      * If configuration is modified at runtime, ensure to reload and re-process to keep both lists in sync.
      */
@@ -357,8 +356,7 @@ public class ConfigManager {
         if (!worldGuardEnabled && regionProviders.isEmpty()) {
             return null;
         }
-        Optional<RegionOverride> result = regionCache.get(player.getUniqueId());
-        return result != null ? result.orElse(null) : null;
+        return Objects.requireNonNull(regionCache.get(player.getUniqueId())).orElse(null);
     }
 
     private Optional<RegionOverride> findRegionOverrideForPlayer(Player player) {

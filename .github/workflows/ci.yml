@@ -30,9 +30,15 @@ jobs:
           name: ${{ github.event.repository.name }}-development-builds
           path: |
             AntiAFK-Core/target/*.jar
+            !AntiAFK-Core/target/original-*.jar
             !AntiAFK-Core/target/*-sources.jar
             !AntiAFK-Core/target/*-javadoc.jar
             AntiAFK-Geyser/target/*.jar
+            !AntiAFK-Geyser/target/original-*.jar
             !AntiAFK-Geyser/target/*-sources.jar
             !AntiAFK-Geyser/target/*-javadoc.jar
+            AntiAFK-API/target/*.jar
+            !AntiAFK-API/target/original-*.jar
+            !AntiAFK-API/target/*-sources.jar
+            !AntiAFK-API/target/*-javadoc.jar
           retention-days: 7

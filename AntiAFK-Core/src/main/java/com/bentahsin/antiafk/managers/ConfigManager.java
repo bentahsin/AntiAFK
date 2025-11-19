@@ -343,7 +343,8 @@ public class ConfigManager {
         if (!worldGuardEnabled && regionProviders.isEmpty()) {
             return null;
         }
-        return Objects.requireNonNull(regionCache.get(player.getUniqueId())).orElse(null);
+        Optional<RegionOverride> result = regionCache.get(player.getUniqueId());
+        return result != null ? result.orElse(null) : null;
     }
 
     private Optional<RegionOverride> findRegionOverrideForPlayer(Player player) {

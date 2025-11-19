@@ -85,7 +85,7 @@ public class QuestionAnswerCaptcha implements ICaptcha {
         final int timeoutSeconds = configManager.getQaCaptchaTimeoutSeconds();
 
         BukkitTask timeoutTask = Bukkit.getScheduler().runTaskLater(plugin,
-                () -> captchaManagerProvider.get().failChallenge(player, "Süre doldu."),
+                () -> captchaManagerProvider.get().failChallenge(player, playerLanguageManager.getRawMessage("turing_test.timeout")),
                 timeoutSeconds * 20L
         );
 
@@ -120,7 +120,7 @@ public class QuestionAnswerCaptcha implements ICaptcha {
         if (test.getCorrectAnswers().contains(answer.toLowerCase().trim())) {
             captchaManagerProvider.get().passChallenge(player);
         } else {
-            captchaManagerProvider.get().failChallenge(player, "Yanlış cevap.");
+            captchaManagerProvider.get().failChallenge(player, playerLanguageManager.getRawMessage("turing_test.failure"));
         }
     }
 

@@ -167,20 +167,21 @@ public class CaptchaManager {
     }
 
     public void passChallenge(Player player) {
+        if (player == null) throw new IllegalArgumentException("Player cannot be null");
         ICaptcha captcha = activePlayerCaptcha.get(player.getUniqueId());
         if (captcha != null) {
             captcha.cleanUp(player);
             activePlayerCaptcha.remove(player.getUniqueId());
         }
+        databaseManager.incrementTestsPassed(player.getUniqueId());
+        afkManager.getBotDetectionManager().resetSuspicion(player);
+        plLang.sendMessage(player, "turing_test.success");
         plugin.getServer().getPluginManager().callEvent(
                 new com.bentahsin.antiafk.api.events.AntiAFKTuringTestResultEvent(
                         player,
                         com.bentahsin.antiafk.api.events.AntiAFKTuringTestResultEvent.Result.PASSED
                 )
         );
-        databaseManager.incrementTestsPassed(player.getUniqueId());
-        afkManager.getBotDetectionManager().resetSuspicion(player);
-        plLang.sendMessage(player, "turing_test.success");
     }
 
     public void failChallenge(Player player, String reason) {

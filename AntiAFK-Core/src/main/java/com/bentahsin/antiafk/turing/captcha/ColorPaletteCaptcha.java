@@ -101,7 +101,10 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
             if (activeTests.containsKey(player.getUniqueId())) {
                 player.closeInventory();
                 playerLanguageManager.sendMessage(player, "turing_test.captcha_palette.failure_time_out");
-                captchaManagerProvider.get().failChallenge(player, "Renk paleti süresi doldu.");
+                captchaManagerProvider.get().failChallenge(
+                        player,
+                        playerLanguageManager.getRawMessage("turing_test.captcha_palette.fail_reason_timeout")
+                );
             }
         }, timeLimit * 20L);
 
@@ -143,7 +146,10 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
         } else {
             player.closeInventory();
             playerLanguageManager.sendMessage(player, "turing_test.captcha_palette.failure_wrong_item");
-            captchaManagerProvider.get().failChallenge(player, "Yanlış renge tıkladı.");
+            captchaManagerProvider.get().failChallenge(
+                    player,
+                    playerLanguageManager.getRawMessage("turing_test.captcha_palette.fail_reason_wrong_item")
+            );
         }
     }
 

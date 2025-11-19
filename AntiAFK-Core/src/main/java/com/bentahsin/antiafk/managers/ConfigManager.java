@@ -115,7 +115,7 @@ public class ConfigManager {
     public void registerRegionProvider(IRegionProvider provider) {
         if (provider == null) throw new IllegalArgumentException("Region provider cannot be null");
         regionProviders.add(provider);
-        plugin.getLogger().info("Yeni bölge sağlayıcısı kaydedildi: " + provider.getName());
+        plugin.getLogger().info("Registered new region provider: " + provider.getName());
     }
 
     private Map<String, String> convertToStringMap(Map<?, ?> rawMap) {

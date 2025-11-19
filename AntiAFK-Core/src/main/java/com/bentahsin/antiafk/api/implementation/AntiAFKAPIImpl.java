@@ -64,14 +64,18 @@ public class AntiAFKAPIImpl implements AntiAFKAPI {
     @Override
     public void submitCaptchaResult(Player player, boolean passed, String reason) {
         CaptchaManager manager = captchaManagerProvider.get();
-        if (manager != null) {
-            if (manager.isBeingTested(player)) {
-                if (passed) {
-                    manager.passChallenge(player);
-                } else {
-                    manager.failChallenge(player, reason != null ? reason : "API External Failure");
-                }
-            }
+        if (manager == null) {
+            throw new IllegalStateException("CaptchaManager is not available (Turing test disabled?)");
+        }
+
+        if (!manager.isBeingTested(player)) {
+            throw new IllegalStateException("Player " + player.getName() + " is not currently in a captcha test.");
+        }
+
+        if (passed) {
+            manager.passChallenge(player);
+        } else {
+            manager.failChallenge(player, reason != null ? reason : "API External Failure");
         }
     }
 
@@ -80,16 +84,6 @@ public class AntiAFKAPIImpl implements AntiAFKAPI {
         if (player == null) throw new IllegalArgumentException("Player cannot be null");
         if (pluginName == null) throw new IllegalArgumentException("Plugin name cannot be null");
         stateManager.addExemption(player, pluginName);
-    }
-
-    @Override
-    public void unexemptPlayer(Player player, String pluginName) {
-        stateManager.removeExemption(player, pluginName);
-    }
-
-    @Override
-    public boolean isExempt(Player player) {
-        return stateManager.isExempt(player);
     }
 
     @Override
@@ -106,6 +100,20 @@ public class AntiAFKAPIImpl implements AntiAFKAPI {
 
     @Override
     public void registerRegionProvider(IRegionProvider provider) {
+        if (provider == null) throw new IllegalArgumentException("Region provider cannot be null");
         configManager.registerRegionProvider(provider);
+    }
+
+    @Override
+    public boolean isExempt(Player player) {
+        if (player == null) throw new IllegalArgumentException("Player cannot be null");
+        return stateManager.isExempt(player);
+    }
+
+    @Override
+    public void unexemptPlayer(Player player, String pluginName) {
+        if (player == null) throw new IllegalArgumentException("Player cannot be null");
+        if (pluginName == null) throw new IllegalArgumentException("Plugin name cannot be null");
+        stateManager.removeExemption(player, pluginName);
     }
 }

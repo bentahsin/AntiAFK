@@ -327,6 +327,7 @@ public class PlayerStateManager {
     }
 
     public boolean isExempt(Player player) {
-        return exemptions.containsKey(player.getUniqueId()) && !exemptions.get(player.getUniqueId()).isEmpty();
+        Set<String> plugins = exemptions.get(player.getUniqueId());
+        return plugins != null && !plugins.isEmpty();
     }
 }

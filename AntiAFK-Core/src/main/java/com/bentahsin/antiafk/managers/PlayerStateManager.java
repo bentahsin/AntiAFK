@@ -311,8 +311,6 @@ public class PlayerStateManager {
     public void addExemption(Player player, String pluginName) {
         exemptions.computeIfAbsent(player.getUniqueId(), k -> ConcurrentHashMap.newKeySet()).add(pluginName);
 
-        // Eğer oyuncu zaten AFK ise ve şimdi muaf tutulduysa, AFK durumunu kaldır.
-        // Bu, minigame'e giren birinin AFK tag'ıyla dolaşmasını engeller.
         if (isEffectivelyAfk(player)) {
             unsetAfkStatus(player);
         }
@@ -322,7 +320,6 @@ public class PlayerStateManager {
         Set<String> plugins = exemptions.get(player.getUniqueId());
         if (plugins != null) {
             plugins.remove(pluginName);
-            // Eğer listeyi boşalttıysak, oyuncunun kaydını tamamen sil.
             if (plugins.isEmpty()) {
                 exemptions.remove(player.getUniqueId());
             }
@@ -330,7 +327,6 @@ public class PlayerStateManager {
     }
 
     public boolean isExempt(Player player) {
-        // Listede en az bir eklenti varsa oyuncu muaftır.
         return exemptions.containsKey(player.getUniqueId()) && !exemptions.get(player.getUniqueId()).isEmpty();
     }
 }

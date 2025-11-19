@@ -15,7 +15,7 @@ public class AntiAFKPunishEvent extends Event implements Cancellable {
 
     private static final HandlerList handlers = new HandlerList();
     private final Player player;
-    private final String punishmentType; // Örn: "PROGRESSIVE", "REGION", "DEFAULT"
+    private final String punishmentType;
     private boolean cancelled;
 
     public AntiAFKPunishEvent(Player player, String punishmentType) {

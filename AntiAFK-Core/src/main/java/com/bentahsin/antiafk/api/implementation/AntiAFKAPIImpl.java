@@ -54,6 +54,7 @@ public class AntiAFKAPIImpl implements AntiAFKAPI {
 
     @Override
     public void registerCaptcha(ICaptcha captcha) {
+        if (captcha == null) throw new IllegalArgumentException("Captcha cannot be null");
         CaptchaManager manager = captchaManagerProvider.get();
         if (manager != null) {
             manager.registerCaptcha(captcha);
@@ -76,6 +77,8 @@ public class AntiAFKAPIImpl implements AntiAFKAPI {
 
     @Override
     public void exemptPlayer(Player player, String pluginName) {
+        if (player == null) throw new IllegalArgumentException("Player cannot be null");
+        if (pluginName == null) throw new IllegalArgumentException("Plugin name cannot be null");
         stateManager.addExemption(player, pluginName);
     }
 

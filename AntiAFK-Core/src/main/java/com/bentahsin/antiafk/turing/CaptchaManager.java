@@ -63,7 +63,14 @@ public class CaptchaManager {
     }
 
     public void registerCaptcha(ICaptcha captcha) {
-        captchaRegistry.put(captcha.getTypeName(), captcha);
+        if (captcha == null) {
+            throw new IllegalArgumentException("Captcha cannot be null");
+        }
+        String typeName = captcha.getTypeName();
+        if (typeName == null || typeName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Captcha type name cannot be null or empty");
+        }
+        captchaRegistry.put(typeName, captcha);
     }
 
     private void loadPalettes() {

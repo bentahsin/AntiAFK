@@ -61,8 +61,16 @@ public class PunishmentManager {
      * @param regionOverride   Oyuncunun bulunduğu bölge (null olabilir).
      */
     public void applyPunishment(Player player, RegionOverride regionOverride) {
-        String type = (regionOverride != null) ? "REGION" : "DEFAULT";
-        if (configManager.isProgressivePunishmentEnabled()) type = "PROGRESSIVE";
+        String type;
+        if (regionOverride != null && configManager.isProgressivePunishmentEnabled()) {
+            type = "PROGRESSIVE_REGION";
+        } else if (configManager.isProgressivePunishmentEnabled()) {
+            type = "PROGRESSIVE";
+        } else if (regionOverride != null) {
+            type = "REGION";
+        } else {
+            type = "DEFAULT";
+        }
 
         AntiAFKPunishEvent event = new AntiAFKPunishEvent(player, type);
         Bukkit.getPluginManager().callEvent(event);

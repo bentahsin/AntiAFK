@@ -149,15 +149,15 @@ public class PlayerStateManager {
      * Bu metodun event listener'lar tarafından çağrılması güvenlidir.
      * @param player Aktivite gösteren oyuncu.
      */
-    public void unsetAfkStatus(Player player) {
+    public boolean unsetAfkStatus(Player player) {
         PlayerState state = getState(player);
-        if (!state.isEffectivelyAfk()) return;
+        if (!state.isEffectivelyAfk()) return true;
 
         AntiAFKStatusChangeEvent event = new AntiAFKStatusChangeEvent(player, false, null);
         Bukkit.getPluginManager().callEvent(event);
 
         if (event.isCancelled()) {
-            return;
+            return false;
         }
 
         saveTotalAfkTime(player);
@@ -179,6 +179,8 @@ public class PlayerStateManager {
                         "%player_displayname%", player.getDisplayName());
             }
         }
+
+        return true;
     }
 
     /**
@@ -310,11 +312,13 @@ public class PlayerStateManager {
     }
 
     public void addExemption(Player player, String pluginName) {
-        exemptions.computeIfAbsent(player.getUniqueId(), k -> ConcurrentHashMap.newKeySet()).add(pluginName);
-
         if (isEffectivelyAfk(player)) {
-            unsetAfkStatus(player);
+            if (!unsetAfkStatus(player)) {
+                return;
+            }
         }
+
+        exemptions.computeIfAbsent(player.getUniqueId(), k -> ConcurrentHashMap.newKeySet()).add(pluginName);
     }
 
     public void removeExemption(Player player, String pluginName) {

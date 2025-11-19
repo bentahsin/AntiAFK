@@ -136,6 +136,7 @@ public class BotDetectionManager {
 
         if (event.isCancelled()) {
             debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Suspicion for %s cancelled by external plugin.", player.getName());
+            return;
         }
 
         CaptchaManager captchaManager = configManager.isTuringTestEnabled() ? captchaManagerProvider.get() : null;

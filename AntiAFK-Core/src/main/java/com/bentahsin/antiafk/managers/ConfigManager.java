@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
         "===================================================================",
         "Plugin ile ilgili tüm mesajları ve metinleri 'messages.yml' dosyasından düzenleyebilirsiniz."
 })
+@SuppressWarnings("FieldCanBeLocal")
 public class ConfigManager {
 
     @Ignore
@@ -143,7 +144,7 @@ public class ConfigManager {
     private double preFilterSizeRatio = 0.5;
 
     @ConfigPath("behavioral-analysis.enabled")
-    private boolean behaviorAnalysisEnabled = true;
+    private boolean behaviorAnalysisEnabled = false;
     @ConfigPath("behavioral-analysis.history-size-ticks")
     private int behaviorHistorySizeTicks = 600;
 
@@ -239,20 +240,17 @@ public class ConfigManager {
     }
 
     public void loadConfig() {
+        plugin.reloadConfig();
         configuration.init(this, "config.yml");
     }
 
-    /**
-     * Config yüklendikten sonra çalışacak mantık.
-     * Karmaşık nesneleri (RegionOverride, PunishmentLevel) burada oluşturuyoruz.
-     */
     @PostLoad
     @SuppressWarnings("unused")
     public void postLoad() {
         this.language = SupportedLanguage.fromConfigName(languageName);
+        TimeConverter timeConverter = new TimeConverter();
 
         warnings.clear();
-        TimeConverter timeConverter = new TimeConverter();
         for (Map<String, Object> raw : warningsRaw) {
             Map<String, Object> processed = new HashMap<>(raw);
             String timeStr = String.valueOf(raw.getOrDefault("time", "0s"));
@@ -263,8 +261,10 @@ public class ConfigManager {
 
         if (punishmentResetAfterStr != null && punishmentResetAfterStr.equalsIgnoreCase("never")) {
             punishmentResetMillis = -1;
+        } else if (punishmentResetAfterStr != null) {
+            punishmentResetMillis = timeConverter.convertToField(punishmentResetAfterStr) * 1000;
         } else {
-            punishmentResetMillis = new TimeConverter().convertToField(punishmentResetAfterStr) * 1000;
+            punishmentResetMillis = 0;
         }
 
         punishmentLevels.clear();
@@ -277,11 +277,11 @@ public class ConfigManager {
 
         regionOverrides.clear();
         regionOverrideMap.clear();
-        TimeConverter tc = new TimeConverter();
+
         if (worldGuardEnabled) {
             for (RegionConfigDTO dto : regionOverridesRaw.values()) {
                 if (dto.region == null || dto.region.isEmpty()) continue;
-                long time = dto.max_afk_time.equalsIgnoreCase("disabled") ? -1 : tc.convertToField(dto.max_afk_time);
+                long time = dto.max_afk_time.equalsIgnoreCase("disabled") ? -1 : timeConverter.convertToField(dto.max_afk_time);
                 List<Map<String, String>> rActions = (dto.actions == null || dto.actions.isEmpty()) ? this.actions : dto.actions;
 
                 RegionOverride override = new RegionOverride(dto.region, time, rActions);
@@ -315,7 +315,8 @@ public class ConfigManager {
     }
 
     public void saveConfig() {
-        configuration.save(this, "config.yml");
+        plugin.saveConfig();
+        loadConfig();
     }
 
     public AntiAFKPlugin getPlugin() {
@@ -327,6 +328,9 @@ public class ConfigManager {
     }
 
     public RegionOverride getRegionOverrideForPlayer(Player player) {
+        if (!worldGuardEnabled && regionProviders.isEmpty()) {
+            return null;
+        }
         return Objects.requireNonNull(regionCache.get(player.getUniqueId())).orElse(null);
     }
 

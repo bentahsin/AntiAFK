@@ -1,6 +1,8 @@
 package com.bentahsin.antiafk.turing.captcha;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.api.events.AntiAFKTuringTestResultEvent;
+import com.bentahsin.antiafk.api.turing.ICaptcha;
 import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.DebugManager;
@@ -145,6 +147,7 @@ public class QuestionAnswerCaptcha implements ICaptcha {
         cleanUp(player);
         databaseManager.incrementTestsPassed(player.getUniqueId());
         afkManager.getBotDetectionManager().resetSuspicion(player);
+        Bukkit.getPluginManager().callEvent(new AntiAFKTuringTestResultEvent(player, AntiAFKTuringTestResultEvent.Result.PASSED));
         playerLanguageManager.sendMessage(player, "turing_test.success");
     }
 
@@ -162,6 +165,7 @@ public class QuestionAnswerCaptcha implements ICaptcha {
             afkManager.getStateManager().setManualAFK(player, "behavior.turing_test_failed");
         }
 
+        Bukkit.getPluginManager().callEvent(new AntiAFKTuringTestResultEvent(player, AntiAFKTuringTestResultEvent.Result.FAILED));
         playerLanguageManager.sendMessage(player, "turing_test.failure");
         debugManager.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Player %s failed captcha. Reason: %s", player.getName(), reason);
     }

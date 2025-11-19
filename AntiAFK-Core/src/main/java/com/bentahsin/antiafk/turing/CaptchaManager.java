@@ -8,7 +8,7 @@ import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.platform.IInputCompatibility;
 import com.bentahsin.antiafk.storage.DatabaseManager;
 import com.bentahsin.antiafk.turing.captcha.ColorPaletteCaptcha;
-import com.bentahsin.antiafk.turing.captcha.ICaptcha;
+import com.bentahsin.antiafk.api.turing.ICaptcha;
 import com.bentahsin.antiafk.turing.captcha.QuestionAnswerCaptcha;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -62,7 +62,7 @@ public class CaptchaManager {
         loadPalettes();
     }
 
-    private void registerCaptcha(ICaptcha captcha) {
+    public void registerCaptcha(ICaptcha captcha) {
         captchaRegistry.put(captcha.getTypeName(), captcha);
     }
 
@@ -165,6 +165,12 @@ public class CaptchaManager {
             captcha.cleanUp(player);
             activePlayerCaptcha.remove(player.getUniqueId());
         }
+        plugin.getServer().getPluginManager().callEvent(
+                new com.bentahsin.antiafk.api.events.AntiAFKTuringTestResultEvent(
+                        player,
+                        com.bentahsin.antiafk.api.events.AntiAFKTuringTestResultEvent.Result.PASSED
+                )
+        );
         databaseManager.incrementTestsPassed(player.getUniqueId());
         afkManager.getBotDetectionManager().resetSuspicion(player);
         plLang.sendMessage(player, "turing_test.success");
@@ -176,6 +182,13 @@ public class CaptchaManager {
             captcha.cleanUp(player);
             activePlayerCaptcha.remove(player.getUniqueId());
         }
+
+        plugin.getServer().getPluginManager().callEvent(
+                new com.bentahsin.antiafk.api.events.AntiAFKTuringTestResultEvent(
+                        player,
+                        com.bentahsin.antiafk.api.events.AntiAFKTuringTestResultEvent.Result.FAILED
+                )
+        );
 
         databaseManager.incrementTestsFailed(player.getUniqueId());
 

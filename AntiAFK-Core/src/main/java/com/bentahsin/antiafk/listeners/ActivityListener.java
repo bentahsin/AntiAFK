@@ -1,6 +1,7 @@
 package com.bentahsin.antiafk.listeners;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.api.enums.DetectionType;
 import com.bentahsin.antiafk.behavior.BehaviorAnalysisManager;
 import com.bentahsin.antiafk.data.PointlessActivityData;
 import com.bentahsin.antiafk.managers.AFKManager;
@@ -62,6 +63,11 @@ public abstract class ActivityListener {
         final String eventType = event != null ? event.getEventName() : (isMovementEvent ? "PlayerMoveEvent" : "Unknown");
         debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Activity '%s' detected for player %s.", eventType, player.getName());
 
+        if (afkManager.getStateManager().isExempt(player)) {
+            afkManager.getStateManager().updateActivity(player);
+            return;
+        }
+
         if (afkManager.getStateManager().isSuspicious(player)) {
             debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Activity for %s ignored: Player is suspicious (awaiting captcha).", player.getName());
             return;
@@ -105,7 +111,7 @@ public abstract class ActivityListener {
 
                     if (activityData.getPointlessActivityCounter() >= maxPointlessActivities) {
                         debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Pointless activity limit reached for %s. Marking as AFK.", player.getName());
-                        afkManager.getBotDetectionManager().triggerSuspicionAndChallenge(player, "behavior.pointless_activity_detected");
+                        afkManager.getBotDetectionManager().triggerSuspicionAndChallenge(player, "behavior.pointless_activity_detected", DetectionType.POINTLESS_ACTIVITY);
                         afkManager.getBotDetectionManager().resetBotDetectionData(player.getUniqueId());
                         return;
                     }
@@ -160,7 +166,7 @@ public abstract class ActivityListener {
 
         if (count >= configManager.getMaxWorldChanges()) {
             debugMgr.log(DebugManager.DebugModule.ACTIVITY_LISTENER, "Rapid world change detected for %s. Marking as AFK.", player.getName());
-            afkManager.getBotDetectionManager().triggerSuspicionAndChallenge(player, "behavior.rapid_world_change");
+            afkManager.getBotDetectionManager().triggerSuspicionAndChallenge(player, "behavior.rapid_world_change", DetectionType.RAPID_WORLD_CHANGE);
             worldChangeCounts.remove(uuid);
             lastWorldChangeTime.remove(uuid);
         }

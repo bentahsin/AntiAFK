@@ -1,22 +1,35 @@
 package com.bentahsin.antiafk.api.implementation;
 
 import com.bentahsin.antiafk.api.AntiAFKAPI;
-import com.bentahsin.antiafk.managers.AFKManager;
+import com.bentahsin.antiafk.api.models.PlayerAFKStats;
+import com.bentahsin.antiafk.api.region.IRegionProvider;
+import com.bentahsin.antiafk.api.turing.ICaptcha;
+import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.PlayerStateManager;
+import com.bentahsin.antiafk.storage.PlayerStatsManager;
+import com.bentahsin.antiafk.turing.CaptchaManager;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import org.bukkit.entity.Player;
+
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Singleton
 public class AntiAFKAPIImpl implements AntiAFKAPI {
 
-    private final AFKManager afkManager;
     private final PlayerStateManager stateManager;
+    private final Provider<CaptchaManager> captchaManagerProvider;
+    private final PlayerStatsManager playerStatsManager;
+    private final ConfigManager configManager;
 
     @Inject
-    public AntiAFKAPIImpl(AFKManager afkManager, PlayerStateManager stateManager) {
-        this.afkManager = afkManager;
+    public AntiAFKAPIImpl(PlayerStateManager stateManager, Provider<CaptchaManager> captchaManagerProvider, PlayerStatsManager playerStatsManager, ConfigManager configManager) {
         this.stateManager = stateManager;
+        this.captchaManagerProvider = captchaManagerProvider;
+        this.playerStatsManager = playerStatsManager;
+        this.configManager = configManager;
     }
 
     @Override
@@ -37,5 +50,59 @@ public class AntiAFKAPIImpl implements AntiAFKAPI {
     @Override
     public void setActive(Player player) {
         stateManager.unsetAfkStatus(player);
+    }
+
+    @Override
+    public void registerCaptcha(ICaptcha captcha) {
+        CaptchaManager manager = captchaManagerProvider.get();
+        if (manager != null) {
+            manager.registerCaptcha(captcha);
+        }
+    }
+
+    @Override
+    public void submitCaptchaResult(Player player, boolean passed, String reason) {
+        CaptchaManager manager = captchaManagerProvider.get();
+        if (manager != null) {
+            if (manager.isBeingTested(player)) {
+                if (passed) {
+                    manager.passChallenge(player);
+                } else {
+                    manager.failChallenge(player, reason != null ? reason : "API External Failure");
+                }
+            }
+        }
+    }
+
+    @Override
+    public void exemptPlayer(Player player, String pluginName) {
+        stateManager.addExemption(player, pluginName);
+    }
+
+    @Override
+    public void unexemptPlayer(Player player, String pluginName) {
+        stateManager.removeExemption(player, pluginName);
+    }
+
+    @Override
+    public boolean isExempt(Player player) {
+        return stateManager.isExempt(player);
+    }
+
+    @Override
+    public CompletableFuture<PlayerAFKStats> getPlayerStats(UUID playerUUID) {
+        return playerStatsManager.getPlayerStats(playerUUID, "API_Request")
+                .thenApply(coreStats -> new PlayerAFKStats(
+                        coreStats.getUuid(),
+                        coreStats.getTotalAfkTime(),
+                        coreStats.getTimesPunished(),
+                        coreStats.getTuringTestsPassed(),
+                        coreStats.getTuringTestsFailed()
+                ));
+    }
+
+    @Override
+    public void registerRegionProvider(IRegionProvider provider) {
+        configManager.registerRegionProvider(provider);
     }
 }

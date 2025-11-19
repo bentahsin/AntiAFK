@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +33,7 @@ public class PlayerStateManager {
     private final Cache<UUID, Long> lastActivity;
     private final Cache<UUID, PlayerState> playerStates;
     private final Map<UUID, Long> afkStartTime = new ConcurrentHashMap<>();
+    private final Map<UUID, Set<String>> exemptions = new ConcurrentHashMap<>();
 
     @Inject
     public PlayerStateManager(ConfigManager cm, PlayerLanguageManager plLang, DatabaseManager dbMgr, WarningManager wm) {
@@ -78,6 +80,8 @@ public class PlayerStateManager {
         UUID uuid = player.getUniqueId();
         lastActivity.invalidate(uuid);
         playerStates.invalidate(uuid);
+
+        exemptions.remove(uuid);
     }
 
     /**
@@ -149,6 +153,13 @@ public class PlayerStateManager {
         PlayerState state = getState(player);
         if (!state.isEffectivelyAfk()) return;
 
+        AntiAFKStatusChangeEvent event = new AntiAFKStatusChangeEvent(player, false, null);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return;
+        }
+
         saveTotalAfkTime(player);
 
         boolean wasManual = state.isManualAfk();
@@ -182,6 +193,9 @@ public class PlayerStateManager {
             Bukkit.getPluginManager().callEvent(event);
 
             if (event.isCancelled()) {
+                state.setManualAfk(false);
+                state.setAutoAfk(false);
+                state.setSystemPunished(false);
                 return;
             }
 
@@ -292,5 +306,31 @@ public class PlayerStateManager {
      */
     public void resetSuspicionState(Player player) {
         getState(player).setSuspicious(false);
+    }
+
+    public void addExemption(Player player, String pluginName) {
+        exemptions.computeIfAbsent(player.getUniqueId(), k -> ConcurrentHashMap.newKeySet()).add(pluginName);
+
+        // Eğer oyuncu zaten AFK ise ve şimdi muaf tutulduysa, AFK durumunu kaldır.
+        // Bu, minigame'e giren birinin AFK tag'ıyla dolaşmasını engeller.
+        if (isEffectivelyAfk(player)) {
+            unsetAfkStatus(player);
+        }
+    }
+
+    public void removeExemption(Player player, String pluginName) {
+        Set<String> plugins = exemptions.get(player.getUniqueId());
+        if (plugins != null) {
+            plugins.remove(pluginName);
+            // Eğer listeyi boşalttıysak, oyuncunun kaydını tamamen sil.
+            if (plugins.isEmpty()) {
+                exemptions.remove(player.getUniqueId());
+            }
+        }
+    }
+
+    public boolean isExempt(Player player) {
+        // Listede en az bir eklenti varsa oyuncu muaftır.
+        return exemptions.containsKey(player.getUniqueId()) && !exemptions.get(player.getUniqueId()).isEmpty();
     }
 }

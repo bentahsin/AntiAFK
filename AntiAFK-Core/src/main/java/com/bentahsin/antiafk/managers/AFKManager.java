@@ -43,6 +43,7 @@ public class AFKManager {
         if (player.hasPermission(configManager.getPermBypassClassic())) return;
         if (configManager.getDisabledWorlds().contains(player.getWorld().getName())) return;
         if (configManager.getExemptGameModes().contains(player.getGameMode().name())) return;
+        if (stateManager.isExempt(player)) return;
 
         RegionOverride override = configManager.getRegionOverrideForPlayer(player);
         long effectiveMaxAfkTime;

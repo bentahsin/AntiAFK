@@ -1,6 +1,7 @@
 package com.bentahsin.antiafk.managers;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.api.events.AntiAFKWarningEvent;
 import com.bentahsin.antiafk.language.Lang;
 import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.utils.PlaceholderUtil;
@@ -9,6 +10,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.inject.Singleton;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -60,6 +62,11 @@ public class WarningManager {
                 Long lastWarned = lastWarningTime.getIfPresent(player.getUniqueId());
                 if (lastWarned != null && lastWarned > warningTime) {
                     continue;
+                }
+                AntiAFKWarningEvent event = new AntiAFKWarningEvent(player, timeLeft, maxAfkTime);
+                Bukkit.getPluginManager().callEvent(event);
+                if (event.isCancelled()) {
+                    return;
                 }
                 sendWarning(player, warning, timeLeft, maxAfkTime, stateManager);
                 lastWarningTime.put(player.getUniqueId(), warningTime);

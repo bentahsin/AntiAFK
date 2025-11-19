@@ -160,8 +160,20 @@ public class ConfigManager {
     @ConfigPath("actions")
     private List<Map<String, String>> actions = new ArrayList<>();
 
+    /**
+     * Raw warnings data loaded from configuration.
+     * This field is only intended to be accessed during configuration loading (e.g., in postLoad()).
+     * It should not be used elsewhere at runtime, as it may get out of sync with the processed warnings list.
+     *
+     * After processing, use the 'warnings' field for all runtime logic.
+     * If configuration is modified at runtime, ensure to reload and re-process to keep both lists in sync.
+     */
     @ConfigPath("warnings")
     private List<Map<String, Object>> warningsRaw = new ArrayList<>();
+    /**
+     * Processed warnings data, to be used by all runtime logic.
+     * Populated from warningsRaw during configuration loading.
+     */
     @Ignore
     private List<Map<String, Object>> warnings = new ArrayList<>();
 

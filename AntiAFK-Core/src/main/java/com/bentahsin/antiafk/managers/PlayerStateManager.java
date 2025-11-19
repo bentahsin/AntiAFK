@@ -196,6 +196,7 @@ public class PlayerStateManager {
                 state.setManualAfk(false);
                 state.setAutoAfk(false);
                 state.setSystemPunished(false);
+                state.setAfkReason(null);
                 return;
             }
 

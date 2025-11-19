@@ -256,6 +256,20 @@ public class ConfigManager {
         configuration.init(this, "config.yml");
     }
 
+    /**
+     * Called automatically after configuration is loaded, via the {@code @PostLoad} annotation.
+     * <p>
+     * Performs critical post-processing of configuration values, including:
+     * <ul>
+     *   <li>Converting language name to {@link SupportedLanguage}</li>
+     *   <li>Parsing and converting time strings to numeric values</li>
+     *   <li>Transforming raw warning and punishment level data into processed collections</li>
+     *   <li>Sorting and clearing relevant collections</li>
+     *   <li>Populating region overrides based on configuration</li>
+     *   <li>Invalidating the region cache to ensure consistency with new configuration</li>
+     * </ul>
+     * This method has side effects on internal state and should not be called directly.
+     */
     @PostLoad
     @SuppressWarnings("unused")
     public void postLoad() {

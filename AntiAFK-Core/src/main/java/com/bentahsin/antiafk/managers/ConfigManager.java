@@ -282,9 +282,9 @@ public class ConfigManager {
             for (RegionConfigDTO dto : regionOverridesRaw.values()) {
                 if (dto.region == null || dto.region.isEmpty()) continue;
                 long time = dto.max_afk_time.equalsIgnoreCase("disabled") ? -1 : timeConverter.convertToField(dto.max_afk_time);
-                List<Map<String, String>> rActions = (dto.actions == null || dto.actions.isEmpty()) ? this.actions : dto.actions;
+                List<Map<String, String>> regionActions = (dto.actions == null || dto.actions.isEmpty()) ? this.actions : dto.actions;
 
-                RegionOverride override = new RegionOverride(dto.region, time, rActions);
+                RegionOverride override = new RegionOverride(dto.region, time, regionActions);
                 regionOverrides.add(override);
                 regionOverrideMap.put(dto.region.toLowerCase(), override);
             }

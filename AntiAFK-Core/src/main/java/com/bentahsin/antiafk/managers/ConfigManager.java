@@ -5,7 +5,9 @@ import com.bentahsin.antiafk.api.region.IRegionProvider;
 import com.bentahsin.antiafk.language.SupportedLanguage;
 import com.bentahsin.antiafk.models.PunishmentLevel;
 import com.bentahsin.antiafk.models.RegionOverride;
-import com.bentahsin.antiafk.utils.TimeUtil;
+import com.bentahsin.configuration.Configuration;
+import com.bentahsin.configuration.annotation.*;
+import com.bentahsin.configuration.converter.impl.TimeConverter;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.inject.Inject;
@@ -17,7 +19,6 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
@@ -26,80 +27,217 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 @Singleton
+@ConfigHeader({
+        "===================================================================",
+        "                 AntiAFK by BenTahsin - Ana Konfigürasyon          ",
+        "===================================================================",
+        "Plugin ile ilgili tüm mesajları ve metinleri 'messages.yml' dosyasından düzenleyebilirsiniz."
+})
+@SuppressWarnings("FieldCanBeLocal")
 public class ConfigManager {
 
+    @Ignore
     private final AntiAFKPlugin plugin;
+    @Ignore
+    private final Configuration configuration;
+    @Ignore
+    private final List<IRegionProvider> regionProviders = new CopyOnWriteArrayList<>();
+    @Ignore
+    private final LoadingCache<UUID, Optional<RegionOverride>> regionCache;
 
+    @ConfigPath("lang")
+    @Comment({"Eklentinin kullanacağı dili belirleyin.", "Seçenekler: Turkish, English, Spanish, German, French, Russian, Polish"})
+    private String languageName = "Turkish";
+
+    @Ignore
     private SupportedLanguage language;
 
-    private final List<IRegionProvider> regionProviders = new CopyOnWriteArrayList<>();
+    @ConfigPath("max_afk_time")
+    @Transform(TimeConverter.class)
+    @Comment("Bir oyuncunun nihai eylemlere maruz kalmadan önce AFK kalabileceği süre.")
+    private long maxAfkTimeSeconds = 900;
 
-    private long maxAfkTimeSeconds;
-    private boolean checkCamera, checkChat, checkInteraction, checkToggleSneak, checkItemDrop;
-    private boolean checkInventoryActivity, checkItemConsume, checkHeldItemChange, checkPlayerAttack, checkBookActivity;
-    private List<Map<String, String>> captchaFailureActions;
-    private List<Map<String, String>> actions;
-    private List<Map<String, Object>> warnings;
+    @ConfigPath("detection.auto_set_afk_after")
+    @Transform(TimeConverter.class)
+    @Comment("Bir oyuncu ne kadar süre hareketsiz kaldıktan sonra otomatik olarak [AFK] tag'ı alacak?")
+    private long autoSetAfkSeconds = 60;
 
-    private String permBypassAll, permBypassClassic, permBypassBehavioral, permBypassPointless, permBypassAutoclicker;
-    private String permAfkCommandUse;
+    @ConfigPath("detection.check_camera_movement")
+    private boolean checkCamera = true;
+    @ConfigPath("detection.check_chat_activity")
+    private boolean checkChat = true;
+    @ConfigPath("detection.check_interaction")
+    private boolean checkInteraction = true;
+    @ConfigPath("detection.check_toggle_sneak")
+    private boolean checkToggleSneak = true;
+    @ConfigPath("detection.check_item_drop")
+    private boolean checkItemDrop = true;
+    @ConfigPath("detection.check_inventory_activity")
+    private boolean checkInventoryActivity = true;
+    @ConfigPath("detection.check_item_consume")
+    private boolean checkItemConsume = true;
+    @ConfigPath("detection.check_held_item_change")
+    private boolean checkHeldItemChange = true;
+    @ConfigPath("detection.check_player_attack")
+    private boolean checkPlayerAttack = true;
+    @ConfigPath("detection.check_book_activity")
+    private boolean checkBookActivity = true;
 
-    private List<String> disabledWorlds;
-    private List<String> exemptGameModes;
+    @ConfigPath("detection.max-pointless-activities")
+    private int maxPointlessActivities = 15;
 
-    private boolean worldGuardEnabled;
-    private List<RegionOverride> regionOverrides;
-    private Map<String, RegionOverride> regionOverrideMap;
+    @ConfigPath("detection.auto-clicker.enabled")
+    private boolean autoClickerEnabled = true;
+    @ConfigPath("detection.auto-clicker.check-amount")
+    private int autoClickerCheckAmount = 20;
+    @ConfigPath("detection.auto-clicker.max-deviation")
+    private long autoClickerMaxDeviation = 10;
+    @ConfigPath("detection.auto-clicker.detections-to-punish")
+    private int autoClickerDetectionsToPunish = 3;
 
-    private boolean afkCommandEnabled;
-    private String afkDefaultReason;
-    private boolean setInvulnerable;
-    private String afkTagFormat;
-    private boolean broadcastOnAfk, broadcastOnReturn;
+    @ConfigPath("detection.check-world-change.enabled")
+    private boolean checkWorldChangeEnabled = true;
+    @ConfigPath("detection.check-world-change.cooldown")
+    private int worldChangeCooldown = 20;
+    @ConfigPath("detection.check-world-change.max-changes")
+    private int maxWorldChanges = 5;
 
-    private long autoSetAfkSeconds;
-    private int maxPointlessActivities;
+    @ConfigPath("rejoin_protection.enabled")
+    private boolean rejoinProtectionEnabled = true;
+    @ConfigPath("rejoin_protection.cooldown")
+    @Transform(TimeConverter.class)
+    private long rejoinCooldownSeconds = 300;
 
-    private boolean autoClickerEnabled;
-    private int autoClickerCheckAmount;
-    private long autoClickerMaxDeviation;
-    private int autoClickerDetectionsToPunish;
+    @ConfigPath("turing_test.enabled")
+    private boolean turingTestEnabled = true;
+    @ConfigPath("turing_test.question_answer.answer_timeout_seconds")
+    private int qaCaptchaTimeoutSeconds = 20;
+    @ConfigPath("turing_test.color_palette.gui_rows")
+    private int colorPaletteGuiRows = 3;
+    @ConfigPath("turing_test.color_palette.time_limit_seconds")
+    private int colorPaletteTimeLimit = 15;
+    @ConfigPath("turing_test.color_palette.correct_item_count")
+    private int colorPaletteCorrectCount = 5;
+    @ConfigPath("turing_test.color_palette.distractor_color_count")
+    private int colorPaletteDistractorColorCount = 2;
+    @ConfigPath("turing_test.color_palette.distractor_item_count_per_color")
+    private int colorPaletteDistractorItemCount = 4;
+    @ConfigPath("turing_test.color_palette.available_colors")
+    private List<String> colorPaletteAvailableColors = new ArrayList<>();
 
-    private boolean checkWorldChangeEnabled;
-    private int worldChangeCooldown;
-    private int maxWorldChanges;
+    @ConfigPath("turing_test.on_failure_actions")
+    private List<Map<String, String>> captchaFailureActions = new ArrayList<>();
 
-    private boolean rejoinProtectionEnabled;
-    private long rejoinCooldownSeconds;
+    @ConfigPath("learning_mode.enabled")
+    private boolean learningModeEnabled = true;
+    @ConfigPath("learning_mode.analysis_task_period_ticks")
+    private long analysisTaskPeriodTicks = 40L;
+    @ConfigPath("learning_mode.similarity_threshold")
+    private double learningSimilarityThreshold = 25.0;
+    @ConfigPath("learning_mode.search_radius")
+    private int learningSearchRadius = 10;
+    @ConfigPath("learning_mode.security.max_pattern_file_size_kb")
+    private long maxPatternFileSizeKb = 1024;
+    @ConfigPath("learning_mode.security.max_vectors_per_pattern")
+    private int maxVectorsPerPattern = 12000;
+    @ConfigPath("learning_mode.security.pre_filter_size_ratio")
+    private double preFilterSizeRatio = 0.5;
 
-    private boolean turingTestEnabled;
-    private int qaCaptchaTimeoutSeconds;
-    private int colorPaletteGuiRows;
-    private int colorPaletteTimeLimit;
-    private int colorPaletteCorrectCount;
-    private int colorPaletteDistractorColorCount;
-    private int colorPaletteDistractorItemCount;
-    private List<String> colorPaletteAvailableColors;
+    @ConfigPath("behavioral-analysis.enabled")
+    private boolean behaviorAnalysisEnabled = false;
+    @ConfigPath("behavioral-analysis.history-size-ticks")
+    private int behaviorHistorySizeTicks = 600;
 
-    private boolean progressivePunishmentEnabled;
+    @ConfigPath("discord_webhook.enabled")
+    private boolean discordWebhookEnabled = false;
+    @ConfigPath("discord_webhook.webhook_url")
+    private String discordWebhookUrl = "";
+    @ConfigPath("discord_webhook.bot_name")
+    private String discordBotName = "AntiAFK Guard";
+    @ConfigPath("discord_webhook.avatar_url")
+    private String discordAvatarUrl = "";
+
+    @ConfigPath("actions")
+    private List<Map<String, String>> actions = new ArrayList<>();
+
+    /**
+     * Raw warnings data loaded from configuration.
+     * This field is only intended to be accessed during configuration loading (e.g., in postLoad()).
+     * It should not be used elsewhere at runtime, as it may get out of sync with the processed warnings list.
+     * After processing, use the 'warnings' field for all runtime logic.
+     * If configuration is modified at runtime, ensure to reload and re-process to keep both lists in sync.
+     */
+    @ConfigPath("warnings")
+    private List<Map<String, Object>> warningsRaw = new ArrayList<>();
+    /**
+     * Processed warnings data, to be used by all runtime logic.
+     * Populated from warningsRaw during configuration loading.
+     */
+    @Ignore
+    private List<Map<String, Object>> warnings = new ArrayList<>();
+
+    @ConfigPath("exemptions.permissions.bypass_all")
+    private String permBypassAll = "antiafk.bypass.all";
+    @ConfigPath("exemptions.permissions.bypass_classic")
+    private String permBypassClassic = "antiafk.bypass.classic";
+    @ConfigPath("exemptions.permissions.bypass_behavioral")
+    private String permBypassBehavioral = "antiafk.bypass.behavioral";
+    @ConfigPath("exemptions.permissions.bypass_pointless")
+    private String permBypassPointless = "antiafk.bypass.pointless";
+    @ConfigPath("exemptions.permissions.bypass_autoclicker")
+    private String permBypassAutoclicker = "antiafk.bypass.autoclicker";
+    @ConfigPath("afk_command.permission")
+    private String permAfkCommandUse = "antiafk.command.afk";
+
+    @ConfigPath("exemptions.disabled_worlds")
+    private List<String> disabledWorlds = new ArrayList<>();
+    @ConfigPath("exemptions.exempt_gamemodes")
+    private List<String> exemptGameModes = new ArrayList<>();
+
+    @ConfigPath("afk_command.enabled")
+    private boolean afkCommandEnabled = true;
+    @ConfigPath("afk_command.on_afk.default_reason")
+    private String afkDefaultReason = "No reason specified";
+    @ConfigPath("afk_command.on_afk.set_invulnerable")
+    private boolean setInvulnerable = true;
+    @ConfigPath("afk_command.on_afk.tag_format")
+    private String afkTagFormat = "&7[AFK] ";
+    @ConfigPath("afk_command.on_afk.broadcast")
+    private boolean broadcastOnAfk = true;
+    @ConfigPath("afk_command.on_return.broadcast")
+    private boolean broadcastOnReturn = true;
+
+    @ConfigPath("worldguard_integration.enabled")
+    private boolean worldGuardEnabled = false;
+
+    @ConfigPath("worldguard_integration.region_overrides")
+    private Map<String, RegionConfigDTO> regionOverridesRaw = new HashMap<>();
+
+    @Ignore
+    private List<RegionOverride> regionOverrides = new ArrayList<>();
+    @Ignore
+    private Map<String, RegionOverride> regionOverrideMap = new HashMap<>();
+
+    @ConfigPath("progressive_punishment.enabled")
+    private boolean progressivePunishmentEnabled = true;
+    @ConfigPath("progressive_punishment.reset_after")
+    private String punishmentResetAfterStr = "30d";
+    @Ignore
     private long punishmentResetMillis;
-    private List<PunishmentLevel> punishmentLevels;
-    private int highestPunishmentCount;
 
-    private boolean learningModeEnabled;
-    private long analysisTaskPeriodTicks;
-    private double learningSimilarityThreshold;
-    private int learningSearchRadius;
+    @ConfigPath("progressive_punishment.punishments")
+    private List<PunishmentLevelDTO> punishmentLevelsRaw = new ArrayList<>();
 
-    private long maxPatternFileSizeKb;
-    private int maxVectorsPerPattern;
-    private double preFilterSizeRatio;
+    @Ignore
+    private List<PunishmentLevel> punishmentLevels = new ArrayList<>();
+    @Ignore
+    private int highestPunishmentCount = 0;
 
-    private final LoadingCache<UUID, Optional<RegionOverride>> regionCache;
 
     @Inject
     public ConfigManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
+        this.configuration = new Configuration(plugin);
         this.regionCache = Caffeine.newBuilder()
                 .maximumSize(1000)
                 .expireAfterAccess(5, TimeUnit.MINUTES)
@@ -112,28 +250,118 @@ public class ConfigManager {
         loadConfig();
     }
 
+    public void loadConfig() {
+        plugin.reloadConfig();
+        configuration.init(this, "config.yml");
+    }
+
+    /**
+     * Called automatically after configuration is loaded, via the {@code @PostLoad} annotation.
+     * <p>
+     * Performs critical post-processing of configuration values, including:
+     * <ul>
+     *   <li>Converting language name to {@link SupportedLanguage}</li>
+     *   <li>Parsing and converting time strings to numeric values</li>
+     *   <li>Transforming raw warning and punishment level data into processed collections</li>
+     *   <li>Sorting and clearing relevant collections</li>
+     *   <li>Populating region overrides based on configuration</li>
+     *   <li>Invalidating the region cache to ensure consistency with new configuration</li>
+     * </ul>
+     * This method has side effects on internal state and should not be called directly.
+     */
+    @PostLoad
+    @SuppressWarnings("unused")
+    public void postLoad() {
+        this.language = SupportedLanguage.fromConfigName(languageName);
+        TimeConverter timeConverter = new TimeConverter();
+
+        warnings.clear();
+        for (Map<String, Object> raw : warningsRaw) {
+            Map<String, Object> processed = new HashMap<>(raw);
+            String timeStr = String.valueOf(raw.getOrDefault("time", "0s"));
+            processed.put("time", timeConverter.convertToField(timeStr));
+            warnings.add(processed);
+        }
+        warnings.sort((w1, w2) -> Long.compare(((Number) w2.get("time")).longValue(), ((Number) w1.get("time")).longValue()));
+
+        if (punishmentResetAfterStr != null && punishmentResetAfterStr.equalsIgnoreCase("never")) {
+            punishmentResetMillis = -1;
+        } else if (punishmentResetAfterStr != null) {
+            punishmentResetMillis = timeConverter.convertToField(punishmentResetAfterStr) * 1000;
+        } else {
+            punishmentResetMillis = 0;
+        }
+
+        punishmentLevels.clear();
+        highestPunishmentCount = 0;
+        for (PunishmentLevelDTO dto : punishmentLevelsRaw) {
+            if (dto.count > highestPunishmentCount) highestPunishmentCount = dto.count;
+            punishmentLevels.add(new PunishmentLevel(dto.count, dto.actions));
+        }
+        Collections.sort(punishmentLevels);
+
+        regionOverrides.clear();
+        regionOverrideMap.clear();
+
+        if (worldGuardEnabled) {
+            for (RegionConfigDTO dto : regionOverridesRaw.values()) {
+                if (dto.region == null || dto.region.isEmpty()) continue;
+                long time = dto.max_afk_time.equalsIgnoreCase("disabled") ? -1 : timeConverter.convertToField(dto.max_afk_time);
+                List<Map<String, String>> regionActions = (dto.actions == null || dto.actions.isEmpty()) ? this.actions : dto.actions;
+
+                RegionOverride override = new RegionOverride(dto.region, time, regionActions);
+                regionOverrides.add(override);
+                regionOverrideMap.put(dto.region.toLowerCase(), override);
+            }
+        }
+
+        regionCache.invalidateAll();
+    }
+
+    public static class RegionConfigDTO {
+        public String region;
+        public String max_afk_time = "15m";
+        public List<Map<String, String>> actions;
+    }
+
+    public static class PunishmentLevelDTO {
+        public int count;
+        public List<Map<String, String>> actions;
+    }
+
     public void registerRegionProvider(IRegionProvider provider) {
         if (provider == null) throw new IllegalArgumentException("Region provider cannot be null");
         regionProviders.add(provider);
         plugin.getLogger().info("Registered new region provider: " + provider.getName());
     }
 
-    private Map<String, String> convertToStringMap(Map<?, ?> rawMap) {
-        Map<String, String> result = new HashMap<>();
-        for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
-            result.put(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
-        }
-        return result;
+    public FileConfiguration getRawConfig() {
+        return plugin.getConfig();
     }
 
-    /**
-     * Asıl bölge kontrol mantığı (Cache tarafından çağrılır).
-     * Hem WorldGuard'ı hem de kayıtlı diğer sağlayıcıları kontrol eder.
-     */
+    public void saveConfig() {
+        plugin.saveConfig();
+        loadConfig();
+    }
+
+    public AntiAFKPlugin getPlugin() {
+        return plugin;
+    }
+
+    public void clearPlayerCache(Player player) {
+        regionCache.invalidate(player.getUniqueId());
+    }
+
+    public RegionOverride getRegionOverrideForPlayer(Player player) {
+        if (!worldGuardEnabled && regionProviders.isEmpty()) {
+            return null;
+        }
+        return Objects.requireNonNull(regionCache.get(player.getUniqueId())).orElse(null);
+    }
+
     private Optional<RegionOverride> findRegionOverrideForPlayer(Player player) {
         if (worldGuardEnabled && plugin.isWorldGuardHooked()) {
             Optional<RegionOverride> wgOverride = checkWorldGuardRegion(player);
-
             if (wgOverride.isPresent()) {
                 return wgOverride;
             }
@@ -151,7 +379,7 @@ public class ConfigManager {
                     }
                 }
             } catch (Exception e) {
-                plugin.getLogger().warning("Bölge sağlayıcısı '" + provider.getName() + "' hata verdi: " + e.getMessage());
+                plugin.getLogger().warning("Region provider '" + provider.getName() + "' threw an error: " + e.getMessage());
             }
         }
 
@@ -168,182 +396,6 @@ public class ConfigManager {
             if (override != null) return Optional.of(override);
         }
         return Optional.empty();
-    }
-
-    private Object getOrDefault(Map<?, ?> map, String key, Object defaultValue) {
-        return map.containsKey(key) ? map.get(key) : defaultValue;
-    }
-
-    public void loadConfig() {
-        plugin.reloadConfig();
-        FileConfiguration config = plugin.getConfig();
-
-        String langFrConf = config.getString("lang", "Turkish");
-        this.language = SupportedLanguage.fromConfigName(langFrConf);
-
-        rejoinProtectionEnabled = config.getBoolean("rejoin_protection.enabled", true);
-        rejoinCooldownSeconds = TimeUtil.parseTime(config.getString("rejoin_protection.cooldown", "5m"));
-        maxAfkTimeSeconds = TimeUtil.parseTime(config.getString("max_afk_time", "15m"));
-        autoSetAfkSeconds = TimeUtil.parseTime(config.getString("detection.auto_set_afk_after", "disabled"));
-
-        checkCamera = config.getBoolean("detection.check_camera_movement", true);
-        checkChat = config.getBoolean("detection.check_chat_activity", true);
-        checkInteraction = config.getBoolean("detection.check_interaction", true);
-        checkToggleSneak = config.getBoolean("detection.check_toggle_sneak", true);
-        checkItemDrop = config.getBoolean("detection.check_item_drop", true);
-        checkInventoryActivity = config.getBoolean("detection.check_inventory_activity", true);
-        checkItemConsume = config.getBoolean("detection.check_item_consume", true);
-        checkHeldItemChange = config.getBoolean("detection.check_held_item_change", true);
-        checkPlayerAttack = config.getBoolean("detection.check_player_attack", true);
-        checkBookActivity = config.getBoolean("detection.check_book_activity", true);
-
-        maxPointlessActivities = config.getInt("detection.max-pointless-activities", 15);
-
-        autoClickerEnabled = config.getBoolean("detection.auto-clicker.enabled", true);
-        autoClickerCheckAmount = config.getInt("detection.auto-clicker.check-amount", 20);
-        autoClickerMaxDeviation = config.getLong("detection.auto-clicker.max-deviation", 10);
-        autoClickerDetectionsToPunish = config.getInt("detection.auto-clicker.detections-to-punish", 3);
-
-        checkWorldChangeEnabled = config.getBoolean("detection.check-world-change.enabled", true);
-        worldChangeCooldown = config.getInt("detection.check-world-change.cooldown", 20);
-        maxWorldChanges = config.getInt("detection.check-world-change.max-changes", 5);
-
-        turingTestEnabled = config.getBoolean("turing_test.enabled", true);
-        qaCaptchaTimeoutSeconds = config.getInt("turing_test.question_answer.answer_timeout_seconds", 20);
-        colorPaletteGuiRows = config.getInt("turing_test.color_palette.gui_rows", 3);
-        colorPaletteTimeLimit = config.getInt("turing_test.color_palette.time_limit_seconds", 15);
-        colorPaletteCorrectCount = config.getInt("turing_test.color_palette.correct_item_count", 5);
-        colorPaletteDistractorColorCount = config.getInt("turing_test.color_palette.distractor_color_count", 2);
-        colorPaletteDistractorItemCount = config.getInt("turing_test.color_palette.distractor_item_count_per_color", 4);
-        colorPaletteAvailableColors = config.getStringList("turing_test.color_palette.available_colors");
-
-        learningModeEnabled = config.getBoolean("learning_mode.enabled", true);
-        analysisTaskPeriodTicks = config.getLong("learning_mode.analysis_task_period_ticks", 40L);
-        learningSimilarityThreshold = config.getDouble("learning_mode.similarity_threshold", 25.0);
-        learningSearchRadius = config.getInt("learning_mode.search_radius", 10);
-
-
-        maxPatternFileSizeKb = config.getLong("learning_mode.security.max_pattern_file_size_kb", 1024);
-        maxVectorsPerPattern = config.getInt("learning_mode.security.max_vectors_per_pattern", 12000);
-        preFilterSizeRatio = config.getDouble("learning_mode.security.pre_filter_size_ratio", 0.5);
-
-        captchaFailureActions = new ArrayList<>();
-        for (Map<?, ?> rawMap : config.getMapList("turing_test.on_failure_actions")) {
-            captchaFailureActions.add(convertToStringMap(rawMap));
-        }
-
-        actions = new ArrayList<>();
-        if (config.isList("actions")) {
-            for (Map<?, ?> rawMap : config.getMapList("actions")) {
-                actions.add(convertToStringMap(rawMap));
-            }
-        }
-
-        warnings = new ArrayList<>();
-        if (config.isList("warnings")) {
-            for (Map<?, ?> rawMap : config.getMapList("warnings")) {
-                Map<String, Object> warningMap = new HashMap<>();
-                warningMap.put("time", TimeUtil.parseTime(String.valueOf(getOrDefault(rawMap, "time", "0s"))));
-                warningMap.put("type", String.valueOf(getOrDefault(rawMap, "type", "CHAT")).toUpperCase());
-                warningMap.put("message", String.valueOf(getOrDefault(rawMap, "message", "")));
-                warningMap.put("title", String.valueOf(getOrDefault(rawMap, "title", "")));
-                warningMap.put("subtitle", String.valueOf(getOrDefault(rawMap, "subtitle", "")));
-                warningMap.put("sound", String.valueOf(getOrDefault(rawMap, "sound", "")).toUpperCase());
-                warnings.add(warningMap);
-            }
-        }
-        warnings.sort((w1, w2) -> Long.compare(((Number) w2.get("time")).longValue(), ((Number) w1.get("time")).longValue()));
-
-        worldGuardEnabled = config.getBoolean("worldguard_integration.enabled", false);
-        regionOverrides = new ArrayList<>();
-        if (worldGuardEnabled) {
-            ConfigurationSection section = config.getConfigurationSection("worldguard_integration.region_overrides");
-            if (section != null) {
-                for (String key : section.getKeys(false)) {
-                    String path = "worldguard_integration.region_overrides." + key;
-                    String regionName = config.getString(path + ".region");
-                    if (regionName == null || regionName.isEmpty()) continue;
-
-                    long time = TimeUtil.parseTime(config.getString(path + ".max_afk_time", "disabled"));
-
-                    List<Map<String, String>> regionActions = new ArrayList<>();
-                    if (config.isList(path + ".actions")) {
-                        for (Map<?, ?> rawMap : config.getMapList(path + ".actions")) {
-                            regionActions.add(convertToStringMap(rawMap));
-                        }
-                    } else {
-                        regionActions = this.actions;
-                    }
-
-                    regionOverrides.add(new RegionOverride(regionName, time, regionActions));
-                }
-            }
-            rebuildRegionOverrideMap();
-        }
-
-        afkCommandEnabled = config.getBoolean("afk_command.enabled", true);
-        afkDefaultReason = config.getString("afk_command.on_afk.default_reason", "No reason specified");
-        setInvulnerable = config.getBoolean("afk_command.on_afk.set_invulnerable", true);
-        afkTagFormat = config.getString("afk_command.on_afk.tag_format", "&7[AFK] ");
-        broadcastOnAfk = config.getBoolean("afk_command.on_afk.broadcast", true);
-        broadcastOnReturn = config.getBoolean("afk_command.on_return.broadcast", true);
-
-        permBypassAll = config.getString("exemptions.permissions.bypass_all", "antiafk.bypass.all");
-        permBypassClassic = config.getString("exemptions.permissions.bypass_classic", "antiafk.bypass.classic");
-        permBypassBehavioral = config.getString("exemptions.permissions.bypass_behavioral", "antiafk.bypass.behavioral");
-        permBypassPointless = config.getString("exemptions.permissions.bypass_pointless", "antiafk.bypass.pointless");
-        permBypassAutoclicker = config.getString("exemptions.permissions.bypass_autoclicker", "antiafk.bypass.autoclicker");
-        permAfkCommandUse = config.getString("afk_command.permission", "antiafk.command.afk");
-
-        disabledWorlds = config.getStringList("exemptions.disabled_worlds");
-        exemptGameModes = config.getStringList("exemptions.exempt_gamemodes");
-
-        progressivePunishmentEnabled = config.getBoolean("progressive_punishment.enabled", true);
-        String resetAfterStr = config.getString("progressive_punishment.reset_after", "30d");
-
-        punishmentResetMillis = (resetAfterStr != null && resetAfterStr.equalsIgnoreCase("never"))
-                ? -1
-                : TimeUtil.parseTime(resetAfterStr) * 1000;
-
-        punishmentLevels = new ArrayList<>();
-        for (Map<?, ?> levelMap : config.getMapList("progressive_punishment.punishments")) {
-            Object countObj = levelMap.get("count");
-            int count = (countObj instanceof Number) ? ((Number) countObj).intValue() : 0;
-
-            if (count > highestPunishmentCount) {
-                highestPunishmentCount = count;
-            }
-
-            List<Map<String, String>> levelActions = new ArrayList<>();
-            Object actionsObj = levelMap.get("actions");
-            if (actionsObj instanceof List<?>) {
-                for (Object obj : (List<?>) actionsObj) {
-                    if (obj instanceof Map<?, ?>) {
-                        levelActions.add(convertToStringMap((Map<?, ?>) obj));
-                    }
-                }
-            }
-
-            punishmentLevels.add(new PunishmentLevel(count, levelActions));
-        }
-        Collections.sort(punishmentLevels);
-
-        regionCache.invalidateAll();
-    }
-
-    private void rebuildRegionOverrideMap() {
-        regionOverrideMap = new HashMap<>();
-        for (RegionOverride ro : regionOverrides) {
-            regionOverrideMap.put(ro.getRegionName().toLowerCase(), ro);
-        }
-    }
-
-    public void clearPlayerCache(Player player) {
-        regionCache.invalidate(player.getUniqueId());
-    }
-
-    public RegionOverride getRegionOverrideForPlayer(Player player) {
-        return Objects.requireNonNull(regionCache.get(player.getUniqueId())).orElse(null);
     }
 
     public long getMaxAfkTimeSeconds() { return maxAfkTimeSeconds; }
@@ -407,37 +459,10 @@ public class ConfigManager {
     public int getMaxVectorsPerPattern() { return maxVectorsPerPattern; }
     public double getPreFilterSizeRatio() { return preFilterSizeRatio; }
     public SupportedLanguage getLang() { return language; }
-    public int getBehaviorHistorySizeTicks() { return plugin.getConfig().getInt("behavioral-analysis.history-size-ticks", 600); }
-    public boolean isBehaviorAnalysisEnabled() { return plugin.getConfig().getBoolean("behavioral-analysis.enabled", false); }
-    public boolean isDiscordWebhookEnabled() { return plugin.getConfig().getBoolean("discord_webhook.enabled", false); }
-    public String getDiscordWebhookUrl() { return plugin.getConfig().getString("discord_webhook.webhook_url", ""); }
-    public String getDiscordBotName() { return plugin.getConfig().getString("discord_webhook.bot_name", "AntiAFK Guard"); }
-    public String getDiscordAvatarUrl() { return plugin.getConfig().getString("discord_webhook.avatar_url", ""); }
-
-    /**
-     * Ham FileConfiguration nesnesini döndürür.
-     * Bu, GUI gibi sınıfların config'e doğrudan yazma işlemi yapması için gereklidir.
-     * @return Eklentinin FileConfiguration nesnesi.
-     */
-    public FileConfiguration getRawConfig() {
-        return plugin.getConfig();
-    }
-
-
-    /**
-     * Yapılan değişiklikleri config.yml dosyasına kaydeder.
-     */
-    public void saveConfig() {
-        plugin.saveConfig();
-    }
-
-    /**
-     * Ana plugin nesnesini döndürür.
-     * Bu, Bukkit scheduler gibi plugin'e doğrudan bağımlı olan
-     * nadir durumlar için bir kaçış yolu olarak kullanılabilir.
-     * @return AntiAFKPlugin örneği.
-     */
-    public AntiAFKPlugin getPlugin() {
-        return plugin;
-    }
+    public int getBehaviorHistorySizeTicks() { return behaviorHistorySizeTicks; }
+    public boolean isBehaviorAnalysisEnabled() { return behaviorAnalysisEnabled; }
+    public boolean isDiscordWebhookEnabled() { return discordWebhookEnabled; }
+    public String getDiscordWebhookUrl() { return discordWebhookUrl; }
+    public String getDiscordBotName() { return discordBotName; }
+    public String getDiscordAvatarUrl() { return discordAvatarUrl; }
 }

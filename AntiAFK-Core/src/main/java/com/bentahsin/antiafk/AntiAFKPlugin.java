@@ -64,13 +64,6 @@ public final class AntiAFKPlugin extends JavaPlugin {
         }
     }
 
-    /**
-     * Guice Injector'ını döndürür.
-     * Not: Bu metodun kullanımı, DI prensiplerine aykırıdır ve kaçınılmalıdır.
-     * Sadece Guice tarafından yönetilemeyen nesneler (örn: GUI menüleri)
-     * için bir köprü olarak mevcuttur.
-     * @return Aktif Guice Injector'ı.
-     */
     public Injector getInjector() {
         return injector;
     }

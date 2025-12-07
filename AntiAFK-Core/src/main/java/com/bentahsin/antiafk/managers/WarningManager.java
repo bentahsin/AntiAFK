@@ -60,7 +60,7 @@ public class WarningManager {
 
             if (timeLeft <= warningTime) {
                 Long lastWarned = lastWarningTime.getIfPresent(player.getUniqueId());
-                if (lastWarned != null && lastWarned > warningTime) {
+                if (lastWarned != null && lastWarned <= warningTime) {
                     continue;
                 }
                 AntiAFKWarningEvent event = new AntiAFKWarningEvent(player, timeLeft, maxAfkTime);

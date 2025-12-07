@@ -10,6 +10,7 @@ import com.bentahsin.antiafk.utils.PlaceholderUtil;
 import com.bentahsin.antiafk.utils.TimeUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -37,6 +38,7 @@ public class PunishmentManager {
 
     private final Cache<UUID, Long> rejoinProtectedPlayers;
 
+    @Inject
     public PunishmentManager(AntiAFKPlugin plugin, ConfigManager configManager, DatabaseManager databaseManager,
                              PlayerStateManager stateManager, PlayerLanguageManager plLang, DebugManager debugMgr,
                              DiscordWebhookUtil discordWebhookUtil) {

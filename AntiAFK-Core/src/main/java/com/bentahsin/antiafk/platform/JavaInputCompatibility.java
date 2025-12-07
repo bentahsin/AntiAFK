@@ -1,6 +1,7 @@
 package com.bentahsin.antiafk.platform;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.google.inject.Inject;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -20,6 +21,7 @@ public class JavaInputCompatibility implements IInputCompatibility {
 
     private final AntiAFKPlugin plugin;
 
+    @Inject
     public JavaInputCompatibility(AntiAFKPlugin plugin) {
         this.plugin = plugin;
     }

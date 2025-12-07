@@ -2,6 +2,7 @@ package com.bentahsin.antiafk.language;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.language.provider.*;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import java.util.EnumMap;
@@ -17,6 +18,7 @@ public class SystemLanguageManager {
     private final Map<SupportedLanguage, TranslationProvider> providerMap = new EnumMap<>(SupportedLanguage.class);
     private TranslationProvider activeHardcodedProvider;
 
+    @Inject
     public SystemLanguageManager(AntiAFKPlugin plugin) {
         this.logger = plugin.getLogger();
         providerMap.put(SupportedLanguage.TURKISH, new Turkish());

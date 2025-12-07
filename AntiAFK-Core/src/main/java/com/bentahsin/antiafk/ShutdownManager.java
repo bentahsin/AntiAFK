@@ -6,6 +6,7 @@ import com.bentahsin.antiafk.learning.RecordingManager;
 import com.bentahsin.antiafk.learning.pool.VectorPoolManager;
 import com.bentahsin.antiafk.storage.DatabaseManager;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 /**
@@ -17,23 +18,23 @@ public class ShutdownManager {
 
     private final RecordingManager recordingManager;
     private final VectorPoolManager vectorPoolManager;
-    private final BehaviorAnalysisManager behaviorAnalysisManager;
+    private final Provider<BehaviorAnalysisManager> behaviorAnalysisManagerProvider;
     private final PatternAnalysisTask patternAnalysisTask;
-    private final DatabaseManager databaseManager;
+    private final Provider<DatabaseManager> databaseManagerProvider;
 
     @Inject
     public ShutdownManager(
             RecordingManager recordingManager,
             VectorPoolManager vectorPoolManager,
-            BehaviorAnalysisManager behaviorAnalysisManager,
+            Provider<BehaviorAnalysisManager> behaviorAnalysisManagerProvider,
             PatternAnalysisTask patternAnalysisTask,
-            DatabaseManager databaseManager
+            Provider<DatabaseManager> databaseManagerProvider
     ) {
         this.recordingManager = recordingManager;
         this.vectorPoolManager = vectorPoolManager;
-        this.behaviorAnalysisManager = behaviorAnalysisManager;
+        this.behaviorAnalysisManagerProvider = behaviorAnalysisManagerProvider;
         this.patternAnalysisTask = patternAnalysisTask;
-        this.databaseManager = databaseManager;
+        this.databaseManagerProvider = databaseManagerProvider;
     }
 
     /**
@@ -49,11 +50,13 @@ public class ShutdownManager {
         if (patternAnalysisTask != null) {
             patternAnalysisTask.shutdown();
         }
-        if (behaviorAnalysisManager != null && behaviorAnalysisManager.isEnabled()) {
-            behaviorAnalysisManager.shutdown();
+        BehaviorAnalysisManager bm = behaviorAnalysisManagerProvider.get();
+        if (bm != null && bm.isEnabled()) {
+            bm.shutdown();
         }
-        if (databaseManager != null) {
-            databaseManager.disconnect();
+        DatabaseManager dbm = databaseManagerProvider.get();
+        if (dbm != null) {
+            dbm.disconnect();
         }
     }
 }

@@ -1,11 +1,11 @@
 package com.bentahsin.antiafk.storage;
 
-import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.managers.DebugManager;
 import com.bentahsin.antiafk.models.PlayerStats;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import org.bukkit.entity.Player;
 
@@ -20,14 +20,14 @@ import java.util.concurrent.TimeUnit;
 @Singleton
 public class PlayerStatsManager {
 
-    private final DatabaseManager databaseManager;
+    private final Provider<DatabaseManager> databaseManagerProvider;
     private final DebugManager debugMgr;
 
     private final Cache<UUID, PlayerStats> statsCache;
 
     @Inject
-    public PlayerStatsManager(AntiAFKPlugin plugin, DatabaseManager databaseManager, DebugManager debugManager) {
-        this.databaseManager = databaseManager;
+    public PlayerStatsManager(Provider<DatabaseManager> databaseManagerProvider, DebugManager debugManager) {
+        this.databaseManagerProvider = databaseManagerProvider;
         this.debugMgr = debugManager;
 
         this.statsCache = Caffeine.newBuilder()
@@ -58,7 +58,7 @@ public class PlayerStatsManager {
         );
 
         return CompletableFuture.supplyAsync(() -> {
-            PlayerStats dbStats = databaseManager.getPlayerStats(uuid, username);
+            PlayerStats dbStats = databaseManagerProvider.get().getPlayerStats(uuid, username);
             statsCache.put(uuid, dbStats);
 
             debugMgr.log(DebugManager.DebugModule.DATABASE_QUERIES,

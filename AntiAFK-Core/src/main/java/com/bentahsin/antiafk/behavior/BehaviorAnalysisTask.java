@@ -7,6 +7,7 @@ import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.DebugManager;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -25,7 +26,7 @@ import java.util.List;
 public class BehaviorAnalysisTask extends BukkitRunnable {
 
     private final AntiAFKPlugin plugin;
-    private final BehaviorAnalysisManager analysisManager;
+    private final Provider<BehaviorAnalysisManager> analysisManagerProvider;
     private final ConfigManager configManager;
     private final DebugManager debugManager;
     private final AFKManager afkManager;
@@ -40,13 +41,13 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
     @Inject
     public BehaviorAnalysisTask(
             AntiAFKPlugin plugin,
-            BehaviorAnalysisManager analysisManager,
+            Provider<BehaviorAnalysisManager> analysisManagerProvider,
             ConfigManager configManager,
             DebugManager debugManager,
             AFKManager afkManager
     ) {
         this.plugin = plugin;
-        this.analysisManager = analysisManager;
+        this.analysisManagerProvider = analysisManagerProvider;
         this.configManager = configManager;
         this.debugManager = debugManager;
         this.afkManager = afkManager;
@@ -66,7 +67,7 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
                 continue;
             }
 
-            PlayerBehaviorData data = analysisManager.getPlayerData(player);
+            PlayerBehaviorData data = analysisManagerProvider.get().getPlayerData(player);
             LinkedList<Location> history = data.getMovementHistory();
             boolean matchFound = false;
 

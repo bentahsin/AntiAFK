@@ -7,7 +7,7 @@ import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.utils.PlaceholderUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.google.inject.Inject; // Injector düzeltmesi
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -119,7 +119,6 @@ public class WarningManager {
     private void handleBossBar(Player player, String title, Map<String, Object> warning, long timeLeft, long maxAfkTime) {
         UUID uuid = player.getUniqueId();
 
-        // Varsa eski barı al, yoksa yeni oluştur
         BossBar bossBar = activeBossBars.get(uuid);
 
         String colorName = (String) warning.getOrDefault("bar_color", "RED");

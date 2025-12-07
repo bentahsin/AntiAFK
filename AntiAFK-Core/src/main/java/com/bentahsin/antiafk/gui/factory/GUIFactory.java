@@ -19,8 +19,8 @@ public interface GUIFactory {
             PlayerMenuUtility playerMenuUtility,
             String title,
             ItemStack confirmationItem,
-            @Assisted("onConfirm") Consumer<InventoryClickEvent> onConfirm,
-            @Assisted("onConfirm") Consumer<InventoryClickEvent> onCancel
+            @Assisted Consumer<InventoryClickEvent> onConfirm,
+            @Assisted Runnable onCancel
     );
     PlayerActionGUI createPlayerActionGUI(PlayerMenuUtility playerMenuUtility);
     PlayerListGUI createPlayerListGUI(PlayerMenuUtility playerMenuUtility, int page);

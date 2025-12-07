@@ -18,7 +18,6 @@ import java.util.Optional;
 public class RegionActionsListGUI extends Menu {
 
     private final PlayerLanguageManager playerLanguageManager;
-    private final ConfigManager configManager;
     private final GUIFactory guiFactory;
 
     private final String regionName;
@@ -34,7 +33,6 @@ public class RegionActionsListGUI extends Menu {
     ) {
         super(playerMenuUtility);
         this.playerLanguageManager = playerLanguageManager;
-        this.configManager = configManager;
         this.guiFactory = guiFactory;
 
         this.regionName = playerMenuUtility.getRegionToEdit();

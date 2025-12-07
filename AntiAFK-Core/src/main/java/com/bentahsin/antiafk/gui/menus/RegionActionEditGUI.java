@@ -147,7 +147,7 @@ public class RegionActionEditGUI extends Menu {
                         guiFactory.createRegionActionsListGUI(playerMenuUtility).open();
                     }
                 },
-                (e) -> guiFactory.createRegionActionEditGUI(playerMenuUtility).open()
+                () -> guiFactory.createRegionActionEditGUI(playerMenuUtility).open()
         ).open();
     }
 

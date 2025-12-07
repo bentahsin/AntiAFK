@@ -20,7 +20,7 @@ public class ConfirmationGUI extends Menu {
     private final String title;
     private final ItemStack confirmationItem;
     private final Consumer<InventoryClickEvent> onConfirm;
-    private final Consumer<InventoryClickEvent> onCancel;
+    private final Runnable onCancel;
 
     private final PlayerLanguageManager playerLanguageManager;
 
@@ -29,8 +29,8 @@ public class ConfirmationGUI extends Menu {
             @Assisted PlayerMenuUtility playerMenuUtility,
             @Assisted String title,
             @Assisted ItemStack confirmationItem,
-            @Assisted("onConfirm") Consumer<InventoryClickEvent> onConfirm,
-            @Assisted("onCancel") Consumer<InventoryClickEvent> onCancel,
+            @Assisted Consumer<InventoryClickEvent> onConfirm,
+            @Assisted Runnable onCancel,
             PlayerLanguageManager playerLanguageManager
     ) {
         super(playerMenuUtility);
@@ -66,7 +66,7 @@ public class ConfirmationGUI extends Menu {
                 playerLanguageManager.getMessage("gui.confirmation.cancel_button.name"),
                 playerLanguageManager.getMessageList("gui.confirmation.cancel_button.lore").toArray(new String[0])
         );
-        actions.put(15, () -> onCancel.accept(null));
+        actions.put(15, onCancel);
         inventory.setItem(15, cancelButton);
 
         ItemStack filler = createGuiItem(Material.GRAY_STAINED_GLASS_PANE, " ");

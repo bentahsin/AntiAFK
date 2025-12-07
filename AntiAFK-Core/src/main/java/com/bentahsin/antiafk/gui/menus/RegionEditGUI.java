@@ -150,7 +150,7 @@ public class RegionEditGUI extends Menu {
                 playerLanguageManager.getMessage("gui.region_edit_menu.delete_confirmation_title"),
                 confirmationItem,
                 (clickEvent) -> deleteRegionRule(),
-                (clickEvent) -> guiFactory.createRegionEditGUI(playerMenuUtility).open()
+                () -> guiFactory.createRegionEditGUI(playerMenuUtility).open()
         ).open();
     }
 

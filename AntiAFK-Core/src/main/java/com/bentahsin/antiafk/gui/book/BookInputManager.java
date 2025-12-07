@@ -1,10 +1,12 @@
 package com.bentahsin.antiafk.gui.book;
 
+import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.EnumWrappers;
+import com.google.inject.Inject;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -25,9 +27,10 @@ import java.util.function.Consumer;
 public class BookInputManager {
 
     private final Map<UUID, BookInputRequest> inputRequests = new HashMap<>();
-    private final Plugin plugin;
+    private final AntiAFKPlugin plugin;
 
-    public BookInputManager(Plugin plugin) {
+    @Inject
+    public BookInputManager(AntiAFKPlugin plugin) {
         this.plugin = plugin;
     }
 

@@ -7,6 +7,7 @@ import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.DebugManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.google.inject.Inject;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -16,6 +17,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
  */
 public class PlayerStateListener extends ActivityListener implements org.bukkit.event.Listener {
 
+    @Inject
     public PlayerStateListener(
             AntiAFKPlugin plugin, AFKManager afkManager, ConfigManager configManager,
             DebugManager debugManager, PlayerLanguageManager languageManager,

@@ -8,6 +8,7 @@ import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.DebugManager;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
+import com.google.inject.Inject;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
@@ -32,6 +33,7 @@ public class PlayerChatListener extends ActivityListener implements Listener {
 
     private final GUIFactory guiFactory;
 
+    @Inject
     public PlayerChatListener(
             AntiAFKPlugin plugin, AFKManager afkManager, ConfigManager configManager,
             DebugManager debugManager, PlayerLanguageManager languageManager,

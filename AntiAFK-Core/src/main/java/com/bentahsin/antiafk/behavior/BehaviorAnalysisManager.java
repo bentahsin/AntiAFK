@@ -5,6 +5,7 @@ import com.bentahsin.antiafk.language.Lang;
 import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -29,7 +30,9 @@ public class BehaviorAnalysisManager implements Listener {
     private final PluginManager pluginManager;
     private final Logger logger;
     private final SystemLanguageManager systemLanguageManager;
-    private final BehaviorAnalysisTask analysisTask;
+    private final Provider<BehaviorAnalysisTask> analysisTaskProvider;
+
+    private BehaviorAnalysisTask analysisTask;
 
     private final Map<UUID, PlayerBehaviorData> playerDataMap = new ConcurrentHashMap<>();
     private final int historySizeTicks;
@@ -40,13 +43,13 @@ public class BehaviorAnalysisManager implements Listener {
             AntiAFKPlugin plugin,
             SystemLanguageManager systemLanguageManager,
             ConfigManager configManager,
-            BehaviorAnalysisTask analysisTask
+            Provider<BehaviorAnalysisTask> analysisTaskProvider
     ) {
         this.plugin = plugin;
         this.pluginManager = plugin.getServer().getPluginManager();
         this.logger = plugin.getLogger();
         this.systemLanguageManager = systemLanguageManager;
-        this.analysisTask = analysisTask;
+        this.analysisTaskProvider = analysisTaskProvider;
         this.historySizeTicks = configManager.getBehaviorHistorySizeTicks();
         this.enabled = configManager.isBehaviorAnalysisEnabled();
 
@@ -61,7 +64,8 @@ public class BehaviorAnalysisManager implements Listener {
     private void initialize() {
         logger.info(systemLanguageManager.getSystemMessage(Lang.BEHAVIOR_ANALYSIS_ENABLED_AND_INIT));
 
-        analysisTask.runTaskTimerAsynchronously(plugin, 100L, 5L);
+        this.analysisTask = analysisTaskProvider.get();
+        this.analysisTask.runTaskTimerAsynchronously(plugin, 100L, 5L);
 
         pluginManager.registerEvents(this, plugin);
     }

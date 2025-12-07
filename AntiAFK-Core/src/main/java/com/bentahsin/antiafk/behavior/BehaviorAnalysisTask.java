@@ -29,7 +29,7 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
     private final Provider<BehaviorAnalysisManager> analysisManagerProvider;
     private final ConfigManager configManager;
     private final DebugManager debugManager;
-    private final AFKManager afkManager;
+    private final Provider<AFKManager> afkManagerProvider;
 
     private final int minTrajectoryPoints;
     private final int maxTrajectoryPoints;
@@ -44,13 +44,13 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
             Provider<BehaviorAnalysisManager> analysisManagerProvider,
             ConfigManager configManager,
             DebugManager debugManager,
-            AFKManager afkManager
+            Provider<AFKManager> afkManagerProvider
     ) {
         this.plugin = plugin;
         this.analysisManagerProvider = analysisManagerProvider;
         this.configManager = configManager;
         this.debugManager = debugManager;
-        this.afkManager = afkManager;
+        this.afkManagerProvider = afkManagerProvider;
 
         this.minTrajectoryPoints = plugin.getConfig().getInt("behavioral-analysis.min-trajectory-points", 20);
         this.maxTrajectoryPoints = plugin.getConfig().getInt("behavioral-analysis.max-trajectory-points", 300);
@@ -114,7 +114,7 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
 
                             if (data.getConsecutiveRepeatCount() >= maxRepeats) {
                                 Bukkit.getScheduler().runTask(plugin, () ->
-                                        afkManager.getBotDetectionManager().triggerSuspicionAndChallenge(player, "behavior.afk_detected", DetectionType.BEHAVIORAL_REPETITION)
+                                        afkManagerProvider.get().getBotDetectionManager().triggerSuspicionAndChallenge(player, "behavior.afk_detected", DetectionType.BEHAVIORAL_REPETITION)
                                 );
                                 data.reset();
                                 break;

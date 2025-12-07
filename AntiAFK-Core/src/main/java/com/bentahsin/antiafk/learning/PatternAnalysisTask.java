@@ -14,6 +14,7 @@ import com.fastdtw.timeseries.TimeSeries;
 import com.fastdtw.timeseries.TimeSeriesPoint;
 import com.fastdtw.util.DistanceFunction;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.bukkit.Bukkit;
@@ -34,7 +35,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class PatternAnalysisTask extends BukkitRunnable {
 
     private final AntiAFKPlugin plugin;
-    private final AFKManager afkMgr;
+    private final Provider<AFKManager> afkMgrProvider;
     private final DebugManager debugMgr;
     private final PatternManager patternManager;
     private final RecordingManager recordingManager;
@@ -51,11 +52,11 @@ public class PatternAnalysisTask extends BukkitRunnable {
     private final DistanceFunction distanceFunction;
 
     @Inject
-    public PatternAnalysisTask(AntiAFKPlugin plugin, AFKManager afkMgr, DebugManager debugMgr,
+    public PatternAnalysisTask(AntiAFKPlugin plugin, Provider<AFKManager> afkMgrProvider, DebugManager debugMgr,
                                PatternManager patternManager, RecordingManager recordingManager,
                                ConfigManager configManager, VectorPoolManager vectorPoolManager) {
         this.plugin = plugin;
-        this.afkMgr = afkMgr;
+        this.afkMgrProvider = afkMgrProvider;
         this.debugMgr = debugMgr;
         this.patternManager = patternManager;
         this.recordingManager = recordingManager;
@@ -113,7 +114,7 @@ public class PatternAnalysisTask extends BukkitRunnable {
                             player.getName(), knownPattern.getName(), info.getDistance()
                     );
                     Bukkit.getScheduler().runTask(plugin, () ->
-                            afkMgr.getBotDetectionManager().triggerSuspicionAndChallenge(player, "behavior.learned_pattern_detected", DetectionType.LEARNED_PATTERN)
+                            afkMgrProvider.get().getBotDetectionManager().triggerSuspicionAndChallenge(player, "behavior.learned_pattern_detected", DetectionType.LEARNED_PATTERN)
                     );
                     break;
                 }

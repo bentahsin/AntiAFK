@@ -11,6 +11,7 @@ import com.bentahsin.antiafk.turing.captcha.ColorPaletteCaptcha;
 import com.bentahsin.antiafk.api.turing.ICaptcha;
 import com.bentahsin.antiafk.turing.captcha.QuestionAnswerCaptcha;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -28,7 +29,7 @@ public class CaptchaManager {
 
     private final AntiAFKPlugin plugin;
     private final IInputCompatibility inputCompatibility;
-    private final AFKManager afkManager;
+    private final Provider<AFKManager> afkManagerProvider;
     private final PlayerLanguageManager plLang;
     private final DatabaseManager databaseManager;
     private final ConfigManager configManager;
@@ -41,7 +42,7 @@ public class CaptchaManager {
 
     @Inject
     public CaptchaManager(AntiAFKPlugin plugin, IInputCompatibility inputCompatibility,
-                          AFKManager afkManager,
+                          Provider<AFKManager> afkManagerProvider,
                           PlayerLanguageManager plLang,
                           DatabaseManager databaseManager,
                           ConfigManager configManager,
@@ -49,7 +50,7 @@ public class CaptchaManager {
                           Set<ICaptcha> availableCaptchas) {
         this.plugin = plugin;
         this.inputCompatibility = inputCompatibility;
-        this.afkManager = afkManager;
+        this.afkManagerProvider = afkManagerProvider;
         this.plLang = plLang;
         this.databaseManager = databaseManager;
         this.configManager = configManager;
@@ -135,6 +136,8 @@ public class CaptchaManager {
             return;
         }
 
+        AFKManager afkManager = afkManagerProvider.get();
+
         afkManager.getStateManager().setSuspicious(player);
         ICaptcha selectedCaptcha = selectAppropriateCaptcha(player);
 
@@ -174,7 +177,7 @@ public class CaptchaManager {
             activePlayerCaptcha.remove(player.getUniqueId());
         }
         databaseManager.incrementTestsPassed(player.getUniqueId());
-        afkManager.getBotDetectionManager().resetSuspicion(player);
+        afkManagerProvider.get().getBotDetectionManager().resetSuspicion(player);
         plLang.sendMessage(player, "turing_test.success");
         plugin.getServer().getPluginManager().callEvent(
                 new com.bentahsin.antiafk.api.events.AntiAFKTuringTestResultEvent(
@@ -200,6 +203,7 @@ public class CaptchaManager {
 
         databaseManager.incrementTestsFailed(player.getUniqueId());
 
+        AFKManager afkManager = afkManagerProvider.get();
         List<Map<String, String>> actions = configManager.getCaptchaFailureActions();
         if (actions != null && !actions.isEmpty()) {
             afkManager.getPunishmentManager().executeActions(player, actions, afkManager.getStateManager());

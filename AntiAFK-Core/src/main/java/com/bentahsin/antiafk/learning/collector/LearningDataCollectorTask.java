@@ -3,6 +3,7 @@ package com.bentahsin.antiafk.learning.collector;
 import com.bentahsin.antiafk.learning.MovementVector;
 import com.bentahsin.antiafk.learning.PatternAnalysisTask;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -16,16 +17,17 @@ import java.util.concurrent.ConcurrentHashMap;
 @Singleton
 public class LearningDataCollectorTask extends BukkitRunnable {
 
-    private final PatternAnalysisTask analysisTask;
+    private final Provider<PatternAnalysisTask> analysisTaskProvider;
     private final Map<UUID, LearningData> playerData = new ConcurrentHashMap<>();
 
     @Inject
-    public LearningDataCollectorTask(PatternAnalysisTask analysisTask) {
-        this.analysisTask = analysisTask;
+    public LearningDataCollectorTask(Provider<PatternAnalysisTask> analysisTaskProvider) {
+        this.analysisTaskProvider = analysisTaskProvider;
     }
 
     @Override
     public void run() {
+        PatternAnalysisTask analysisTask = analysisTaskProvider.get();
         if (analysisTask == null) return;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -81,7 +83,7 @@ public class LearningDataCollectorTask extends BukkitRunnable {
             dX = dZ = dYaw = dPitch = 0;
         }
 
-        analysisTask.queueMovementData(p.getUniqueId(), dX, dZ, dYaw, dPitch, action, duration);
+        analysisTaskProvider.get().queueMovementData(p.getUniqueId(), dX, dZ, dYaw, dPitch, action, duration);
     }
 
     public void onPlayerQuit(Player player) {

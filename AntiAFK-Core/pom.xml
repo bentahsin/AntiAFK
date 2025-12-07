@@ -137,6 +137,10 @@
                                     <shadedPattern>com.bentahsin.antiafk.libs.benthpapimanager</shadedPattern>
                                 </relocation>
                                 <relocation>
+                                    <pattern>com.bentahsin.configuration</pattern>
+                                    <shadedPattern>com.bentahsin.antiafk.libs.configuration</shadedPattern>
+                                </relocation>
+                                <relocation>
                                     <pattern>org.sqlite</pattern>
                                     <shadedPattern>com.bentahsin.antiafk.libs.sqlite</shadedPattern>
                                 </relocation>

@@ -25,7 +25,6 @@ import org.bukkit.entity.Player;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Singleton
 @ConfigHeader({
@@ -60,10 +59,13 @@ public class ConfigManager {
     @Comment("Süre dolduğunda uygulanacak aksiyonlar.")
     private List<Map<String, String>> actions = new ArrayList<>();
 
-    // --- UYARILAR (DTO KULLANIMI) ---
+    // --- UYARILAR ---
     @ConfigPath("warnings")
     @Comment("Oyuncuya ceza uygulanmadan önce gönderilecek uyarılar.")
-    private List<WarningDTO> warningList = new ArrayList<>();
+    private List<Map<String, Object>> warningsRaw = new ArrayList<>();
+
+    @Ignore
+    private List<Map<String, Object>> warnings = new ArrayList<>();
 
     // --- TESPİT AYARLARI ---
     @ConfigPath("detection.auto_set_afk_after")
@@ -185,15 +187,30 @@ public class ConfigManager {
         configuration.init(this, "config.yml");
     }
 
-    /**
-     * Called automatically after configuration is loaded, via the {@code @PostLoad} annotation.
-     */
     @PostLoad
     public void postLoad() {
         this.language = SupportedLanguage.fromConfigName(languageName);
         TimeConverter timeConverter = new TimeConverter();
 
-        warningList.sort((w1, w2) -> Long.compare(w2.time, w1.time));
+        warnings.clear();
+        if (warningsRaw != null) {
+            for (Map<String, Object> raw : warningsRaw) {
+                if (raw == null) continue;
+                try {
+                    Map<String, Object> processed = new HashMap<>(raw);
+                    String timeStr = String.valueOf(raw.getOrDefault("time", "0s"));
+                    processed.put("time", timeConverter.convertToField(timeStr));
+
+                    processed.put("bar_color", String.valueOf(raw.getOrDefault("bar_color", "RED")).toUpperCase());
+                    processed.put("bar_style", String.valueOf(raw.getOrDefault("bar_style", "SOLID")).toUpperCase());
+
+                    warnings.add(processed);
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Uyarı konfigürasyonu işlenirken hata oluştu: " + e.getMessage());
+                }
+            }
+            warnings.sort((w1, w2) -> Long.compare(((Number) w2.get("time")).longValue(), ((Number) w1.get("time")).longValue()));
+        }
 
         if (punishmentResetAfterStr != null && punishmentResetAfterStr.equalsIgnoreCase("never")) {
             punishmentResetMillis = -1;
@@ -203,6 +220,7 @@ public class ConfigManager {
             punishmentResetMillis = 0;
         }
 
+        // 3. Ceza seviyelerini işle
         punishmentLevels.clear();
         highestPunishmentCount = 0;
         for (PunishmentLevelDTO dto : punishmentLevelsRaw) {
@@ -229,35 +247,6 @@ public class ConfigManager {
         regionCache.invalidateAll();
     }
 
-
-    public static class WarningDTO {
-        @Transform(TimeConverter.class)
-        public long time;
-        public String type = "CHAT";
-        public String message = "";
-        public String title = "";
-        public String subtitle = "";
-        public String sound = "";
-
-        @ConfigPath("bar_color")
-        public String barColor = "RED";
-        @ConfigPath("bar_style")
-        public String barStyle = "SOLID";
-
-        public Map<String, Object> toMap() {
-            Map<String, Object> map = new HashMap<>();
-            map.put("time", time);
-            map.put("type", type);
-            map.put("message", message);
-            map.put("title", title);
-            map.put("subtitle", subtitle);
-            map.put("sound", sound);
-            map.put("bar_color", barColor);
-            map.put("bar_style", barStyle);
-            return map;
-        }
-    }
-
     public static class RegionConfigDTO {
         public String region;
         public String max_afk_time = "15m";
@@ -270,9 +259,7 @@ public class ConfigManager {
     }
 
     public List<Map<String, Object>> getWarnings() {
-        return warningList.stream()
-                .map(WarningDTO::toMap)
-                .collect(Collectors.toList());
+        return warnings;
     }
 
     public void registerRegionProvider(IRegionProvider provider) {

@@ -249,6 +249,8 @@ public class ConfigManager {
                 warningMap.put("title", String.valueOf(getOrDefault(rawMap, "title", "")));
                 warningMap.put("subtitle", String.valueOf(getOrDefault(rawMap, "subtitle", "")));
                 warningMap.put("sound", String.valueOf(getOrDefault(rawMap, "sound", "")).toUpperCase());
+                warningMap.put("bar_color", String.valueOf(getOrDefault(rawMap, "bar_color", "RED")).toUpperCase());
+                warningMap.put("bar_style", String.valueOf(getOrDefault(rawMap, "bar_style", "SOLID")).toUpperCase());
                 warnings.add(warningMap);
             }
         }

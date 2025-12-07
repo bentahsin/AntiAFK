@@ -29,8 +29,8 @@ public class ConfirmationGUI extends Menu {
             @Assisted PlayerMenuUtility playerMenuUtility,
             @Assisted String title,
             @Assisted ItemStack confirmationItem,
-            @Assisted Consumer<InventoryClickEvent> onConfirm,
-            @Assisted Consumer<InventoryClickEvent> onCancel,
+            @Assisted("onConfirm") Consumer<InventoryClickEvent> onConfirm,
+            @Assisted("onCancel") Consumer<InventoryClickEvent> onCancel,
             PlayerLanguageManager playerLanguageManager
     ) {
         super(playerMenuUtility);

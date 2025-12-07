@@ -2,6 +2,7 @@ package com.bentahsin.antiafk.gui.factory;
 
 import com.bentahsin.antiafk.gui.menus.*;
 import com.bentahsin.antiafk.gui.utility.PlayerMenuUtility;
+import com.google.inject.assistedinject.Assisted;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -18,8 +19,8 @@ public interface GUIFactory {
             PlayerMenuUtility playerMenuUtility,
             String title,
             ItemStack confirmationItem,
-            Consumer<InventoryClickEvent> onConfirm,
-            Consumer<InventoryClickEvent> onCancel
+            @Assisted("onConfirm") Consumer<InventoryClickEvent> onConfirm,
+            @Assisted("onConfirm") Consumer<InventoryClickEvent> onCancel
     );
     PlayerActionGUI createPlayerActionGUI(PlayerMenuUtility playerMenuUtility);
     PlayerListGUI createPlayerListGUI(PlayerMenuUtility playerMenuUtility, int page);

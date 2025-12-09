@@ -22,6 +22,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -36,10 +37,14 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings({"FieldCanBeLocal", "unused", "unchecked"})
 public class ConfigManager {
 
-    @Ignore private final AntiAFKPlugin plugin;
-    @Ignore private final Configuration configuration;
-    @Ignore private final List<IRegionProvider> regionProviders = new CopyOnWriteArrayList<>();
-    @Ignore private final LoadingCache<UUID, Optional<RegionOverride>> regionCache;
+    @Ignore
+    private final AntiAFKPlugin plugin;
+    @Ignore
+    private final Configuration configuration;
+    @Ignore
+    private final List<IRegionProvider> regionProviders = new CopyOnWriteArrayList<>();
+    @Ignore
+    private final LoadingCache<UUID, Optional<RegionOverride>> regionCache;
 
     // --- TEMEL AYARLAR ---
     @ConfigPath("lang")
@@ -54,17 +59,10 @@ public class ConfigManager {
     private long maxAfkTimeSeconds = 900;
 
     @ConfigPath("actions")
-    private List<Map<String, String>> actions = new ArrayList<>(Collections.singletonList(
-            createAction("CONSOLE", "kick %player% &cAFK süreniz doldu.")
-    ));
+    private List<Map<String, String>> actions = new ArrayList<>();
 
-    // --- UYARILAR ---
     @ConfigPath("warnings")
-    private List<Map<String, Object>> warningsRaw = new ArrayList<>(Arrays.asList(
-            createWarning("5m", "CHAT", "&e[AFK] &7Hareketsiz görünüyorsun.", "", "", "", "RED", "SOLID"),
-            createWarning("1m", "TITLE", "", "&c&lDİKKAT", "&e1 dakika içinde hareket etmelisin!", "BLOCK_NOTE_BLOCK_PLING", "RED", "SOLID"),
-            createWarning("10s", "ACTION_BAR", "&4&lSunucudan atılıyor: %time_left%", "", "", "ENTITY_EXPERIENCE_ORB_PICKUP", "RED", "SOLID")
-    ));
+    private List<Map<String, Object>> warningsRaw = new ArrayList<>();
 
     @Ignore
     private List<Map<String, Object>> warnings = new ArrayList<>();
@@ -78,108 +76,189 @@ public class ConfigManager {
     @Validate(min = 1)
     private int maxPointlessActivities = 15;
 
-    @ConfigPath("detection.check_camera_movement") private boolean checkCamera = true;
-    @ConfigPath("detection.check_chat_activity") private boolean checkChat = true;
-    @ConfigPath("detection.check_interaction") private boolean checkInteraction = true;
-    @ConfigPath("detection.check_toggle_sneak") private boolean checkToggleSneak = true;
-    @ConfigPath("detection.check_item_drop") private boolean checkItemDrop = true;
-    @ConfigPath("detection.check_inventory_activity") private boolean checkInventoryActivity = true;
-    @ConfigPath("detection.check_item_consume") private boolean checkItemConsume = true;
-    @ConfigPath("detection.check_held_item_change") private boolean checkHeldItemChange = true;
-    @ConfigPath("detection.check_player_attack") private boolean checkPlayerAttack = true;
-    @ConfigPath("detection.check_book_activity") private boolean checkBookActivity = true;
+    @ConfigPath("detection.check_camera_movement")
+    private boolean checkCamera = true;
+    @ConfigPath("detection.check_chat_activity")
+    private boolean checkChat = true;
+    @ConfigPath("detection.check_interaction")
+    private boolean checkInteraction = true;
+    @ConfigPath("detection.check_toggle_sneak")
+    private boolean checkToggleSneak = true;
+    @ConfigPath("detection.check_item_drop")
+    private boolean checkItemDrop = true;
+    @ConfigPath("detection.check_inventory_activity")
+    private boolean checkInventoryActivity = true;
+    @ConfigPath("detection.check_item_consume")
+    private boolean checkItemConsume = true;
+    @ConfigPath("detection.check_held_item_change")
+    private boolean checkHeldItemChange = true;
+    @ConfigPath("detection.check_player_attack")
+    private boolean checkPlayerAttack = true;
+    @ConfigPath("detection.check_book_activity")
+    private boolean checkBookActivity = true;
 
     // --- AUTO CLICKER ---
-    @ConfigPath("detection.auto-clicker.enabled") private boolean autoClickerEnabled = true;
-    @ConfigPath("detection.auto-clicker.check-amount") @Validate(min = 5) private int autoClickerCheckAmount = 20;
-    @ConfigPath("detection.auto-clicker.max-deviation") @Validate(min = 0) private long autoClickerMaxDeviation = 10;
-    @ConfigPath("detection.auto-clicker.detections-to-punish") @Validate(min = 1) private int autoClickerDetectionsToPunish = 3;
+    @ConfigPath("detection.auto-clicker.enabled")
+    private boolean autoClickerEnabled = true;
+    @ConfigPath("detection.auto-clicker.check-amount")
+    @Validate(min = 5)
+    private int autoClickerCheckAmount = 20;
+    @ConfigPath("detection.auto-clicker.max-deviation")
+    @Validate(min = 0)
+    private long autoClickerMaxDeviation = 10;
+    @ConfigPath("detection.auto-clicker.detections-to-punish")
+    @Validate(min = 1)
+    private int autoClickerDetectionsToPunish = 3;
 
     // --- DÜNYA DEĞİŞİMİ ---
-    @ConfigPath("detection.check-world-change.enabled") private boolean checkWorldChangeEnabled = true;
-    @ConfigPath("detection.check-world-change.cooldown") @Validate(min = 1) private int worldChangeCooldown = 20;
-    @ConfigPath("detection.check-world-change.max-changes") @Validate(min = 1) private int maxWorldChanges = 5;
+    @ConfigPath("detection.check-world-change.enabled")
+    private boolean checkWorldChangeEnabled = true;
+    @ConfigPath("detection.check-world-change.cooldown")
+    @Validate(min = 1)
+    private int worldChangeCooldown = 20;
+    @ConfigPath("detection.check-world-change.max-changes")
+    @Validate(min = 1)
+    private int maxWorldChanges = 5;
 
     // --- YENİDEN GİRİŞ KORUMASI ---
-    @ConfigPath("rejoin_protection.enabled") private boolean rejoinProtectionEnabled = true;
-    @ConfigPath("rejoin_protection.cooldown") @Transform(TimeConverter.class) private long rejoinCooldownSeconds = 300;
+    @ConfigPath("rejoin_protection.enabled")
+    private boolean rejoinProtectionEnabled = true;
+    @ConfigPath("rejoin_protection.cooldown")
+    @Transform(TimeConverter.class)
+    private long rejoinCooldownSeconds = 300;
 
     // --- TURING TESTİ (CAPTCHA) ---
-    @ConfigPath("turing_test.enabled") private boolean turingTestEnabled = true;
-    @ConfigPath("turing_test.question_answer.answer_timeout_seconds") @Validate(min = 5) private int qaCaptchaTimeoutSeconds = 20;
+    @ConfigPath("turing_test.enabled")
+    private boolean turingTestEnabled = true;
+    @ConfigPath("turing_test.question_answer.answer_timeout_seconds")
+    @Validate(min = 5)
+    private int qaCaptchaTimeoutSeconds = 20;
 
     @ConfigPath("turing_test.on_failure_actions")
-    private List<Map<String, String>> captchaFailureActions = new ArrayList<>(Collections.singletonList(
-            createAction("CONSOLE", "kick %player% &cBot testi başarısız!")
-    ));
+    private List<Map<String, String>> captchaFailureActions = new ArrayList<>();
 
-    // Color Palette Ayarları
-    @ConfigPath("turing_test.color_palette.gui_rows") @Validate(min = 1, max = 6) private int colorPaletteGuiRows = 3;
-    @ConfigPath("turing_test.color_palette.time_limit_seconds") @Validate(min = 5) private int colorPaletteTimeLimit = 15;
-    @ConfigPath("turing_test.color_palette.correct_item_count") @Validate(min = 1) private int colorPaletteCorrectCount = 5;
-    @ConfigPath("turing_test.color_palette.distractor_color_count") @Validate(min = 1) private int colorPaletteDistractorColorCount = 2;
-    @ConfigPath("turing_test.color_palette.distractor_item_count_per_color") @Validate(min = 1) private int colorPaletteDistractorItemCount = 4;
+    @ConfigPath("turing_test.color_palette.gui_rows")
+    @Validate(min = 1, max = 6)
+    private int colorPaletteGuiRows = 3;
+    @ConfigPath("turing_test.color_palette.time_limit_seconds")
+    @Validate(min = 5)
+    private int colorPaletteTimeLimit = 15;
+    @ConfigPath("turing_test.color_palette.correct_item_count")
+    @Validate(min = 1)
+    private int colorPaletteCorrectCount = 5;
+    @ConfigPath("turing_test.color_palette.distractor_color_count")
+    @Validate(min = 1)
+    private int colorPaletteDistractorColorCount = 2;
+    @ConfigPath("turing_test.color_palette.distractor_item_count_per_color")
+    @Validate(min = 1)
+    private int colorPaletteDistractorItemCount = 4;
     @ConfigPath("turing_test.color_palette.available_colors")
-    private List<String> colorPaletteAvailableColors = new ArrayList<>(Arrays.asList("RED", "BLUE", "LIME", "YELLOW", "ORANGE", "CYAN", "MAGENTA"));
+    private List<String> colorPaletteAvailableColors = new ArrayList<>();
 
     // --- ÖĞRENME MODU ---
-    @ConfigPath("learning_mode.enabled") private boolean learningModeEnabled = true;
-    @ConfigPath("learning_mode.analysis_task_period_ticks") @Validate(min = 1) private long analysisTaskPeriodTicks = 40L;
-    @ConfigPath("learning_mode.similarity_threshold") private double learningSimilarityThreshold = 25.0;
-    @ConfigPath("learning_mode.search_radius") private int learningSearchRadius = 10;
-    @ConfigPath("learning_mode.security.max_pattern_file_size_kb") private long maxPatternFileSizeKb = 1024;
-    @ConfigPath("learning_mode.security.max_vectors_per_pattern") private int maxVectorsPerPattern = 12000;
-    @ConfigPath("learning_mode.security.pre_filter_size_ratio") private double preFilterSizeRatio = 0.5;
+    @ConfigPath("learning_mode.enabled")
+    private boolean learningModeEnabled = true;
+    @ConfigPath("learning_mode.analysis_task_period_ticks")
+    @Validate(min = 1)
+    private long analysisTaskPeriodTicks = 40L;
+    @ConfigPath("learning_mode.similarity_threshold")
+    private double learningSimilarityThreshold = 25.0;
+    @ConfigPath("learning_mode.search_radius")
+    private int learningSearchRadius = 10;
+    @ConfigPath("learning_mode.security.max_pattern_file_size_kb")
+    private long maxPatternFileSizeKb = 1024;
+    @ConfigPath("learning_mode.security.max_vectors_per_pattern")
+    private int maxVectorsPerPattern = 12000;
+    @ConfigPath("learning_mode.security.pre_filter_size_ratio")
+    private double preFilterSizeRatio = 0.5;
 
     // --- DAVRANIŞSAL ANALİZ ---
-    @ConfigPath("behavioral-analysis.enabled") private boolean behaviorAnalysisEnabled = false;
-    @ConfigPath("behavioral-analysis.history-size-ticks") @Validate(min = 20) private int behaviorHistorySizeTicks = 600;
+    @ConfigPath("behavioral-analysis.enabled")
+    private boolean behaviorAnalysisEnabled = false;
+    @ConfigPath("behavioral-analysis.history-size-ticks")
+    @Validate(min = 20)
+    private int behaviorHistorySizeTicks = 600;
 
     // --- DISCORD ---
-    @ConfigPath("discord_webhook.enabled") private boolean discordWebhookEnabled = false;
-    @ConfigPath("discord_webhook.webhook_url") private String discordWebhookUrl = "";
-    @ConfigPath("discord_webhook.bot_name") private String discordBotName = "AntiAFK Guard";
-    @ConfigPath("discord_webhook.avatar_url") private String discordAvatarUrl = "";
+    @ConfigPath("discord_webhook.enabled")
+    private boolean discordWebhookEnabled = false;
+    @ConfigPath("discord_webhook.webhook_url")
+    private String discordWebhookUrl = "";
+    @ConfigPath("discord_webhook.bot_name")
+    private String discordBotName = "AntiAFK Guard";
+    @ConfigPath("discord_webhook.avatar_url")
+    private String discordAvatarUrl = "";
 
     // --- İZİNLER & MUAFİYETLER ---
-    @ConfigPath("exemptions.permissions.bypass_all") private String permBypassAll = "antiafk.bypass.all";
-    @ConfigPath("exemptions.permissions.bypass_classic") private String permBypassClassic = "antiafk.bypass.classic";
-    @ConfigPath("exemptions.permissions.bypass_behavioral") private String permBypassBehavioral = "antiafk.bypass.behavioral";
-    @ConfigPath("exemptions.permissions.bypass_pointless") private String permBypassPointless = "antiafk.bypass.pointless";
-    @ConfigPath("exemptions.permissions.bypass_autoclicker") private String permBypassAutoclicker = "antiafk.bypass.autoclicker";
-    @ConfigPath("afk_command.permission") private String permAfkCommandUse = "antiafk.command.afk";
-    @ConfigPath("exemptions.disabled_worlds") private List<String> disabledWorlds = new ArrayList<>();
-    @ConfigPath("exemptions.exempt_gamemodes") private List<String> exemptGameModes = new ArrayList<>(Arrays.asList("SPECTATOR", "CREATIVE"));
+    @ConfigPath("exemptions.permissions.bypass_all")
+    private String permBypassAll = "antiafk.bypass.all";
+    @ConfigPath("exemptions.permissions.bypass_classic")
+    private String permBypassClassic = "antiafk.bypass.classic";
+    @ConfigPath("exemptions.permissions.bypass_behavioral")
+    private String permBypassBehavioral = "antiafk.bypass.behavioral";
+    @ConfigPath("exemptions.permissions.bypass_pointless")
+    private String permBypassPointless = "antiafk.bypass.pointless";
+    @ConfigPath("exemptions.permissions.bypass_autoclicker")
+    private String permBypassAutoclicker = "antiafk.bypass.autoclicker";
+    @ConfigPath("afk_command.permission")
+    private String permAfkCommandUse = "antiafk.command.afk";
+    @ConfigPath("exemptions.disabled_worlds")
+    private List<String> disabledWorlds = new ArrayList<>();
+    @ConfigPath("exemptions.exempt_gamemodes")
+    private List<String> exemptGameModes = new ArrayList<>();
 
     // --- AFK KOMUTU ---
-    @ConfigPath("afk_command.enabled") private boolean afkCommandEnabled = true;
-    @ConfigPath("afk_command.on_afk.default_reason") private String afkDefaultReason = "No reason specified";
-    @ConfigPath("afk_command.on_afk.set_invulnerable") private boolean setInvulnerable = true;
-    @ConfigPath("afk_command.on_afk.tag_format") private String afkTagFormat = "&7[AFK] ";
-    @ConfigPath("afk_command.on_afk.broadcast") private boolean broadcastOnAfk = true;
-    @ConfigPath("afk_command.on_return.broadcast") private boolean broadcastOnReturn = true;
+    @ConfigPath("afk_command.enabled")
+    private boolean afkCommandEnabled = true;
+    @ConfigPath("afk_command.on_afk.default_reason")
+    private String afkDefaultReason = "No reason specified";
+    @ConfigPath("afk_command.on_afk.set_invulnerable")
+    private boolean setInvulnerable = true;
+    @ConfigPath("afk_command.on_afk.tag_format")
+    private String afkTagFormat = "&7[AFK] ";
+    @ConfigPath("afk_command.on_afk.broadcast")
+    private boolean broadcastOnAfk = true;
+    @ConfigPath("afk_command.on_return.broadcast")
+    private boolean broadcastOnReturn = true;
 
     // --- WORLDGUARD ---
-    @ConfigPath("worldguard_integration.enabled") private boolean worldGuardEnabled = false;
+    @ConfigPath("worldguard_integration.enabled")
+    private boolean worldGuardEnabled = false;
 
     @ConfigPath("worldguard_integration.region_overrides")
     private Map<String, Map<String, Object>> regionOverridesRaw = new HashMap<>();
 
-    @Ignore private List<RegionOverride> regionOverrides = new ArrayList<>();
-    @Ignore private Map<String, RegionOverride> regionOverrideMap = new HashMap<>();
+    @Ignore
+    private List<RegionOverride> regionOverrides = new ArrayList<>();
+    @Ignore
+    private Map<String, RegionOverride> regionOverrideMap = new HashMap<>();
 
     // --- KADEMELİ CEZA ---
-    @ConfigPath("progressive_punishment.enabled") private boolean progressivePunishmentEnabled = true;
-    @ConfigPath("progressive_punishment.reset_after") private String punishmentResetAfterStr = "30d";
+    @ConfigPath("progressive_punishment.enabled")
+    private boolean progressivePunishmentEnabled = true;
+    @ConfigPath("progressive_punishment.reset_after")
+    private String punishmentResetAfterStr = "30d";
 
     @ConfigPath("progressive_punishment.punishments")
     private List<Map<String, Object>> punishmentLevelsRaw = new ArrayList<>();
 
-    @Ignore private long punishmentResetMillis;
-    @Ignore private List<PunishmentLevel> punishmentLevels = new ArrayList<>();
-    @Ignore private int highestPunishmentCount = 0;
+    @Ignore
+    private long punishmentResetMillis;
+    @Ignore
+    private List<PunishmentLevel> punishmentLevels = new ArrayList<>();
+    @Ignore
+    private int highestPunishmentCount = 0;
 
+    // --- INITIALIZER BLOCK ---
     {
+        actions.add(createAction("CONSOLE", "kick %player% &cAFK süreniz doldu."));
+
+        warningsRaw.add(createWarning("5m", "CHAT", "&e[AFK] &7Hareketsiz görünüyorsun.", "", "", "", "RED", "SOLID"));
+        warningsRaw.add(createWarning("1m", "TITLE", "", "&c&lDİKKAT", "&e1 dakika içinde hareket etmelisin!", "BLOCK_NOTE_BLOCK_PLING", "RED", "SOLID"));
+        warningsRaw.add(createWarning("10s", "ACTION_BAR", "&4&lSunucudan atılıyor: %time_left%", "", "", "ENTITY_EXPERIENCE_ORB_PICKUP", "RED", "SOLID"));
+
+        captchaFailureActions.add(createAction("CONSOLE", "kick %player% &cBot testi başarısız!"));
+
         Map<String, Object> pvpArena = new HashMap<>();
         pvpArena.put("region", "pvp_arena");
         pvpArena.put("max_afk_time", "3m");
@@ -200,6 +279,10 @@ public class ConfigManager {
                 createAction("CONSOLE", "kick %player% &cTekrar eden AFK davranışı nedeniyle sunucudan atıldınız.")
         ));
         punishmentLevelsRaw.add(level3);
+
+        disabledWorlds.add("creative_dunyasi");
+        exemptGameModes.addAll(Arrays.asList("SPECTATOR", "CREATIVE"));
+        colorPaletteAvailableColors.addAll(Arrays.asList("RED", "BLUE", "LIME", "YELLOW", "ORANGE", "CYAN", "MAGENTA"));
     }
 
     @Inject
@@ -219,14 +302,14 @@ public class ConfigManager {
     }
 
     private static Map<String, String> createAction(String type, String command) {
-        Map<String, String> map = new HashMap<>();
+        Map<String, String> map = new LinkedHashMap<>();
         map.put("type", type);
         map.put("command", command);
         return map;
     }
 
     private static Map<String, Object> createWarning(String time, String type, String message, String title, String subtitle, String sound, String barColor, String barStyle) {
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> map = new LinkedHashMap<>();
         map.put("time", time);
         map.put("type", type);
         map.put("message", message);
@@ -239,6 +322,20 @@ public class ConfigManager {
     }
 
     public void loadConfig() {
+        File configFile = new File(plugin.getDataFolder(), "config.yml");
+        if (!configFile.exists()) {
+            plugin.saveDefaultConfig();
+        } else {
+            actions.clear();
+            warningsRaw.clear();
+            captchaFailureActions.clear();
+            regionOverridesRaw.clear();
+            punishmentLevelsRaw.clear();
+            disabledWorlds.clear();
+            exemptGameModes.clear();
+            colorPaletteAvailableColors.clear();
+        }
+
         plugin.reloadConfig();
         configuration.init(this, "config.yml");
     }
@@ -341,8 +438,21 @@ public class ConfigManager {
         regionCache.invalidateAll();
     }
 
-    public List<Map<String, Object>> getWarnings() {
-        return warnings;
+    public FileConfiguration getRawConfig() {
+        return plugin.getConfig();
+    }
+
+    public void saveConfig() {
+        plugin.saveConfig();
+        loadConfig();
+    }
+
+    public AntiAFKPlugin getPlugin() {
+        return plugin;
+    }
+
+    public void clearPlayerCache(Player player) {
+        regionCache.invalidate(player.getUniqueId());
     }
 
     public void registerRegionProvider(IRegionProvider provider) {
@@ -350,11 +460,6 @@ public class ConfigManager {
         regionProviders.add(provider);
         plugin.getLogger().info("Registered new region provider: " + provider.getName());
     }
-
-    public FileConfiguration getRawConfig() { return plugin.getConfig(); }
-    public void saveConfig() { plugin.saveConfig(); loadConfig(); }
-    public AntiAFKPlugin getPlugin() { return plugin; }
-    public void clearPlayerCache(Player player) { regionCache.invalidate(player.getUniqueId()); }
 
     public RegionOverride getRegionOverrideForPlayer(Player player) {
         if (!worldGuardEnabled && regionProviders.isEmpty()) return null;
@@ -393,70 +498,275 @@ public class ConfigManager {
         return Optional.empty();
     }
 
-    public long getMaxAfkTimeSeconds() { return maxAfkTimeSeconds; }
-    public boolean isCheckCamera() { return checkCamera; }
-    public boolean isCheckChat() { return checkChat; }
-    public boolean isCheckInteraction() { return checkInteraction; }
-    public List<Map<String, String>> getActions() { return actions; }
-    public String getPermBypassAll() { return permBypassAll; }
-    public String getPermBypassClassic() { return permBypassClassic; }
-    public String getPermBypassBehavioral() { return permBypassBehavioral; }
-    public String getPermBypassPointless() { return permBypassPointless; }
-    public String getPermBypassAutoclicker() { return permBypassAutoclicker; }
-    public List<String> getDisabledWorlds() { return disabledWorlds; }
-    public List<String> getExemptGameModes() { return exemptGameModes; }
-    public String getAfkTagFormat() { return afkTagFormat; }
-    public boolean isSetInvulnerable() { return setInvulnerable; }
-    public boolean isWorldGuardEnabled() { return worldGuardEnabled; }
-    public boolean isAfkCommandEnabled() { return afkCommandEnabled; }
-    public String getAfkDefaultReason() { return afkDefaultReason; }
-    public List<RegionOverride> getRegionOverrides() { return regionOverrides; }
-    public long getAutoSetAfkSeconds() { return autoSetAfkSeconds; }
-    public boolean isCheckToggleSneak() { return checkToggleSneak; }
-    public boolean isCheckItemDrop() { return checkItemDrop; }
-    public boolean isCheckInventoryActivity() { return checkInventoryActivity; }
-    public boolean isCheckItemConsume() { return checkItemConsume; }
-    public boolean isCheckHeldItemChange() { return checkHeldItemChange; }
-    public boolean isCheckPlayerAttack() { return checkPlayerAttack; }
-    public boolean isCheckBookActivity() { return checkBookActivity; }
-    public int getMaxPointlessActivities() { return maxPointlessActivities; }
-    public boolean isAutoClickerEnabled() { return autoClickerEnabled; }
-    public int getAutoClickerCheckAmount() { return autoClickerCheckAmount; }
-    public long getAutoClickerMaxDeviation() { return autoClickerMaxDeviation; }
-    public int getAutoClickerDetectionsToPunish() { return autoClickerDetectionsToPunish; }
-    public String getPermAfkCommandUse() { return permAfkCommandUse; }
-    public boolean isCheckWorldChangeEnabled() { return checkWorldChangeEnabled; }
-    public int getWorldChangeCooldown() { return worldChangeCooldown; }
-    public int getMaxWorldChanges() { return maxWorldChanges; }
-    public boolean isRejoinProtectionEnabled() { return rejoinProtectionEnabled; }
-    public long getRejoinCooldownSeconds() { return rejoinCooldownSeconds; }
-    public boolean isTuringTestEnabled() { return turingTestEnabled; }
-    public int getQaCaptchaTimeoutSeconds() { return qaCaptchaTimeoutSeconds; }
-    public int getColorPaletteGuiRows() { return colorPaletteGuiRows; }
-    public int getColorPaletteTimeLimit() { return colorPaletteTimeLimit; }
-    public int getColorPaletteCorrectCount() { return colorPaletteCorrectCount; }
-    public int getColorPaletteDistractorColorCount() { return colorPaletteDistractorColorCount; }
-    public int getColorPaletteDistractorItemCount() { return colorPaletteDistractorItemCount; }
-    public List<String> getColorPaletteAvailableColors() { return Collections.unmodifiableList(colorPaletteAvailableColors); }
-    public List<Map<String, String>> getCaptchaFailureActions() { return captchaFailureActions; }
-    public boolean isBroadcastOnAfkEnabled() { return broadcastOnAfk; }
-    public boolean isBroadcastOnReturnEnabled() { return broadcastOnReturn; }
-    public boolean isProgressivePunishmentEnabled() { return progressivePunishmentEnabled; }
-    public long getPunishmentResetMillis() { return punishmentResetMillis; }
-    public int getHighestPunishmentCount() { return highestPunishmentCount; }
-    public List<PunishmentLevel> getPunishmentLevels() { return punishmentLevels; }
-    public boolean isLearningModeEnabled() { return learningModeEnabled; }
-    public long getAnalysisTaskPeriodTicks() { return analysisTaskPeriodTicks; }
-    public double getLearningSimilarityThreshold() { return learningSimilarityThreshold; }
-    public int getLearningSearchRadius() { return learningSearchRadius; }
-    public long getMaxPatternFileSizeBytes() { return maxPatternFileSizeKb * 1024; }
-    public int getMaxVectorsPerPattern() { return maxVectorsPerPattern; }
-    public double getPreFilterSizeRatio() { return preFilterSizeRatio; }
-    public SupportedLanguage getLang() { return language; }
-    public int getBehaviorHistorySizeTicks() { return behaviorHistorySizeTicks; }
-    public boolean isBehaviorAnalysisEnabled() { return behaviorAnalysisEnabled; }
-    public boolean isDiscordWebhookEnabled() { return discordWebhookEnabled; }
-    public String getDiscordWebhookUrl() { return discordWebhookUrl; }
-    public String getDiscordBotName() { return discordBotName; }
-    public String getDiscordAvatarUrl() { return discordAvatarUrl; }
+    public String getLanguageName() {
+        return languageName;
+    }
+
+    public SupportedLanguage getLang() {
+        return language;
+    }
+
+    public long getMaxAfkTimeSeconds() {
+        return maxAfkTimeSeconds;
+    }
+
+    public List<Map<String, String>> getActions() {
+        return actions;
+    }
+
+    public List<Map<String, Object>> getWarnings() {
+        return warnings;
+    }
+
+    public long getAutoSetAfkSeconds() {
+        return autoSetAfkSeconds;
+    }
+
+    public int getMaxPointlessActivities() {
+        return maxPointlessActivities;
+    }
+
+    public boolean isCheckCamera() {
+        return checkCamera;
+    }
+
+    public boolean isCheckChat() {
+        return checkChat;
+    }
+
+    public boolean isCheckInteraction() {
+        return checkInteraction;
+    }
+
+    public boolean isCheckToggleSneak() {
+        return checkToggleSneak;
+    }
+
+    public boolean isCheckItemDrop() {
+        return checkItemDrop;
+    }
+
+    public boolean isCheckInventoryActivity() {
+        return checkInventoryActivity;
+    }
+
+    public boolean isCheckItemConsume() {
+        return checkItemConsume;
+    }
+
+    public boolean isCheckHeldItemChange() {
+        return checkHeldItemChange;
+    }
+
+    public boolean isCheckPlayerAttack() {
+        return checkPlayerAttack;
+    }
+
+    public boolean isCheckBookActivity() {
+        return checkBookActivity;
+    }
+
+    public boolean isAutoClickerEnabled() {
+        return autoClickerEnabled;
+    }
+
+    public int getAutoClickerCheckAmount() {
+        return autoClickerCheckAmount;
+    }
+
+    public long getAutoClickerMaxDeviation() {
+        return autoClickerMaxDeviation;
+    }
+
+    public int getAutoClickerDetectionsToPunish() {
+        return autoClickerDetectionsToPunish;
+    }
+
+    public boolean isCheckWorldChangeEnabled() {
+        return checkWorldChangeEnabled;
+    }
+
+    public int getWorldChangeCooldown() {
+        return worldChangeCooldown;
+    }
+
+    public int getMaxWorldChanges() {
+        return maxWorldChanges;
+    }
+
+    public boolean isRejoinProtectionEnabled() {
+        return rejoinProtectionEnabled;
+    }
+
+    public long getRejoinCooldownSeconds() {
+        return rejoinCooldownSeconds;
+    }
+
+    public boolean isTuringTestEnabled() {
+        return turingTestEnabled;
+    }
+
+    public int getQaCaptchaTimeoutSeconds() {
+        return qaCaptchaTimeoutSeconds;
+    }
+
+    public List<Map<String, String>> getCaptchaFailureActions() {
+        return captchaFailureActions;
+    }
+
+    public int getColorPaletteGuiRows() {
+        return colorPaletteGuiRows;
+    }
+
+    public int getColorPaletteTimeLimit() {
+        return colorPaletteTimeLimit;
+    }
+
+    public int getColorPaletteCorrectCount() {
+        return colorPaletteCorrectCount;
+    }
+
+    public int getColorPaletteDistractorColorCount() {
+        return colorPaletteDistractorColorCount;
+    }
+
+    public int getColorPaletteDistractorItemCount() {
+        return colorPaletteDistractorItemCount;
+    }
+
+    public List<String> getColorPaletteAvailableColors() {
+        return Collections.unmodifiableList(colorPaletteAvailableColors);
+    }
+
+    public boolean isLearningModeEnabled() {
+        return learningModeEnabled;
+    }
+
+    public long getAnalysisTaskPeriodTicks() {
+        return analysisTaskPeriodTicks;
+    }
+
+    public double getLearningSimilarityThreshold() {
+        return learningSimilarityThreshold;
+    }
+
+    public int getLearningSearchRadius() {
+        return learningSearchRadius;
+    }
+
+    public long getMaxPatternFileSizeBytes() {
+        return maxPatternFileSizeKb * 1024;
+    }
+
+    public int getMaxVectorsPerPattern() {
+        return maxVectorsPerPattern;
+    }
+
+    public double getPreFilterSizeRatio() {
+        return preFilterSizeRatio;
+    }
+
+    public boolean isBehaviorAnalysisEnabled() {
+        return behaviorAnalysisEnabled;
+    }
+
+    public int getBehaviorHistorySizeTicks() {
+        return behaviorHistorySizeTicks;
+    }
+
+    public boolean isDiscordWebhookEnabled() {
+        return discordWebhookEnabled;
+    }
+
+    public String getDiscordWebhookUrl() {
+        return discordWebhookUrl;
+    }
+
+    public String getDiscordBotName() {
+        return discordBotName;
+    }
+
+    public String getDiscordAvatarUrl() {
+        return discordAvatarUrl;
+    }
+
+    public String getPermBypassAll() {
+        return permBypassAll;
+    }
+
+    public String getPermBypassClassic() {
+        return permBypassClassic;
+    }
+
+    public String getPermBypassBehavioral() {
+        return permBypassBehavioral;
+    }
+
+    public String getPermBypassPointless() {
+        return permBypassPointless;
+    }
+
+    public String getPermBypassAutoclicker() {
+        return permBypassAutoclicker;
+    }
+
+    public String getPermAfkCommandUse() {
+        return permAfkCommandUse;
+    }
+
+    public List<String> getDisabledWorlds() {
+        return disabledWorlds;
+    }
+
+    public List<String> getExemptGameModes() {
+        return exemptGameModes;
+    }
+
+    public boolean isAfkCommandEnabled() {
+        return afkCommandEnabled;
+    }
+
+    public String getAfkDefaultReason() {
+        return afkDefaultReason;
+    }
+
+    public boolean isSetInvulnerable() {
+        return setInvulnerable;
+    }
+
+    public String getAfkTagFormat() {
+        return afkTagFormat;
+    }
+
+    public boolean isBroadcastOnAfkEnabled() {
+        return broadcastOnAfk;
+    }
+
+    public boolean isBroadcastOnReturnEnabled() {
+        return broadcastOnReturn;
+    }
+
+    public boolean isWorldGuardEnabled() {
+        return worldGuardEnabled;
+    }
+
+    public List<RegionOverride> getRegionOverrides() {
+        return regionOverrides;
+    }
+
+    public boolean isProgressivePunishmentEnabled() {
+        return progressivePunishmentEnabled;
+    }
+
+    public long getPunishmentResetMillis() {
+        return punishmentResetMillis;
+    }
+
+    public List<PunishmentLevel> getPunishmentLevels() {
+        return punishmentLevels;
+    }
+
+    public int getHighestPunishmentCount() {
+        return highestPunishmentCount;
+    }
 }

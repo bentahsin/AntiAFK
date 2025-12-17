@@ -28,7 +28,7 @@ jobs:
       - name: Maven ile Tüm Modülleri Derle (Build)
         run: mvn -B clean package
 
-      - name: Yayın Varlıklarını ZIP Olarak Arşivle
+      - name: Yayın Varlıklarını ZIP Olarak Arşivle (GitHub için)
         id: zip_release
         run: |
           CORE_JAR=$(find AntiAFK-Core/target -name "AntiAFK-Core-*.jar" ! -name "original-*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar")
@@ -93,18 +93,29 @@ jobs:
         with:
           modrinth-id: ZrW0jIBC
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-          files: AntiAFK-v1.0.3.zip
-          name: AntiAFK v1.0.3
-          version: v1.0.3
-          changelog: |
-            ## 📦 Uncategorized
-            - refactor: Modularize AFK management (PR: #4)
-            - feature/benthpapimanager (PR: #5)
-            - refactor/di (PR: #6)
-            - bugfix/loggerprovider (PR: #7)
-            - refactor: Simplify GUIFactory (PR: #8)
-            - feature/api (PR: #9)
-            - Feature/bentahsin configuration depend (PR: #11)
+
+          name: AntiAFK ${{ github.ref_name }}
+          version: ${{ github.ref_name }}
+          version-type: release
+
+          # Changelog'u yukarıdaki adımdan otomatik alıyoruz
+          changelog: ${{ steps.build_changelog.outputs.changelog }}
+
+          # BURASI ÖNEMLİ: ZIP yerine derlenmiş JAR dosyalarını hedefliyoruz.
+          # API modülü opsiyonel olduğu için istersen listeye ekleyebilirsin, şu an Core ve Geyser var.
+          files: |
+            AntiAFK-Core/target/AntiAFK-Core-*.jar
+            AntiAFK-Geyser/target/AntiAFK-Geyser-*.jar
+            !**/original-*.jar
+            !**/*-sources.jar
+            !**/*-javadoc.jar
+
+          loaders: |
+            paper
+            spigot
+            bukkit
+            purpur
+
           game-versions: |
             1.13.2
             1.14
@@ -148,8 +159,3 @@ jobs:
             1.21.7
             1.21.8
             1.21.9
-          loaders: |
-            paper
-            spigot
-            bukkit
-            purpur

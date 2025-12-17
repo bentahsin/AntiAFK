@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 import org.geysermc.geyser.api.GeyserApi;
 
 import java.util.Collections;
@@ -27,6 +28,7 @@ public class GeyserCompatibilityManager implements IInputCompatibility {
     private final PlayerLanguageManager playerLanguageManager;
     private boolean geyserInstalled = false;
     private GeyserApi geyserApi;
+    private static final int INPUT_TIMEOUT_SECONDS = 45;
 
     @Inject
     public GeyserCompatibilityManager(AntiAFKPlugin plugin, PlayerLanguageManager playerLanguageManager) {
@@ -72,13 +74,36 @@ public class GeyserCompatibilityManager implements IInputCompatibility {
     }
 
     private void promptViaChat(Player player, String title, Consumer<String> callback) {
-        plugin.getPlayersInChatInput().add(player.getUniqueId());
-        plugin.getChatInputCallbacks().put(player.getUniqueId(), callback);
+        UUID playerUUID = player.getUniqueId();
+
+        if (plugin.getPlayersInChatInput().contains(playerUUID)) {
+            plugin.clearPlayerChatInput(playerUUID);
+        }
+
+        plugin.getPlayersInChatInput().add(playerUUID);
+
+        final BukkitTask[] timeoutTask = new BukkitTask[1];
+
+        Consumer<String> wrappedCallback = (input) -> {
+            if (timeoutTask[0] != null && !timeoutTask[0].isCancelled()) {
+                timeoutTask[0].cancel();
+            }
+            callback.accept(input);
+        };
+
+        plugin.getChatInputCallbacks().put(playerUUID, wrappedCallback);
 
         player.closeInventory();
 
         playerLanguageManager.sendMessage(player, "gui.region.input_prompt_geyser_title", "%title%", title);
         playerLanguageManager.sendMessage(player, "gui.region.input_prompt_geyser_instruction");
+
+        timeoutTask[0] = Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (plugin.getPlayersInChatInput().contains(playerUUID)) {
+                plugin.clearPlayerChatInput(playerUUID);
+                playerLanguageManager.sendMessage(player, "gui.region.input_cancelled"); // Veya "Zaman aşımı" mesajı
+            }
+        }, INPUT_TIMEOUT_SECONDS * 20L);
     }
 
     private void promptViaAnvil(Player player, String title, String initialText, Consumer<String> onConfirm, Runnable onCancel) {

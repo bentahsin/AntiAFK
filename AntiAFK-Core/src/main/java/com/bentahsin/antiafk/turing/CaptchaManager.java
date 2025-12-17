@@ -142,8 +142,9 @@ public class CaptchaManager {
         ICaptcha selectedCaptcha = selectAppropriateCaptcha(player);
 
         if (selectedCaptcha == null) {
-            plugin.getLogger().warning("Oyuncu " + player.getName() + " için uygun bir captcha türü bulunamadı. Test başlatılamıyor.");
+            plugin.getLogger().warning("Uyarı: " + player.getName() + " (Bedrock?) için uygun Captcha türü bulunamadı. Soru-Cevap modülü kapalı mı?");
             afkManager.getBotDetectionManager().resetSuspicion(player);
+            afkManager.getStateManager().setManualAFK(player, "behavior.afk_detected");
             return;
         }
 

@@ -4,7 +4,7 @@ import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.gui.book.BookInputManager;
 import com.bentahsin.antiafk.gui.factory.GUIFactory;
 import com.bentahsin.antiafk.platform.IInputCompatibility;
-import com.bentahsin.antiafk.platform.JavaInputCompatibility;
+import com.bentahsin.antiafk.platform.PlatformInputProxy;
 import com.bentahsin.antiafk.turing.captcha.ColorPaletteCaptcha;
 import com.bentahsin.antiafk.api.turing.ICaptcha;
 import com.bentahsin.antiafk.turing.captcha.QuestionAnswerCaptcha;
@@ -33,7 +33,7 @@ public class AntiAFKModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(AntiAFKPlugin.class).toInstance(plugin);
-        bind(IInputCompatibility.class).to(JavaInputCompatibility.class).in(Scopes.SINGLETON);
+        bind(IInputCompatibility.class).to(PlatformInputProxy.class).in(Scopes.SINGLETON);
 
         Multibinder<ICaptcha> captchaBinder = Multibinder.newSetBinder(binder(), ICaptcha.class);
         captchaBinder.addBinding().to(QuestionAnswerCaptcha.class);

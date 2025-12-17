@@ -39,6 +39,12 @@
             <artifactId>api</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.geysermc.floodgate</groupId>
+            <artifactId>api</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

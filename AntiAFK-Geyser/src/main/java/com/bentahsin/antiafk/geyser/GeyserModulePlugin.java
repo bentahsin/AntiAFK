@@ -1,11 +1,15 @@
 package com.bentahsin.antiafk.geyser;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.api.AntiAFKAPI;
+import com.bentahsin.antiafk.geyser.captcha.BedrockFormCaptcha;
 import com.bentahsin.antiafk.managers.PlayerLanguageManager;
 import com.bentahsin.antiafk.platform.IInputCompatibility;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.Objects;
 
 public class GeyserModulePlugin extends JavaPlugin {
 
@@ -24,6 +28,22 @@ public class GeyserModulePlugin extends JavaPlugin {
         );
 
         getServer().getServicesManager().register(IInputCompatibility.class, geyserManager, this, ServicePriority.Highest);
+
+        if (Bukkit.getPluginManager().getPlugin("floodgate") != null) {
+            try {
+                AntiAFKAPI api = Objects.requireNonNull(getServer().getServicesManager().getRegistration(AntiAFKAPI.class)).getProvider();
+                PlayerLanguageManager lang = corePlugin.getService(PlayerLanguageManager.class);
+
+                api.registerCaptcha(new BedrockFormCaptcha(api, lang));
+
+                getLogger().info("Floodgate bulundu: Bedrock Form Captcha sistemi aktif edildi.");
+            } catch (Exception e) {
+                getLogger().warning("Floodgate entegrasyonu başlatılırken hata oluştu: " + e.getMessage());
+            }
+        } else {
+            getLogger().warning("Floodgate bulunamadı! Bedrock oyuncuları için görsel formlar (Forms API) kullanılamayacak.");
+        }
+
         getLogger().info("AntiAFK-Geyser modülü başarıyla etkinleştirildi ve ana eklentiye bağlandı.");
     }
 

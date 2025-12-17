@@ -108,6 +108,7 @@ public class ConfigManager {
     @ConfigPath("turing_test.color_palette.distractor_color_count") @Validate(min = 1) private int colorPaletteDistractorColorCount = 2;
     @ConfigPath("turing_test.color_palette.distractor_item_count_per_color") @Validate(min = 1) private int colorPaletteDistractorItemCount = 4;
     @ConfigPath("turing_test.color_palette.available_colors") private List<String> colorPaletteAvailableColors = new ArrayList<>();
+    @ConfigPath("turing_test.palettes") private Map<String, Map<String, Object>> captchaPalettesRaw = new HashMap<>();
 
     // --- ÖĞRENME MODU ---
     @ConfigPath("learning_mode.enabled") private boolean learningModeEnabled = true;
@@ -295,6 +296,24 @@ public class ConfigManager {
         reg2.put("region", "ticaret_alani");
         reg2.put("max_afk_time", "1h");
         regionOverridesRaw.put("2", reg2);
+
+
+        captchaPalettesRaw = new HashMap<>();
+
+        Map<String, Object> qa = new HashMap<>();
+        qa.put("enabled", true);
+        qa.put("weight", 40);
+        captchaPalettesRaw.put("QUESTION_ANSWER", qa);
+
+        Map<String, Object> cp = new HashMap<>();
+        cp.put("enabled", true);
+        cp.put("weight", 60);
+        captchaPalettesRaw.put("COLOR_PALETTE", cp);
+
+        Map<String, Object> bf = new HashMap<>();
+        bf.put("enabled", true);
+        bf.put("weight", 100);
+        captchaPalettesRaw.put("BEDROCK_FORM", bf);
     }
 
     public void loadConfig() {

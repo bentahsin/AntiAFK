@@ -99,6 +99,10 @@ public class CaptchaManager {
     private ICaptcha selectAppropriateCaptcha(Player player) {
         boolean isBedrock = inputCompatibility.isBedrockPlayer(player.getUniqueId());
 
+        if (isBedrock && captchaRegistry.containsKey("BEDROCK_FORM")) {
+            return captchaRegistry.get("BEDROCK_FORM");
+        }
+
         List<WeightedCaptcha> availablePalette;
 
         if (isBedrock) {

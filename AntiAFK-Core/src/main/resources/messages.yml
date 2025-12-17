@@ -53,6 +53,12 @@ turing_test:
     CYAN: "&3Camgöbeği"
     MAGENTA: "&dMacenta"
 
+  bedrock_form:
+    title: "Bot Kontrolü"
+    content: "Lütfen bot olmadığınızı doğrulamak için aşağıdaki 'DOĞRULA' butonuna tıklayın."
+    button_verify: "✅ DOĞRULA"
+    button_fake: "❌ İptal"
+
 # /afk Komutu Mesajları
 command:
   antiafk:

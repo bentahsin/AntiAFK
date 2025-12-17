@@ -212,6 +212,9 @@ turing_test:
     COLOR_PALETTE:
       enabled: true
       weight: 60
+    BEDROCK_FORM:
+      enabled: true
+      weight: 100
 
   # Soru/Cevap Captcha'sı için ayarlar
   question_answer:

@@ -24,23 +24,14 @@ debug:
   # Modül bazında debug ayarları. Sadece 'enabled: true' ise geçerlidir.
   modules:
     # Klasik aktivite dinleyicileri (hareket, tıklama, sohbet vb.)
-    # Hangi aktivitenin AFK zamanlayıcısını sıfırladığını görmek için.
     activity_listener: false
-
     # Gelişmiş Davranışsal Analiz (Yörünge Tespiti)
-    # Tekrarları, benzerlik puanlarını ve yörünge sıfırlamalarını loglar.
     behavioral_analysis: false
-
     # Öğrenme Modu (Desen Tanıma)
-    # Desen eşleşme girişimlerini, DTW mesafelerini ve havuz durumunu loglar.
     learning_mode: false
-
     # Komut Yönetimi
-    # Eklenti başlatılırken komutların nasıl kaydedildiğini veya kayıttan kaldırıldığını loglar.
     command_registration: false
-
     # Veritabanı İşlemleri
-    # Hangi oyuncu verisinin ne zaman okunduğunu veya yazıldığını loglar (çok detaylı olabilir).
     database_queries: false
 
 # ================================== #
@@ -48,13 +39,10 @@ debug:
 # ================================== #
 
 # Discord Webhook entegrasyonu. Kick/ban gibi önemli bildirimleri Discord'a göndermek için.
-# Nasıl oluşturulur?: Discord kanal ayarları -> Entegrasyonlar -> Webhook'lar -> Yeni Webhook
 discord_webhook:
   enabled: false
-  webhook_url: "BURAYA_WEBHOOK_URL'NİZİ_YAPIŞTIRIN"
-  # Webhook tarafından gönderilen mesajlarda görünecek kullanıcı adı.
+  webhook_url: "BURAYA_WEBHOOK_URL_YAPISTIRIN"
   bot_name: "AntiAFK Guard"
-  # Webhook tarafından gönderilen mesajlarda görünecek avatar URL'si (isteğe bağlı).
   avatar_url: ""
 
 # ================================== #
@@ -68,35 +56,36 @@ max_afk_time: "15m"
 
 # Oyuncuya nihai eylemler uygulanmadan önce gönderilecek uyarılar.
 # Uyarılar, 'time' değerine göre büyükten küçüğe doğru kontrol edilir.
-# type: CHAT, ACTION_BAR, TITLE
+# type: CHAT, ACTION_BAR, TITLE, BOSS_BAR
+# bar_color: BLUE, GREEN, PINK, PURPLE, RED, WHITE, YELLOW
+# bar_style: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
 warnings:
   - time: "5m"
     type: "CHAT"
     message: "&e[AFK] &7Hareketsiz görünüyorsun. &c%time_left% &7içinde hareket etmezsen cezalandırılacaksın."
+    bar_color: "RED"
+    bar_style: "SOLID"
+
   - time: "1m"
     type: "TITLE"
     title: "&c&lDİKKAT"
     subtitle: "&e1 dakika içinde hareket etmelisin!"
-    sound: "BLOCK_NOTE_BLOCK_PLING" # İsteğe bağlı ses efekti (Bukkit Sound isimleri)
+    sound: "BLOCK_NOTE_BLOCK_PLING"
+    bar_color: "RED"
+    bar_style: "SOLID"
+
   - time: "10s"
     type: "ACTION_BAR"
     message: "&4&lSunucudan atılıyor: %time_left%"
     sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+    bar_color: "RED"
+    bar_style: "SOLID"
 
 # Oyuncu 'max_afk_time' süresini doldurduğunda çalıştırılacak komutlar.
-# type: CONSOLE (konsol tarafından), PLAYER (oyuncu tarafından)
-# Placeholder'lar: %player%, %player_displayname%, %world%
+# type: CONSOLE (konsol tarafından), PLAYER (oyuncu tarafından), DISCORD_WEBHOOK
 actions:
   - type: "CONSOLE"
-    command: "broadcast &e%player_displayname% &6uzun süre AFK kaldığı için lobiye gönderildi."
-  - type: "PLAYER"
-    command: "spawn" # Veya /spawn, /hub vb.
-  # Bu aksiyon, yukarıdaki komutlarla BİRLİKTE çalışır ve Discord'a bir bildirim gönderir.
-  - type: "DISCORD_WEBHOOK"
-    # Placeholder'lar burada da geçerlidir. Renk kodları Discord'da çalışmaz.
-    message: "**%player_displayname%** was moved to spawn for being AFK too long."
-  #- type: "CONSOLE"
-  #  command: "kick %player% &6Merhaba &c%player_displayname% &6uzun süre AFK kaldığın için sunucudan atıldın. :("
+    command: "kick %player% &cAFK süreniz doldu."
 
 # ================================== #
 #        KADEMELİ CEZA SİSTEMİ       #
@@ -105,14 +94,11 @@ progressive_punishment:
   enabled: true
 
   # Bir oyuncunun ceza sayacının ne kadar süre sonra sıfırlanacağını belirler.
-  # Örneğin "30d" ayarı, bir oyuncu 30 gün boyunca hiç AFK cezası almazsa
-  # ceza sayacının sıfırlanacağı anlamına gelir.
   # Devre dışı bırakmak için "never" yazın.
   reset_after: "30d"
 
   # Ceza kademeleri. Eklenti, bir oyuncunun ceza sayısına eşit veya
   # ondan KÜÇÜK olan en YÜKSEK 'count' değerini bulup uygular.
-  # Her zaman 'count: 1' ile başlamanız önerilir.
   punishments:
     # 1. kez yakalandığında
     - count: 1
@@ -122,7 +108,7 @@ progressive_punishment:
         - type: "PLAYER"
           command: "spawn"
 
-    # 3. kez yakalandığında (yani 3., 4. kez)
+    # 3. kez yakalandığında
     - count: 3
       actions:
         - type: "CONSOLE"
@@ -161,11 +147,7 @@ detection:
   # Sürekli dünyalar arası geçiş yaparak AFK sistemini istismar etmeyi engeller.
   check-world-change:
     enabled: true
-    # İki dünya değişimi arasındaki minimum süre (saniye).
-    # Bundan daha hızlı yapılan geçişler "şüpheli" sayılır.
     cooldown: 20
-    # Bir oyuncunun bu davranıştan dolayı AFK sayılması için
-    # kaç kez şüpheli dünya değişimi yapması gerekir?
     max-changes: 5
 
   # Auto-clicker (tutarlı tıklama aralığı) tespitini yönetir.
@@ -185,12 +167,8 @@ detection:
 # ================================== #
 rejoin_protection:
   enabled: true
-
   # Sistem tarafından AFK nedeniyle cezalandırılan bir oyuncunun,
-  # ne kadar süre boyunca sunucuya yeniden katıldığında tekrar
-  # cezalandırılacağını belirler.
-  # Bu süre dolmadan girmeye çalışan oyuncu, AFK aksiyonlarına tekrar maruz kalır.
-  # Format: 10s (saniye), 5m (dakika), 1h (saat).
+  # ne kadar süre boyunca sunucuya yeniden katıldığında tekrar cezalandırılacağını belirler.
   cooldown: "5m"
 
 # ================================== #
@@ -198,71 +176,26 @@ rejoin_protection:
 # ================================== #
 # BU SİSTEM, SÜREKLİ AYNI YÖRÜNGEDE HAREKET EDEN BOTLARI TESPİT EDER.
 behavioral-analysis:
-  enabled: true # Bu sistemi tamamen açar veya kapatır.
-
-  # Analiz için ne kadarlık bir hareket geçmişi saklanacak? (tick cinsinden, 20 tick = 1 saniye)
-  # Bu değer aynı zamanda bellek sızıntısını önlemek için hareket listesinin maksimum boyutunu da belirler.
-  # Daha yüksek değerler daha uzun süreli döngüleri yakalayabilir ama daha fazla bellek kullanır.
-  history-size-ticks: 600 # 30 saniye
-
-  # Bir hareketin yörünge olarak kabul edilmesi için gereken minimum nokta sayısı.
-  # Çok düşük olması hatalı pozitiflere yol açabilir. (Yaklaşık 1 saniyelik hareket)
+  enabled: true
+  history-size-ticks: 600
   min-trajectory-points: 20
-
-  # Analiz edilecek bir yörüngenin maksimum uzunluğu (nokta sayısı).
-  # Çok yüksek olması performansı etkileyebilir. (Yaklaşık 15 saniyelik hareket)
   max-trajectory-points: 300
-
-  # Bir oyuncunun AFK sayılması için aynı hareketi kaç kez art arda tekrarlaması gerekir?
   max-repeats: 3
-
-  # --- Tolerans Ayarları (Dikkatli değiştirin!) ---
-  # İki yörüngenin karşılaştırılmasında kullanılacak hassasiyet ayarları.
-
-  # İki noktanın aynı kabul edilmesi için aralarındaki maksimum mesafe (blok).
   location-tolerance: 1.0
-
-  # İki noktanın bakış açısının aynı kabul edilmesi için maksimum açı farkı (derece).
   direction-tolerance: 25.0
-
-  # Bir yörüngenin diğerine 'benzer' sayılması için gereken minimum eşleşme oranı (% olarak).
-  similarity-threshold: 0.85 # %85 benzerlik
+  similarity-threshold: 0.85
 
 # ================================== #
 #     ÖĞRENME MODU (DESEN TESPİTİ)     #
 # ================================== #
 learning_mode:
   enabled: true
-
-  # Asenkron desen analiz görevinin ne sıklıkla çalışacağını belirler (tick cinsinden, 20 tick = 1 saniye).
-  # Daha düşük değerler daha hızlı tepki verir ama CPU kullanımını artırır. 40 (2 saniye) iyi bir başlangıçtır.
   analysis_task_period_ticks: 40
-
-  # Bir oyuncu hareketinin, bilinen bir desenle "eşleşmiş" sayılması için gereken
-  # maksimum DTW (Dynamic Time Warping) mesafesi.
-  # DÜŞÜK DEĞER = Daha SIKI ve KESİN eşleşme gerektirir (daha az yanlış pozitif).
-  # YÜKSEK DEĞER = Daha ESNEK eşleşmeye izin verir (daha fazla bot yakalayabilir ama yanlış pozitif riski artar).
   similarity_threshold: 25.0
-
-  # DTW algoritmasının arama yarıçapı. Bu, algoritmanın ne kadar "ileriye bakacağını" belirler.
-  # Bu değeri artırmak doğruluğu bir miktar artırabilir ama performansı önemli ölçüde düşürür.
-  # Genellikle 5 ile 20 arasında bir değer yeterlidir.
   search_radius: 10
-
-  # --- Güvenlik ve Optimizasyon Limitleri ---
   security:
-    # Bir desen dosyasının diskte kaplayabileceği maksimum boyut (kilobyte cinsinden).
-    # Bu, sunucunun belleğini tüketebilecek aşırı büyük dosyaların yüklenmesini engeller.
-    max_pattern_file_size_kb: 1024  # 1 MB
-
-    # Bir desenin içerebileceği maksimum hareket vektörü sayısı.
-    # Bu, algoritmayı aşırı yorabilecek çok uzun desenleri engeller. 12000 = 10 dakikalık hareket --> 10 * 60 = 600 saniye * 20 tick = 12000
+    max_pattern_file_size_kb: 1024
     max_vectors_per_pattern: 12000
-
-    # Bir oyuncunun hareket penceresi ile bilinen bir desen arasındaki boyut farkı
-    # bu orandan (% olarak) büyükse, karşılaştırma hiç yapılmaz.
-    # Bu, gereksiz DTW hesaplamalarını engelleyen önemli bir optimizasyondur.
-    # 0.5 = %50. Yani, 1000 vektörlük bir deseni test etmek için oyuncunun en az 500 vektörlük verisi olmalı.
     pre_filter_size_ratio: 0.5
 
 # =================================== #
@@ -272,22 +205,13 @@ turing_test:
   enabled: true
 
   # HANGİ CAPTCHA TÜRLERİNİN KULLANILACAĞINI VE AĞIRLIKLARINI BELİRLEYEN ANA BÖLÜM
-  # Sistem, şüpheli bir oyuncu bulduğunda bu listeden ağırlığa göre rastgele birini seçer.
-  # Ağırlıkların toplamının 100 olması gerekmez, sistem oranları kendi hesaplar.
   palettes:
-    # Mevcut Soru/Cevap sistemi. Kapatmak için enabled: false yapın.
     QUESTION_ANSWER:
       enabled: true
-      weight: 40  # %40 ihtimalle bu captcha türü seçilir (40 / (40+60))
-
-    # YENİ: Renk Paleti GUI sistemi.
+      weight: 40
     COLOR_PALETTE:
       enabled: true
-      weight: 60  # %60 ihtimalle bu captcha türü seçilir
-
-  # ======================================================= #
-  #             CAPTCHA TÜRLERİNİN AYARLARI                 #
-  # ======================================================= #
+      weight: 60
 
   # Soru/Cevap Captcha'sı için ayarlar
   question_answer:
@@ -295,13 +219,11 @@ turing_test:
 
   # Renk Paleti Captcha'sı için ayarlar
   color_palette:
-    # GUI başlığı ve diğer metinler messages.yml'den alınacak.
     gui_rows: 3
     time_limit_seconds: 15
     correct_item_count: 5
     distractor_color_count: 2
     distractor_item_count_per_color: 4
-    # Kullanılabilecek renkler messages.yml'deki 'captcha_palette_colors' ile eşleşmelidir.
     available_colors:
       - "RED"
       - "BLUE"
@@ -312,15 +234,11 @@ turing_test:
       - "MAGENTA"
 
   # Oyuncu testi geçemezse çalıştırılacak komutlar.
-  # Boş bırakılırsa, oyuncu sadece varsayılan olarak AFK yapılır.
-  # type: CONSOLE, PLAYER. Placeholder'lar: %player%
   on_failure_actions:
     - type: "CONSOLE"
       command: "kick %player% &cBot testi başarısız!"
     - type: "DISCORD_WEBHOOK"
       message: ":shield: **%player_displayname%** was kicked for failing the bot captcha test."
-    #- type: "PLAYER"
-    #  command: "spawn"
 
 # ================================== #
 #      WORLDGUARD ENTEGRASYONU       #
@@ -328,24 +246,20 @@ turing_test:
 worldguard_integration:
   enabled: true
 
-  # Bölgelere özel ayarlar. Oyuncu birden fazla bölgedeyse, listedeki İLK eşleşen kural kullanılır.
+  # Bölgelere özel ayarlar.
   region_overrides:
-    # Örnek 1: pvp_arena bölgesinde AFK süresi 3 dakika ve oyuncu lobiye gönderilir.
-    0:
+    '0':
       region: "pvp_arena"
       max_afk_time: "3m"
       actions:
         - type: "PLAYER"
           command: "spawn"
-    # Örnek 2: afk_odasi bölgesinde AFK sistemi tamamen devre dışı.
-    1:
+    '1':
       region: "afk_odasi"
       max_afk_time: "disabled"
-    # Örnek 3: ticaret_alani bölgesinde AFK süresi 1 saat, ama varsayılan aksiyonlar kullanılır.
-    2:
+    '2':
       region: "ticaret_alani"
       max_afk_time: "1h"
-      # 'actions' belirtilmediği için genel aksiyonlar kullanılır.
 
 # ================================== #
 #          MANUEL /AFK KOMUTU        #
@@ -354,44 +268,29 @@ afk_command:
   enabled: true
   permission: "antiafk.command.afk"
 
-  # /afk komutu yazıldığında
   on_afk:
-    # Oyuncu /afk yazdığında bu mesajın tüm sunucuya duyurulup duyurulmayacağı.
     broadcast: true
     default_reason: "Sebep belirtilmedi"
-    set_invulnerable: true # Hasar almazlık
+    set_invulnerable: true
     tag_format: "&7[AFK] "
 
-  # Oyuncu AFK durumundan çıktığında
   on_return:
-    # Oyuncu aktivite göstererek AFK'dan çıktığında bu mesajın tüm sunucuya duyurulup duyurulmayacağı.
     broadcast: true
 
 # ================================== #
 #      İSTİSNALAR (EXEMPTIONS)   #
 # ================================== #
 exemptions:
-  # Bu izinlere sahip oyuncular ilgili kontrollerden muaf olur.
-
   permissions:
-    # ANA BYPASS İZNİ: Bu izne sahip olanlar HİÇBİR AntiAFK kontrolüne takılmaz.
     bypass_all: "antiafk.bypass.all"
-
-    # DETAYLI BYPASS İZİNLERİ:
-    # Klasik AFK zamanlayıcısından muaf olma (uyarılar, nihai aksiyonlar).
     bypass_classic: "antiafk.bypass.classic"
-    # Davranışsal analizden (yörünge tekrarı) muaf olma.
     bypass_behavioral: "antiafk.bypass.behavioral"
-    # Anlamsız aktivite (aynı yerde tıklama/eğilme) tespitinden muaf olma.
     bypass_pointless: "antiafk.bypass.pointless"
-    # Auto-clicker (tutarlı tıklama aralığı) tespitinden muaf olma.
     bypass_autoclicker: "antiafk.bypass.autoclicker"
 
-  # AFK sisteminin çalışmayacağı dünyaların listesi.
   disabled_worlds:
     - "creative_dunyasi"
 
-  # AFK sisteminden muaf olacak oyun modları.
   exempt_gamemodes:
     - "SPECTATOR"
     - "CREATIVE"

@@ -179,6 +179,14 @@
                                     <pattern>org.apache.commons.pool2</pattern>
                                     <shadedPattern>com.bentahsin.antiafk.libs.commons.pool2</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>co.aikar.commands</pattern>
+                                    <shadedPattern>com.bentahsin.antiafk.libs.acf</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>co.aikar.locales</pattern>
+                                    <shadedPattern>com.bentahsin.antiafk.libs.locales</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>

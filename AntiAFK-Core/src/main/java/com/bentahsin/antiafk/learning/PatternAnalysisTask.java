@@ -15,7 +15,6 @@ import com.bentahsin.fastdtw.util.DistanceFunction;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -129,8 +128,8 @@ public class PatternAnalysisTask extends BukkitRunnable {
         QueuedMovementData data;
         while ((data = pendingData.poll()) != null) {
             MovementVector vector = vectorPoolManager.borrowVector(
-                    new Vector2D(data.deltaX, data.deltaZ),
-                    new Vector2D(data.deltaYaw, data.deltaPitch),
+                    data.deltaX, data.deltaZ,
+                    data.deltaYaw, data.deltaPitch,
                     data.action,
                     data.durationTicks
             );

@@ -7,7 +7,6 @@ import com.bentahsin.antiafk.learning.MovementVector;
 import com.bentahsin.antiafk.managers.DebugManager;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 

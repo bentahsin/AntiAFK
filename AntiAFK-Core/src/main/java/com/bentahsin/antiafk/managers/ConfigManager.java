@@ -34,6 +34,13 @@ import java.util.concurrent.TimeUnit;
         "===================================================================",
         "Plugin ile ilgili tüm mesajları ve metinleri 'messages.yml' dosyasından düzenleyebilirsiniz."
 })
+@ConfigVersion(1)
+@Backup(
+        enabled = true,
+        path = "backups",
+        onFailure = true,
+        onMigration = true
+)
 @SuppressWarnings({"FieldCanBeLocal", "unused", "unchecked"})
 public class ConfigManager {
 

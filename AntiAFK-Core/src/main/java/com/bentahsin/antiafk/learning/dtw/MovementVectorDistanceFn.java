@@ -1,6 +1,6 @@
 package com.bentahsin.antiafk.learning.dtw;
 
-import com.fastdtw.util.DistanceFunction;
+import com.bentahsin.fastdtw.util.DistanceFunction;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 /**

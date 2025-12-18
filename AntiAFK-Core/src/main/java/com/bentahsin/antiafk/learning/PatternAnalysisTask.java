@@ -8,11 +8,10 @@ import com.bentahsin.antiafk.learning.util.LimitedQueue;
 import com.bentahsin.antiafk.managers.AFKManager;
 import com.bentahsin.antiafk.managers.ConfigManager;
 import com.bentahsin.antiafk.managers.DebugManager;
-import com.fastdtw.dtw.FastDTW;
-import com.fastdtw.dtw.TimeWarpInfo;
-import com.fastdtw.timeseries.TimeSeries;
-import com.fastdtw.timeseries.TimeSeriesPoint;
-import com.fastdtw.util.DistanceFunction;
+import com.bentahsin.fastdtw.dtw.FastDTW;
+import com.bentahsin.fastdtw.dtw.TimeWarpInfo;
+import com.bentahsin.fastdtw.timeseries.TimeSeries;
+import com.bentahsin.fastdtw.util.DistanceFunction;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -171,20 +170,19 @@ public class PatternAnalysisTask extends BukkitRunnable {
     }
 
     private TimeSeries convertToTimeSeries(List<MovementVector> vectors) {
-        final int dimensions = 5;
-        TimeSeries ts = new TimeSeries(dimensions);
-        for (int i = 0; i < vectors.size(); i++) {
+        int size = vectors.size();
+        double[][] data = new double[size][6];
+
+        for (int i = 0; i < size; i++) {
             MovementVector v = vectors.get(i);
-            double[] dataPoints = new double[]{
-                    v.getPositionChange().getX(),
-                    v.getPositionChange().getY(),
-                    v.getRotationChange().getX(),
-                    v.getRotationChange().getY(),
-                    v.getAction().ordinal(),
-                    v.getDurationTicks()
-            };
-            ts.addLast(i, new TimeSeriesPoint(dataPoints));
+            data[i][0] = v.getPositionChange().getX();
+            data[i][1] = v.getPositionChange().getY();
+            data[i][2] = v.getRotationChange().getX();
+            data[i][3] = v.getRotationChange().getY();
+            data[i][4] = v.getAction().ordinal();
+            data[i][5] = v.getDurationTicks();
         }
-        return ts;
+
+        return new TimeSeries(data);
     }
 }

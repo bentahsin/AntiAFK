@@ -76,8 +76,8 @@
             <artifactId>kryo</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.fastdtw</groupId>
-            <artifactId>fastdtw</artifactId>
+            <groupId>com.github.bentahsin</groupId>
+            <artifactId>AntiAFKFastDTW</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -168,7 +168,7 @@
                                     <shadedPattern>com.bentahsin.antiafk.libs.kryo</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>com.fastdtw</pattern>
+                                    <pattern>com.bentahsin.fastdtw</pattern>
                                     <shadedPattern>com.bentahsin.antiafk.libs.fastdtw</shadedPattern>
                                 </relocation>
                                 <relocation>

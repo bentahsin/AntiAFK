@@ -169,10 +169,10 @@ public class ConfigManager {
     private List<Map<String, Object>> punishmentLevelsRaw = new ArrayList<>();
 
     @ConfigPath("commands.main.command") private String mainCommandName = "antiafk";
-    @ConfigPath("commands.main.aliases") private List<String> mainCommandAliases = new ArrayList<>(Arrays.asList("aafk", "afkadmin"));
+    @ConfigPath("commands.main.aliases") private List<String> mainCommandAliases = new ArrayList<>();
 
     @ConfigPath("commands.afk.command") private String afkCommandName = "afk";
-    @ConfigPath("commands.afk.aliases") private List<String> afkCommandAliases = new ArrayList<>(Arrays.asList("away", "brb"));
+    @ConfigPath("commands.afk.aliases") private List<String> afkCommandAliases = new ArrayList<>();
 
     @ConfigPath("commands.afktest.command") private String afkTestCommandName = "afktest";
     @ConfigPath("commands.afktest.aliases") private List<String> afkTestCommandAliases = new ArrayList<>();

@@ -35,6 +35,25 @@ debug:
     database_queries: false
 
 # ================================== #
+#          KOMUT AYARLARI            #
+# ================================== #
+# Komutların ana isimlerini ve alias'larını buradan değiştirebilirsiniz.
+# Değişiklikten sonra sunucuyu yeniden başlatmanız önerilir.
+commands:
+  main:
+    command: "antiafk"
+    aliases: ["aafk", "afkadmin"]
+  afk:
+    command: "afk"
+    aliases: ["away", "brb"]
+  afktest:
+    command: "afktest"
+    aliases: ["testafk"]
+  afkcevap:
+    command: "afkcevap"
+    aliases: ["answer", "cevap"]
+
+# ================================== #
 #         ENTEGRASYONLAR           #
 # ================================== #
 

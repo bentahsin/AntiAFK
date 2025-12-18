@@ -1,13 +1,12 @@
 package com.bentahsin.antiafk;
 
+import co.aikar.commands.PaperCommandManager;
 import com.bentahsin.antiafk.api.AntiAFKAPI;
 import com.bentahsin.antiafk.api.implementation.AntiAFKAPIImpl;
-import com.bentahsin.antiafk.behavior.BehaviorAnalysisManager;
-import com.bentahsin.antiafk.commands.afk.AFKCommandManager;
-import com.bentahsin.antiafk.commands.afk.ToggleAFKCommand;
-import com.bentahsin.antiafk.commands.afkcevap.CevapCommand;
-import com.bentahsin.antiafk.commands.afktest.TestCommand;
-import com.bentahsin.antiafk.commands.antiafk.CommandManager;
+import com.bentahsin.antiafk.commands.AntiAFKBaseCommand;
+import com.bentahsin.antiafk.commands.CaptchaCommands;
+import com.bentahsin.antiafk.commands.PlayerAFKCommand;
+import com.bentahsin.antiafk.commands.pattern.PatternCommand;
 import com.bentahsin.antiafk.gui.book.BookInputListener;
 import com.bentahsin.antiafk.gui.book.BookInputManager;
 import com.bentahsin.antiafk.gui.listener.MenuListener;
@@ -26,14 +25,10 @@ import com.bentahsin.antiafk.storage.DatabaseManager;
 import com.bentahsin.antiafk.tasks.AFKCheckTask;
 import com.bentahsin.benthpapimanager.BenthPAPIManager;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandMap;
-import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.ServicePriority;
-
-import java.lang.reflect.Field;
-import java.util.logging.Level;
 
 @Singleton
 public class MainInitializer {
@@ -45,31 +40,34 @@ public class MainInitializer {
     private final DatabaseManager databaseManager;
     private final AFKManager afkManager;
     private final ListenerManager listenerManager;
-    private final CommandManager commandManager;
-    private final CevapCommand cevapCommand;
-    private final TestCommand testCommand;
     private final AFKCheckTask afkCheckTask;
     private final MenuListener menuListener;
     private final DebugManager debugManager;
     private final PatternManager patternManager;
     private final PatternAnalysisTask patternAnalysisTask;
     private final LearningDataCollectorTask learningDataCollectorTask;
-    private final BehaviorAnalysisManager behaviorAnalysisManager;
     private final BookInputManager bookInputManager;
-    private final AFKCommandManager afkCommandManager;
-    private final ToggleAFKCommand toggleAFKCommand;
     private final AntiAFKAPIImpl apiImplementation;
+
+    private final Provider<AntiAFKBaseCommand> baseCommandProvider;
+    private final Provider<PlayerAFKCommand> playerAFKCommandProvider;
+    private final Provider<CaptchaCommands> captchaCommandsProvider;
+    private final Provider<PatternCommand> patternCommandProvider;
 
     @Inject
     public MainInitializer(
             AntiAFKPlugin plugin, ConfigManager configManager, SystemLanguageManager systemLanguageManager,
             PlayerLanguageManager playerLanguageManager, DatabaseManager databaseManager, AFKManager afkManager,
-            ListenerManager listenerManager, CommandManager commandManager, CevapCommand cevapCommand,
-            TestCommand testCommand, AFKCheckTask afkCheckTask, MenuListener menuListener, DebugManager debugManager,
-            PatternManager patternManager, PatternAnalysisTask patternAnalysisTask,
-            LearningDataCollectorTask learningDataCollectorTask, BehaviorAnalysisManager behaviorAnalysisManager,
-            BookInputManager bookInputManager, AFKCommandManager afkCommandManager, ToggleAFKCommand toggleAFKCommand,
-            AntiAFKAPIImpl apiImplementation
+            ListenerManager listenerManager, AFKCheckTask afkCheckTask, MenuListener menuListener, DebugManager debugManager,
+            PatternManager patternManager,
+            PatternAnalysisTask patternAnalysisTask,
+            LearningDataCollectorTask learningDataCollectorTask,
+            BookInputManager bookInputManager,
+            AntiAFKAPIImpl apiImplementation,
+            Provider<AntiAFKBaseCommand> baseCommandProvider,
+            Provider<PlayerAFKCommand> playerAFKCommandProvider,
+            Provider<CaptchaCommands> captchaCommandsProvider,
+            Provider<PatternCommand> patternCommandProvider
     ) {
         this.plugin = plugin;
         this.configManager = configManager;
@@ -78,25 +76,20 @@ public class MainInitializer {
         this.databaseManager = databaseManager;
         this.afkManager = afkManager;
         this.listenerManager = listenerManager;
-        this.commandManager = commandManager;
-        this.cevapCommand = cevapCommand;
-        this.testCommand = testCommand;
         this.afkCheckTask = afkCheckTask;
         this.menuListener = menuListener;
         this.debugManager = debugManager;
         this.patternManager = patternManager;
         this.patternAnalysisTask = patternAnalysisTask;
         this.learningDataCollectorTask = learningDataCollectorTask;
-        this.behaviorAnalysisManager = behaviorAnalysisManager;
         this.bookInputManager = bookInputManager;
-        this.afkCommandManager = afkCommandManager;
-        this.toggleAFKCommand = toggleAFKCommand;
         this.apiImplementation = apiImplementation;
+        this.baseCommandProvider = baseCommandProvider;
+        this.playerAFKCommandProvider = playerAFKCommandProvider;
+        this.captchaCommandsProvider = captchaCommandsProvider;
+        this.patternCommandProvider = patternCommandProvider;
     }
 
-    /**
-     * Eklentinin tüm başlatma mantığını yürütür.
-     */
     public void initialize() {
         systemLanguageManager.setLanguage(configManager.getLang());
         databaseManager.connect();
@@ -108,7 +101,7 @@ public class MainInitializer {
             learningDataCollectorTask.runTaskTimer(plugin, 100L, 1L);
         }
 
-        registerCommands();
+        setupCommands();
 
         listenerManager.registerListeners();
         plugin.getServer().getPluginManager().registerEvents(menuListener, plugin);
@@ -129,33 +122,29 @@ public class MainInitializer {
         plugin.getLogger().info("AntiAFK API registered.");
     }
 
-    private void registerCommands() {
-        PluginCommand antiAfkCommand = plugin.getCommand("antiafk");
-        if (antiAfkCommand != null) {
-            antiAfkCommand.setExecutor(commandManager);
-            antiAfkCommand.setTabCompleter(commandManager);
-        } else {
-            plugin.getLogger().severe(systemLanguageManager.getSystemMessage(Lang.ANTIAFK_COMMAND_NOT_IN_YML));
-        }
+    private void setupCommands() {
+        PaperCommandManager acfManager = new PaperCommandManager(plugin);
 
-        if (configManager.isAfkCommandEnabled()) {
-            registerDynamicAfkCommand();
-        }
+        acfManager.getCommandReplacements().addReplacement("antiafk_cmd",
+                configManager.getMainCommandName() + "|" + String.join("|", configManager.getMainCommandAliases()));
 
-        PluginCommand cevapCommandCmd = plugin.getCommand("afkcevap");
-        if (cevapCommandCmd != null) {
-            cevapCommandCmd.setExecutor(cevapCommand);
-            cevapCommandCmd.setTabCompleter(cevapCommand);
-        } else {
-            plugin.getLogger().severe(systemLanguageManager.getSystemMessage(Lang.AFKCEVAP_COMMAND_NOT_IN_YML));
-        }
+        acfManager.getCommandReplacements().addReplacement("afk_cmd",
+                configManager.getAfkCommandName() + "|" + String.join("|", configManager.getAfkCommandAliases()));
 
-        PluginCommand testCommandCmd = plugin.getCommand("afktest");
-        if (testCommandCmd != null) {
-            testCommandCmd.setExecutor(testCommand);
-        } else {
-            plugin.getLogger().severe(systemLanguageManager.getSystemMessage(Lang.AFK_TEST_COMMAND_NOT_IN_YML));
-        }
+        acfManager.getCommandReplacements().addReplacement("afkcevap_cmd",
+                configManager.getAfkCevapCommandName() + "|" + String.join("|", configManager.getAfkCevapCommandAliases()));
+
+        acfManager.getCommandReplacements().addReplacement("afktest_cmd",
+                configManager.getAfkTestCommandName() + "|" + String.join("|", configManager.getAfkTestCommandAliases()));
+
+        acfManager.getCommandReplacements().addReplacement("afk_perm", configManager.getPermAfkCommandUse());
+
+        acfManager.registerCommand(baseCommandProvider.get());
+        acfManager.registerCommand(playerAFKCommandProvider.get());
+        acfManager.registerCommand(captchaCommandsProvider.get());
+        acfManager.registerCommand(patternCommandProvider.get());
+
+        debugManager.log(DebugManager.DebugModule.COMMAND_REGISTRATION, "Commands registered via ACF.");
     }
 
     private void setupIntegrations() {
@@ -188,37 +177,6 @@ public class MainInitializer {
             if (configManager.isWorldGuardEnabled()) {
                 plugin.getLogger().warning(systemLanguageManager.getSystemMessage(Lang.WORLDGUARD_ENABLED_BUT_NOT_FOUND));
             }
-        }
-    }
-
-    private void registerDynamicAfkCommand() {
-        try {
-            PluginCommand afkCommand = plugin.getCommand("afk");
-            if (afkCommand == null) {
-                afkCommand = Bukkit.getPluginCommand("afk");
-                if (afkCommand == null) {
-                    java.lang.reflect.Constructor<PluginCommand> c = PluginCommand.class.getDeclaredConstructor(String.class, org.bukkit.plugin.Plugin.class);
-                    c.setAccessible(true);
-                    afkCommand = c.newInstance("afk", plugin);
-                }
-            }
-
-            afkCommand.setDescription("Kendinizi AFK olarak işaretlemenizi sağlar.");
-            afkCommand.setUsage("/afk [sebep]");
-            afkCommand.setPermission(configManager.getPermAfkCommandUse());
-
-            afkCommand.setExecutor(afkCommandManager);
-            afkCommand.setTabCompleter(afkCommandManager);
-
-            Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-            bukkitCommandMap.setAccessible(true);
-            CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
-            commandMap.register(plugin.getDescription().getName(), afkCommand);
-
-            debugManager.log(DebugManager.DebugModule.COMMAND_REGISTRATION, systemLanguageManager.getSystemMessage(Lang.COMMAND_REGISTERED_SUCCESS, "afk"));
-
-        } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, systemLanguageManager.getSystemMessage(Lang.COMMAND_REGISTER_ERROR), e);
         }
     }
 }

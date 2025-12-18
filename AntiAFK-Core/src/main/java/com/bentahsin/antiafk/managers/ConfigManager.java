@@ -161,6 +161,18 @@ public class ConfigManager {
     @ConfigPath("progressive_punishment.punishments")
     private List<Map<String, Object>> punishmentLevelsRaw = new ArrayList<>();
 
+    @ConfigPath("commands.main.command") private String mainCommandName = "antiafk";
+    @ConfigPath("commands.main.aliases") private List<String> mainCommandAliases = new ArrayList<>(Arrays.asList("aafk", "afkadmin"));
+
+    @ConfigPath("commands.afk.command") private String afkCommandName = "afk";
+    @ConfigPath("commands.afk.aliases") private List<String> afkCommandAliases = new ArrayList<>(Arrays.asList("away", "brb"));
+
+    @ConfigPath("commands.afktest.command") private String afkTestCommandName = "afktest";
+    @ConfigPath("commands.afktest.aliases") private List<String> afkTestCommandAliases = new ArrayList<>();
+
+    @ConfigPath("commands.afkcevap.command") private String afkCevapCommandName = "afkcevap";
+    @ConfigPath("commands.afkcevap.aliases") private List<String> afkCevapCommandAliases = new ArrayList<>();
+
     @Ignore private long punishmentResetMillis;
     @Ignore private List<PunishmentLevel> punishmentLevels = new ArrayList<>();
     @Ignore private int highestPunishmentCount = 0;
@@ -550,4 +562,13 @@ public class ConfigManager {
     public long getPunishmentResetMillis() { return punishmentResetMillis; }
     public List<PunishmentLevel> getPunishmentLevels() { return punishmentLevels; }
     public int getHighestPunishmentCount() { return highestPunishmentCount; }
+
+    public String getMainCommandName() { return mainCommandName; }
+    public List<String> getMainCommandAliases() { return mainCommandAliases; }
+    public String getAfkCommandName() { return afkCommandName; }
+    public List<String> getAfkCommandAliases() { return afkCommandAliases; }
+    public String getAfkTestCommandName() { return afkTestCommandName; }
+    public List<String> getAfkTestCommandAliases() { return afkTestCommandAliases; }
+    public String getAfkCevapCommandName() { return afkCevapCommandName; }
+    public List<String> getAfkCevapCommandAliases() { return afkCevapCommandAliases; }
 }

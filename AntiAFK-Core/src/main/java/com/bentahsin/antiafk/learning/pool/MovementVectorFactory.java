@@ -1,7 +1,6 @@
 package com.bentahsin.antiafk.learning.pool;
 
 import com.bentahsin.antiafk.learning.MovementVector;
-import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
@@ -17,7 +16,7 @@ public class MovementVectorFactory extends BasePooledObjectFactory<MovementVecto
      */
     @Override
     public MovementVector create() {
-        return new MovementVector(Vector2D.ZERO, Vector2D.ZERO, MovementVector.PlayerAction.NONE, 0);
+        return new MovementVector(0, 0, 0, 0, MovementVector.PlayerAction.NONE, 0);
     }
 
     /**

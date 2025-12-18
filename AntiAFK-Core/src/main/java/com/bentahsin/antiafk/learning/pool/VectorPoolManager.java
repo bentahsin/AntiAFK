@@ -40,17 +40,19 @@ public class VectorPoolManager {
     }
 
     /**
-     * Havuzdan bir MovementVector nesnesi ödünç alır ve yeniden başlatır.
-     * @param posChange Pozisyonel değişiklik.
-     * @param rotChange Rotasyonel değişiklik.
-     * @param action Yapılan eylem.
-     * @param durationTicks Eylemin/hareketin süresi (tick).
-     * @return Kullanıma hazır bir MovementVector nesnesi.
+     * Havuzdan bir MovementVector nesnesi ödünç alır.
+     * @param dx X eksenindeki değişim
+     * @param dz Z eksenindeki değişim
+     * @param dYaw Yaw açısındaki değişim
+     * @param dPitch Pitch açısındaki değişim
+     * @param action Oyuncu eylemi
+     * @param durationTicks Süre (tick cinsinden)
+     * @return Ödünç alınan veya yeni oluşturulan MovementVector nesnesi.
      */
-    public MovementVector borrowVector(Vector2D posChange, Vector2D rotChange, MovementVector.PlayerAction action, int durationTicks) {
+    public MovementVector borrowVector(double dx, double dz, double dYaw, double dPitch, MovementVector.PlayerAction action, int durationTicks) {
         try {
             MovementVector vector = pool.borrowObject();
-            vector.reinitialize(posChange, rotChange, action, durationTicks);
+            vector.reinitialize(dx, dz, dYaw, dPitch, action, durationTicks);
             debugMgr.log(DebugManager.DebugModule.LEARNING_MODE,
                     "Borrowed vector from pool. Active: %d, Idle: %d",
                     pool.getNumActive(), pool.getNumIdle()
@@ -58,7 +60,7 @@ public class VectorPoolManager {
             return vector;
         } catch (Exception e) {
             plugin.getLogger().log(Level.WARNING, sysLang.getSystemMessage(Lang.VECTOR_POOL_BORROW_ERROR), e);
-            return new MovementVector(posChange, rotChange, action, durationTicks);
+            return new MovementVector(dx, dz, dYaw, dPitch, action, durationTicks);
         }
     }
 

@@ -4,7 +4,6 @@ import com.bentahsin.antiafk.learning.Pattern;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,7 +19,6 @@ public class KryoPatternSerializer implements ISerializer {
         kryo.register(java.util.ArrayList.class, 11);
         kryo.register(com.bentahsin.antiafk.learning.MovementVector.class, 12);
         kryo.register(com.bentahsin.antiafk.learning.MovementVector.PlayerAction.class, 14);
-        kryo.addDefaultSerializer(Vector2D.class, new Vector2DSerializer());
     }
 
     @Override

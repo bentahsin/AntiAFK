@@ -145,10 +145,6 @@
                                     <shadedPattern>com.bentahsin.antiafk.libs.sqlite</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.apache.commons.math3</pattern>
-                                    <shadedPattern>com.bentahsin.antiafk.libs.commons.math3</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>com.google.gson</pattern>
                                     <shadedPattern>com.bentahsin.antiafk.libs.gson</shadedPattern>
                                 </relocation>

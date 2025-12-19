@@ -53,6 +53,12 @@ turing_test:
     ORANGE: "&6Orange"
     CYAN: "&3Zyan"
 
+  bedrock_form:
+    title: "Bot-Überprüfung"
+    content: "Bitte klicken Sie unten auf 'VERIFIZIEREN', um zu bestätigen, dass Sie kein Bot sind."
+    button_verify: "✅ VERIFIZIEREN"
+    button_fake: "❌ Abbrechen"
+
 # Befehlsnachrichten
 command:
   antiafk:

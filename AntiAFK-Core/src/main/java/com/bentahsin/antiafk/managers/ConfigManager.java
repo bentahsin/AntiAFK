@@ -37,9 +37,10 @@ import java.util.concurrent.TimeUnit;
 )
 @ConfigHeader({
         "===================================================================",
-        "                 AntiAFK by benahsin - Main Configuration         ",
+        "                 AntiAFK by BenTahsin - Main Configuration         ",
         "===================================================================",
-        "You can edit all plugin messages and texts from the 'messages.yml' file."
+        "You can edit all plugin messages and texts from the 'messages.yml' file.",
+        "Need help? Check our GitHub or Discord."
 })
 @SuppressWarnings({"FieldCanBeLocal", "unused", "unchecked"})
 public class ConfigManager {
@@ -50,67 +51,140 @@ public class ConfigManager {
     @Ignore private final LoadingCache<UUID, Optional<RegionOverride>> regionCache;
 
     // --- BASIC SETTINGS ---
-    @ConfigPath("lang") private String languageName = "English";
+    @ConfigPath("lang")
+    @Comment({
+            "==================================",
+            "        LANGUAGE SETTINGS",
+            "==================================",
+            "1. System Messages (Console):",
+            "   Changes the language of console logs, startup messages, and internal errors.",
+            "   Controlled by the 'lang' setting below.",
+            "",
+            "2. Player Messages (In-Game):",
+            "   Stored in 'messages.yml'. Changing the setting below DOES NOT automatically",
+            "   translate 'messages.yml' to preserve your custom edits.",
+            "   -> You must edit 'messages.yml' manually for in-game player translations.",
+            "",
+            "Available System Languages: Turkish, English, Spanish, German, French, Russian, Polish"
+    })
+    private String languageName = "English";
     @Ignore private SupportedLanguage language;
 
     @ConfigPath("max_afk_time")
+    @Comment({
+            "==================================",
+            "        MAIN AFK SYSTEM",
+            "==================================",
+            "The maximum time a player can stay inactive before final actions (kick/ban) are taken.",
+            "Note: This value can be overridden by WorldGuard region settings below.",
+            "Format: 10s (seconds), 15m (minutes), 1h (hours), 1d (days)."
+    })
     @Transform(TimeConverter.class)
     @Validate(min = 1)
     private long maxAfkTimeSeconds = 900;
 
-    @ConfigPath("actions")
-    private List<Map<String, String>> actions = new ArrayList<>();
-
     @ConfigPath("warnings")
+    @Comment({
+            "Warnings sent to the player based on the 'Time Remaining' until punishment.",
+            "The plugin checks these from largest time to smallest.",
+            "Available Types: CHAT, ACTION_BAR, TITLE, BOSS_BAR"
+    })
     private List<Map<String, Object>> warningsRaw = new ArrayList<>();
 
     @Ignore
     private List<Map<String, Object>> warnings = new ArrayList<>();
 
+    @ConfigPath("actions")
+    @Comment({
+            "Actions to execute when the 'max_afk_time' runs out.",
+            "Available Types: CONSOLE, PLAYER, DISCORD_WEBHOOK"
+    })
+    private List<Map<String, String>> actions = new ArrayList<>();
+
     // --- DETECTION SETTINGS ---
     @ConfigPath("detection.auto_set_afk_after")
+    @Comment({
+            "==================================",
+            "        ACTIVITY DETECTION",
+            "==================================",
+            "After how long of inactivity should a player automatically get the [AFK] tag?",
+            "This serves as a visual indicator before the actual punishment.",
+            "Type 'disabled' to disable this feature."
+    })
     @Transform(TimeConverter.class)
     private long autoSetAfkSeconds = 60;
 
     @ConfigPath("detection.max-pointless-activities")
+    @Comment({
+            "If a player performs actions (jumping, hitting air, dropping items) while",
+            "standing on the SAME BLOCK more than this amount, they are considered a bot."
+    })
     @Validate(min = 1)
     private int maxPointlessActivities = 15;
 
-    @ConfigPath("detection.check_camera_movement") private boolean checkCamera = true;
+    @ConfigPath("detection.check_camera_movement")
+    @Comment("Define which player actions reset the AFK timer.")
+    private boolean checkCamera = true;
     @ConfigPath("detection.check_chat_activity") private boolean checkChat = true;
     @ConfigPath("detection.check_interaction") private boolean checkInteraction = true;
     @ConfigPath("detection.check_toggle_sneak") private boolean checkToggleSneak = true;
     @ConfigPath("detection.check_item_drop") private boolean checkItemDrop = true;
     @ConfigPath("detection.check_inventory_activity") private boolean checkInventoryActivity = true;
     @ConfigPath("detection.check_item_consume") private boolean checkItemConsume = true;
-    @ConfigPath("detection.check_held_item_change") private boolean checkHeldItemChange = true;
     @ConfigPath("detection.check_player_attack") private boolean checkPlayerAttack = true;
+
+    @ConfigPath("detection.check_held_item_change")
+    @Comment({"The following are disabled by default to prevent false positives."})
+    private boolean checkHeldItemChange = true;
     @ConfigPath("detection.check_book_activity") private boolean checkBookActivity = true;
 
     // --- AUTO CLICKER ---
-    @ConfigPath("detection.auto-clicker.enabled") private boolean autoClickerEnabled = true;
+    @ConfigPath("detection.auto-clicker.enabled")
+    @Comment({
+            "Analyzes the statistical variance (standard deviation) of click intervals.",
+            "NOTE: This is automatically disabled for Bedrock players to prevent false positives."
+    })
+    private boolean autoClickerEnabled = true;
     @ConfigPath("detection.auto-clicker.check-amount") @Validate(min = 5) private int autoClickerCheckAmount = 20;
     @ConfigPath("detection.auto-clicker.max-deviation") @Validate(min = 0) private long autoClickerMaxDeviation = 10;
     @ConfigPath("detection.auto-clicker.detections-to-punish") @Validate(min = 1) private int autoClickerDetectionsToPunish = 3;
 
     // --- WORLD CHANGE ---
-    @ConfigPath("detection.check-world-change.enabled") private boolean checkWorldChangeEnabled = true;
+    @ConfigPath("detection.check-world-change.enabled")
+    @Comment("Prevents players from resetting their AFK status by rapidly switching worlds.")
+    private boolean checkWorldChangeEnabled = true;
     @ConfigPath("detection.check-world-change.cooldown") @Validate(min = 1) private int worldChangeCooldown = 20;
     @ConfigPath("detection.check-world-change.max-changes") @Validate(min = 1) private int maxWorldChanges = 5;
 
     // --- REJOIN PROTECTION ---
-    @ConfigPath("rejoin_protection.enabled") private boolean rejoinProtectionEnabled = true;
+    @ConfigPath("rejoin_protection.enabled")
+    @Comment({
+            "==================================",
+            "        REJOIN PROTECTION",
+            "==================================",
+            "If a player is kicked for AFK, they cannot rejoin for this duration."
+    })
+    private boolean rejoinProtectionEnabled = true;
     @ConfigPath("rejoin_protection.cooldown") @Transform(TimeConverter.class) private long rejoinCooldownSeconds = 300;
 
     // --- TURING TEST (CAPTCHA) ---
-    @ConfigPath("turing_test.enabled") private boolean turingTestEnabled = true;
+    @ConfigPath("turing_test.enabled")
+    @Comment({
+            "==================================",
+            "   TURING TEST (CAPTCHA)",
+            "==================================",
+            "If a player is flagged as 'Suspicious', they will be presented with a Captcha test."
+    })
+    private boolean turingTestEnabled = true;
 
     @ConfigPath("turing_test.palettes")
+    @Comment("Which captcha types are active and their probability weights.")
     private Map<String, Map<String, Object>> captchaPalettesRaw = new HashMap<>();
 
     @ConfigPath("turing_test.question_answer.answer_timeout_seconds") @Validate(min = 5) private int qaCaptchaTimeoutSeconds = 20;
 
     @ConfigPath("turing_test.on_failure_actions")
+    @Comment("Commands to execute if player FAILS the test or runs out of time.")
     private List<Map<String, String>> captchaFailureActions = new ArrayList<>();
 
     @ConfigPath("turing_test.color_palette.gui_rows") @Validate(min = 1, max = 6) private int colorPaletteGuiRows = 3;
@@ -121,36 +195,78 @@ public class ConfigManager {
     @ConfigPath("turing_test.color_palette.available_colors") private List<String> colorPaletteAvailableColors = new ArrayList<>();
 
     // --- LEARNING MODE ---
-    @ConfigPath("learning_mode.enabled") private boolean learningModeEnabled = true;
+    @ConfigPath("learning_mode.enabled")
+    @Comment({
+            "==================================",
+            "    LEARNING MODE (PATTERN AI)",
+            "==================================",
+            "This module compares live player movements against recorded bot patterns."
+    })
+    private boolean learningModeEnabled = true;
     @ConfigPath("learning_mode.analysis_task_period_ticks") @Validate(min = 1) private long analysisTaskPeriodTicks = 40L;
     @ConfigPath("learning_mode.similarity_threshold") private double learningSimilarityThreshold = 25.0;
     @ConfigPath("learning_mode.search_radius") private int learningSearchRadius = 10;
-    @ConfigPath("learning_mode.security.max_pattern_file_size_kb") private long maxPatternFileSizeKb = 1024;
+
+    @ConfigPath("learning_mode.security.max_pattern_file_size_kb")
+    @Comment("Security limits to prevent memory overflows.")
+    private long maxPatternFileSizeKb = 1024;
     @ConfigPath("learning_mode.security.max_vectors_per_pattern") private int maxVectorsPerPattern = 12000;
     @ConfigPath("learning_mode.security.pre_filter_size_ratio") private double preFilterSizeRatio = 0.5;
 
     // --- BEHAVIORAL ANALYSIS ---
-    @ConfigPath("behavioral-analysis.enabled") private boolean behaviorAnalysisEnabled = false;
+    @ConfigPath("behavioral-analysis.enabled")
+    @Comment({
+            "==================================",
+            "    ADVANCED BEHAVIOR ANALYSIS",
+            "==================================",
+            "This system records player movement vectors and looks for repetitive loops."
+    })
+    private boolean behaviorAnalysisEnabled = false;
     @ConfigPath("behavioral-analysis.history-size-ticks") @Validate(min = 20) private int behaviorHistorySizeTicks = 600;
 
     // --- DISCORD ---
-    @ConfigPath("discord_webhook.enabled") private boolean discordWebhookEnabled = false;
+    @ConfigPath("discord_webhook.enabled")
+    @Comment({
+            "==================================",
+            "           INTEGRATIONS",
+            "==================================",
+            "Send notifications like kick/ban to Discord."
+    })
+    private boolean discordWebhookEnabled = false;
     @ConfigPath("discord_webhook.webhook_url") private String discordWebhookUrl = "PASTE_YOUR_WEBHOOK_URL_HERE";
     @ConfigPath("discord_webhook.bot_name") private String discordBotName = "AntiAFK Guard";
     @ConfigPath("discord_webhook.avatar_url") private String discordAvatarUrl = "";
 
     // --- PERMISSIONS & EXEMPTIONS ---
-    @ConfigPath("exemptions.permissions.bypass_all") private String permBypassAll = "antiafk.bypass.all";
+    @ConfigPath("exemptions.permissions.bypass_all")
+    @Comment({
+            "==================================",
+            "      EXEMPTIONS & PERMISSIONS",
+            "=================================="
+    })
+    private String permBypassAll = "antiafk.bypass.all";
     @ConfigPath("exemptions.permissions.bypass_classic") private String permBypassClassic = "antiafk.bypass.classic";
     @ConfigPath("exemptions.permissions.bypass_behavioral") private String permBypassBehavioral = "antiafk.bypass.behavioral";
     @ConfigPath("exemptions.permissions.bypass_pointless") private String permBypassPointless = "antiafk.bypass.pointless";
     @ConfigPath("exemptions.permissions.bypass_autoclicker") private String permBypassAutoclicker = "antiafk.bypass.autoclicker";
     @ConfigPath("afk_command.permission") private String permAfkCommandUse = "antiafk.command.afk";
-    @ConfigPath("exemptions.disabled_worlds") private List<String> disabledWorlds = new ArrayList<>();
-    @ConfigPath("exemptions.exempt_gamemodes") private List<String> exemptGameModes = new ArrayList<>();
+
+    @ConfigPath("exemptions.disabled_worlds")
+    @Comment("Worlds where AntiAFK is completely disabled.")
+    private List<String> disabledWorlds = new ArrayList<>();
+
+    @ConfigPath("exemptions.exempt_gamemodes")
+    @Comment("GameModes that are ignored by AntiAFK.")
+    private List<String> exemptGameModes = new ArrayList<>();
 
     // --- AFK COMMAND ---
-    @ConfigPath("afk_command.enabled") private boolean afkCommandEnabled = true;
+    @ConfigPath("afk_command.enabled")
+    @Comment({
+            "==================================",
+            "       MANUAL /AFK COMMAND",
+            "=================================="
+    })
+    private boolean afkCommandEnabled = true;
     @ConfigPath("afk_command.on_afk.default_reason") private String afkDefaultReason = "No reason specified";
     @ConfigPath("afk_command.on_afk.set_invulnerable") private boolean setInvulnerable = true;
     @ConfigPath("afk_command.on_afk.tag_format") private String afkTagFormat = "&7[AFK] ";
@@ -158,7 +274,15 @@ public class ConfigManager {
     @ConfigPath("afk_command.on_return.broadcast") private boolean broadcastOnReturn = true;
 
     // --- COMMAND SETTINGS ---
-    @ConfigPath("commands.main.command") private String mainCommandName = "antiafk";
+    @ConfigPath("commands.main.command")
+    @Comment({
+            "==================================",
+            "         COMMAND SETTINGS",
+            "==================================",
+            "You can rename the plugin commands here to avoid conflicts.",
+            "Restart required."
+    })
+    private String mainCommandName = "antiafk";
     @ConfigPath("commands.main.aliases") private List<String> mainCommandAliases = new ArrayList<>(Arrays.asList("aafk", "afkadmin"));
 
     @ConfigPath("commands.afk.command") private String afkCommandName = "afk";
@@ -171,17 +295,38 @@ public class ConfigManager {
     @ConfigPath("commands.afkcevap.aliases") private List<String> afkCevapCommandAliases = new ArrayList<>(Arrays.asList("answer", "reply"));
 
     // --- WORLDGUARD ---
-    @ConfigPath("worldguard_integration.enabled") private boolean worldGuardEnabled = false;
+    @ConfigPath("worldguard_integration.enabled")
+    @Comment({
+            "==================================",
+            "      WORLDGUARD INTEGRATION",
+            "=================================="
+    })
+    private boolean worldGuardEnabled = false;
 
     @ConfigPath("worldguard_integration.region_overrides")
+    @Comment({
+            "Define custom AFK rules for specific regions.",
+            "Keys ('0', '1') are just identifiers."
+    })
     private Map<String, Map<String, Object>> regionOverridesRaw = new HashMap<>();
 
     @Ignore private List<RegionOverride> regionOverrides = new ArrayList<>();
     @Ignore private Map<String, RegionOverride> regionOverrideMap = new HashMap<>();
 
     // --- PROGRESSIVE PUNISHMENT ---
-    @ConfigPath("progressive_punishment.enabled") private boolean progressivePunishmentEnabled = true;
-    @ConfigPath("progressive_punishment.reset_after") private String punishmentResetAfterStr = "30d";
+    @ConfigPath("progressive_punishment.enabled")
+    @Comment({
+            "==================================",
+            "      PROGRESSIVE PUNISHMENT",
+            "==================================",
+            "This system tracks how many times a player has been punished.",
+            "You can increase the severity based on the offense count."
+    })
+    private boolean progressivePunishmentEnabled = true;
+
+    @ConfigPath("progressive_punishment.reset_after")
+    @Comment("How long should the punishment counter be remembered? (e.g. 30d)")
+    private String punishmentResetAfterStr = "30d";
 
     @ConfigPath("progressive_punishment.punishments")
     private List<Map<String, Object>> punishmentLevelsRaw = new ArrayList<>();
@@ -219,7 +364,7 @@ public class ConfigManager {
      * Fills default values in English.
      */
     private void initializeDefaults() {
-        // Colors
+        // Renkler
         colorPaletteAvailableColors = new ArrayList<>(Arrays.asList(
                 "RED", "BLUE", "LIME", "YELLOW", "ORANGE", "CYAN", "MAGENTA"
         ));

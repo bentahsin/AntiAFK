@@ -1,245 +1,283 @@
-# =================================================================== #
-#                  AntiAFK by BenTahsin - Ana Konfigürasyon           #
-# =================================================================== #
-# Plugin ile ilgili tüm mesajları ve metinleri 'messages.yml' dosyasından düzenleyebilirsiniz.
+# ================================================================================== #
+#                       AntiAFK by bentahsin - Main Configuration                    #
+# ================================================================================== #
+# Welcome to AntiAFK!
+# This file handles the core logic, detection sensitivity, and punishments.
+# For messages, prefixes, and translations, please check 'messages.yml'.
+#
+# Need help? Check our GitHub or Discord.
+# ================================================================================== #
 
 # ================================== #
-#         DİL AYARLARI             #
+#         LANGUAGE SETTINGS          #
 # ================================== #
-# Eklentinin kullanacağı dili belirleyin.
-# Bu ayar hem konsola yazılan sistem mesajlarını (başlatma, hata logları vb.)
-# hem de oyunculara gönderilen varsayılan mesajları etkiler.
-# Mevcut Seçenekler: Turkish, English, Spanish, German, French, Russian, Polish
-lang: "Turkish"
+# 1. System Messages (Console):
+#    Changes the language of console logs, startup messages, and internal errors.
+#    Controlled by the 'lang' setting below.
+#
+# 2. Player Messages (In-Game):
+#    Stored in 'messages.yml'. Changing the setting below DOES NOT automatically
+#    translate 'messages.yml' to preserve your custom edits.
+#    -> You must edit 'messages.yml' manually for in-game player translations.
+#    -> You can find pre-translated 'messages.yml' files on our GitHub.
+#    -> https://github.com/bentahsin/AntiAFK/tree/master/messages_yml
+#
+# Available System Languages: Turkish, English, Spanish, German, French, Russian, Polish
+lang: "English"
 
 # ================================== #
-#       HATA AYIKLAMA (DEBUG)        #
+#          DEBUGGING (DEBUG)         #
 # ================================== #
-# Bu bölüm, eklentinin belirli modüllerinden detaylı konsol logları almanızı sağlar.
-# Sorun giderme veya eklentinin iç işleyişini merak ettiğiniz durumlar için kullanışlıdır.
+# This section allows you to get detailed console logs from specific modules.
+# WARNING: Do not leave this enabled on a production server as it may spam the console.
 debug:
-  # Ana şalter: Bu 'false' ise, aşağıdaki hiçbir ayarın önemi kalmaz ve hiç debug mesajı gösterilmez.
+  # Master switch: If 'false', settings below are ignored.
   enabled: false
 
-  # Modül bazında debug ayarları. Sadece 'enabled: true' ise geçerlidir.
+  # Enable specific module logs. Only valid if 'enabled: true'.
   modules:
-    # Klasik aktivite dinleyicileri (hareket, tıklama, sohbet vb.)
-    activity_listener: false
-    # Gelişmiş Davranışsal Analiz (Yörünge Tespiti)
-    behavioral_analysis: false
-    # Öğrenme Modu (Desen Tanıma)
-    learning_mode: false
-    # Komut Yönetimi
-    command_registration: false
-    # Veritabanı İşlemleri
-    database_queries: false
+    activity_listener: false    # Logs player actions (move, click, chat).
+    behavioral_analysis: false  # Logs vector calculations and trajectory comparisons.
+    learning_mode: false        # Logs DTW pattern matching processes.
+    command_registration: false # Logs command register status.
+    database_queries: false     # Logs SQL queries and Cache HIT/MISS.
 
 # ================================== #
-#          KOMUT AYARLARI            #
+#           INTEGRATIONS             #
 # ================================== #
-# Komutların ana isimlerini ve alias'larını buradan değiştirebilirsiniz.
-# Değişiklikten sonra sunucuyu yeniden başlatmanız önerilir.
-commands:
-  main:
-    command: "antiafk"
-    aliases: ["aafk", "afkadmin"]
-  afk:
-    command: "afk"
-    aliases: ["away", "brb"]
-  afktest:
-    command: "afktest"
-    aliases: ["testafk"]
-  afkcevap:
-    command: "afkcevap"
-    aliases: ["answer", "cevap"]
-
-# ================================== #
-#         ENTEGRASYONLAR           #
-# ================================== #
-
-# Discord Webhook entegrasyonu. Kick/ban gibi önemli bildirimleri Discord'a göndermek için.
 discord_webhook:
   enabled: false
-  webhook_url: "BURAYA_WEBHOOK_URL_YAPISTIRIN"
+  # Create a webhook in your Discord server channel settings and paste it here.
+  webhook_url: "PASTE_YOUR_WEBHOOK_URL_HERE"
+  # Name of the bot that will appear in Discord.
   bot_name: "AntiAFK Guard"
+  # Optional: URL to an image for the bot avatar.
   avatar_url: ""
 
 # ================================== #
-#         ANA AFK SİSTEMİ            #
+#          MAIN AFK SYSTEM           #
 # ================================== #
 
-# Bir oyuncunun nihai eylemlere maruz kalmadan önce AFK kalabileceği varsayılan maksimum süre.
-# Bu değer, WorldGuard bölge ayarları tarafından ezilebilir.
-# Format: 10s (saniye), 15m (dakika), 1h (saat), 1d (gün). Örn: "30m"
+# The maximum time a player can stay inactive before final actions (kick/ban) are taken.
+# Note: This value can be overridden by WorldGuard region settings below.
+# Format: 10s (seconds), 15m (minutes), 1h (hours), 1d (days).
 max_afk_time: "15m"
 
-# Oyuncuya nihai eylemler uygulanmadan önce gönderilecek uyarılar.
-# Uyarılar, 'time' değerine göre büyükten küçüğe doğru kontrol edilir.
-# type: CHAT, ACTION_BAR, TITLE, BOSS_BAR
-# bar_color: BLUE, GREEN, PINK, PURPLE, RED, WHITE, YELLOW
-# bar_style: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+# Warnings sent to the player based on the "Time Remaining" until punishment.
+# The plugin checks these from largest time to smallest.
+#
+# Available Types: CHAT, ACTION_BAR, TITLE, BOSS_BAR
+# BossBar Colors: BLUE, GREEN, PINK, PURPLE, RED, WHITE, YELLOW
+# BossBar Styles: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
 warnings:
   - time: "5m"
     type: "CHAT"
-    message: "&e[AFK] &7Hareketsiz görünüyorsun. &c%time_left% &7içinde hareket etmezsen cezalandırılacaksın."
+    message: "&e[AntiAFK] &7You seem inactive. You will be punished if you don't move in &c%time_left%&7."
     bar_color: "RED"
     bar_style: "SOLID"
 
   - time: "1m"
     type: "TITLE"
-    title: "&c&lDİKKAT"
-    subtitle: "&e1 dakika içinde hareket etmelisin!"
+    title: "&c&lWARNING"
+    subtitle: "&eYou must move within 1 minute!"
     sound: "BLOCK_NOTE_BLOCK_PLING"
     bar_color: "RED"
     bar_style: "SOLID"
 
   - time: "10s"
     type: "ACTION_BAR"
-    message: "&4&lSunucudan atılıyor: %time_left%"
+    message: "&4&lPunishment imminent: %time_left%"
     sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
     bar_color: "RED"
     bar_style: "SOLID"
 
-# Oyuncu 'max_afk_time' süresini doldurduğunda çalıştırılacak komutlar.
-# type: CONSOLE (konsol tarafından), PLAYER (oyuncu tarafından), DISCORD_WEBHOOK
+# Actions to execute when the 'max_afk_time' runs out.
+# Available Types:
+# - CONSOLE: Executes a command as the console.
+# - PLAYER: Executes a command as the player.
+# - DISCORD_WEBHOOK: Sends a message to Discord (if enabled).
 actions:
   - type: "CONSOLE"
-    command: "kick %player% &cAFK süreniz doldu."
+    command: "kick %player% &cAFK time expired."
 
 # ================================== #
-#        KADEMELİ CEZA SİSTEMİ       #
+#      PROGRESSIVE PUNISHMENT        #
 # ================================== #
+# This system tracks how many times a player has been punished for AFK behavior.
+# You can increase the severity of the punishment based on the offense count.
 progressive_punishment:
   enabled: true
 
-  # Bir oyuncunun ceza sayacının ne kadar süre sonra sıfırlanacağını belirler.
-  # Devre dışı bırakmak için "never" yazın.
+  # How long should the punishment counter be remembered?
+  # If a player is active and well-behaved for this duration, their record is wiped.
+  # Type "never" to keep records forever.
   reset_after: "30d"
 
-  # Ceza kademeleri. Eklenti, bir oyuncunun ceza sayısına eşit veya
-  # ondan KÜÇÜK olan en YÜKSEK 'count' değerini bulup uygular.
+  # Punishment tiers. The plugin finds the HIGHEST 'count' less than or equal
+  # to the player's punishment count and applies it.
   punishments:
-    # 1. kez yakalandığında
+    # 1st Offense: Just a warning and sent to spawn.
     - count: 1
       actions:
         - type: "CONSOLE"
-          command: "warn %player% Lütfen sunucuda AFK kalmaktan kaçının."
+          command: "warn %player% Please avoid staying AFK on the server."
         - type: "PLAYER"
           command: "spawn"
 
-    # 3. kez yakalandığında
+    # 3rd Offense: Kick from the server.
     - count: 3
       actions:
         - type: "CONSOLE"
-          command: "kick %player% &cTekrar eden AFK davranışı nedeniyle sunucudan atıldınız."
+          command: "kick %player% &cKicked due to repeated AFK behavior."
 
-    # 5. kez ve sonrasında yakalandığında
+    # 5th Offense: Temporary Ban.
     - count: 5
       actions:
         - type: "CONSOLE"
-          command: "tempban %player% 10m &cAFK kalmayı alışkanlık haline getirdiğiniz için geçici olarak uzaklaştırıldınız."
+          command: "tempban %player% 10m &cTemporarily banned for habitual AFK behavior."
         - type: "DISCORD_WEBHOOK"
           message: ":rotating_light: **%player_displayname%** has been temporarily banned for 10 minutes due to repeated AFK behavior."
 
 # ================================== #
-#         AKTİVİTE TESPİTİ           #
+#        ACTIVITY DETECTION          #
 # ================================== #
 detection:
-  # Bir oyuncunun bot sayılması için aynı blokta kaç kez
-  # hareket dışı aktivite (eşya atma, eğilme vb.) yapması gerekir?
+  # Pointless Activity Detection:
+  # If a player performs actions (jumping, hitting air, dropping items) while
+  # standing on the SAME BLOCK more than this amount, they are considered a bot.
   max-pointless-activities: 15
 
-  # Hangi oyuncu eylemlerinin aktivite olarak sayılacağını belirleyin.
-  check_camera_movement: true
-  check_chat_activity: true
-  check_interaction: true         # Blok kırma/koyma
-  check_toggle_sneak: true
-  check_player_attack: true
-  check_item_drop: true
-  check_inventory_activity: true
-  check_item_consume: true
-  # 'check_held_item_change' ve 'check_book_activity' ayarları, basit botları engellemek için
-  # genellikle false olarak bırakılabilir, ancak isteğe bağlı olarak açılabilir.
-  check_held_item_change: false   # Hotbar'da eşya değiştirme
-  check_book_activity: false      # Kitap okuma/yazma
+  # Define which player actions reset the AFK timer.
+  # Set 'false' if you want to ignore certain actions (e.g., AFK pools).
+  check_camera_movement: true     # Looking around
+  check_chat_activity: true       # Typing in chat or commands
+  check_interaction: true         # Breaking or placing blocks
+  check_toggle_sneak: true        # Sneaking (Shift)
+  check_player_attack: true       # Hitting entities
+  check_item_drop: true           # Dropping items (Q)
+  check_inventory_activity: true  # Moving items in inventory
+  check_item_consume: true        # Eating/Drinking
 
-  # Sürekli dünyalar arası geçiş yaparak AFK sistemini istismar etmeyi engeller.
+  # The following are disabled by default to prevent false positives for players
+  # who are just organizing their inventory or reading while AFK.
+  check_held_item_change: false   # Scrolling hotbar
+  check_book_activity: false      # Reading a book
+
+  # World Change Exploit Prevention:
+  # Prevents players from resetting their AFK status by rapidly switching worlds
+  # (e.g., nether portal spam).
   check-world-change:
     enabled: true
-    cooldown: 20
-    max-changes: 5
+    cooldown: 20      # Time window in seconds
+    max-changes: 5    # Max changes allowed in that window
 
-  # Auto-clicker (tutarlı tıklama aralığı) tespitini yönetir.
+  # Auto-Clicker Detection:
+  # Analyzes the statistical variance (standard deviation) of click intervals.
+  # NOTE: This is automatically disabled for Bedrock players to prevent false positives.
   auto-clicker:
     enabled: true
-    check-amount: 20
-    max-deviation: 10
-    detections-to-punish: 3
+    check-amount: 20          # How many clicks to analyze at once
+    max-deviation: 10         # Max allowed deviation (lower = stricter)
+    detections-to-punish: 3   # How many positive detections before action
 
-  # Bir oyuncu ne kadar süre hareketsiz kaldıktan sonra otomatik olarak [AFK] tag'ı alacak?
-  # Bu süre, nihai ceza süresinden (max_afk_time) daha kısa olmalıdır.
-  # Devre dışı bırakmak için "disabled" yazın.
+  # Auto AFK Tag:
+  # After how long of inactivity should a player automatically get the [AFK] tag?
+  # This serves as a visual indicator before the actual punishment.
+  # Type "disabled" to disable this feature.
   auto_set_afk_after: "1m"
 
 # ================================== #
-#        YENİDEN GİRİŞ KORUMASI      #
+#        REJOIN PROTECTION           #
 # ================================== #
 rejoin_protection:
   enabled: true
-  # Sistem tarafından AFK nedeniyle cezalandırılan bir oyuncunun,
-  # ne kadar süre boyunca sunucuya yeniden katıldığında tekrar cezalandırılacağını belirler.
+  # If a player is kicked for AFK, they cannot rejoin for this duration.
+  # This prevents auto-reconnect mods from bypassing the system.
   cooldown: "5m"
 
 # ================================== #
-#      GELİŞMİŞ DAVRANIŞ ANALİZİ     #
+#    ADVANCED BEHAVIOR ANALYSIS      #
 # ================================== #
-# BU SİSTEM, SÜREKLİ AYNI YÖRÜNGEDE HAREKET EDEN BOTLARI TESPİT EDER.
+# ⚠️ ADVANCED SETTINGS - EDIT WITH CAUTION ⚠️
+# This system records player movement vectors and looks for repetitive loops
+# or pre-recorded bot patterns using Dynamic Time Warping (DTW).
 behavioral-analysis:
   enabled: true
+
+  # How many ticks of movement history to keep in memory per player.
+  # Higher = More accuracy but slightly more RAM usage.
+  # 600 ticks = 30 seconds.
   history-size-ticks: 600
+
+  # Minimum points required to start an analysis.
   min-trajectory-points: 20
+
+  # Max trajectory points to compare.
   max-trajectory-points: 300
+
+  # How many times a player must repeat the EXACT same path to be flagged.
   max-repeats: 3
+
+  # Tolerances for "similarity". Bots are perfect, humans are not.
   location-tolerance: 1.0
   direction-tolerance: 25.0
   similarity-threshold: 0.85
 
 # ================================== #
-#     ÖĞRENME MODU (DESEN TESPİTİ)     #
+#    LEARNING MODE (PATTERN AI)      #
 # ================================== #
+# This module compares live player movements against recorded bot patterns
+# stored in the 'plugins/AntiAFK/known_routes' folder.
 learning_mode:
   enabled: true
+
+  # How often (in ticks) the async analysis task runs.
+  # 40 ticks = every 2 seconds. Lower = Faster detection, Higher = Better performance.
   analysis_task_period_ticks: 40
+
+  # DTW Distance Threshold.
+  # Lower = Stricter (Movements must match the pattern exactly).
+  # Higher = Looser (Allows more deviation from the pattern).
   similarity_threshold: 25.0
+
+  # Optimization radius for FastDTW.
   search_radius: 10
+
+  # Security limits to prevent memory overflows.
   security:
     max_pattern_file_size_kb: 1024
     max_vectors_per_pattern: 12000
     pre_filter_size_ratio: 0.5
 
 # =================================== #
-#   TURING TESTİ (CAPTCHA) KORUMASI   #
+#   TURING TEST (CAPTCHA) PROTECTION  #
 # =================================== #
+# If a player is flagged as "Suspicious" (by behavior analysis or auto-clicker),
+# they will be presented with a Captcha test instead of an immediate ban.
 turing_test:
   enabled: true
 
-  # HANGİ CAPTCHA TÜRLERİNİN KULLANILACAĞINI VE AĞIRLIKLARINI BELİRLEYEN ANA BÖLÜM
+  # Which captcha types are active and their probability weights.
   palettes:
+    # Chat-based math or logic questions.
     QUESTION_ANSWER:
       enabled: true
       weight: 40
+    # GUI-based "Click the Red Wool" test.
     COLOR_PALETTE:
       enabled: true
       weight: 60
+    # Special Native Form for Bedrock/Geyser players.
+    # If a player is detected as Bedrock, this is prioritized automatically.
     BEDROCK_FORM:
       enabled: true
       weight: 100
 
-  # Soru/Cevap Captcha'sı için ayarlar
+  # Settings for Question/Answer Captcha
   question_answer:
     answer_timeout_seconds: 20
 
-  # Renk Paleti Captcha'sı için ayarlar
+  # Settings for Color Palette Captcha (GUI)
   color_palette:
     gui_rows: 3
     time_limit_seconds: 15
@@ -255,36 +293,37 @@ turing_test:
       - "CYAN"
       - "MAGENTA"
 
-  # Oyuncu testi geçemezse çalıştırılacak komutlar.
+  # Commands to execute if player FAILS the test or runs out of time.
   on_failure_actions:
     - type: "CONSOLE"
-      command: "kick %player% &cBot testi başarısız!"
+      command: "kick %player% &cBot test failed!"
     - type: "DISCORD_WEBHOOK"
       message: ":shield: **%player_displayname%** was kicked for failing the bot captcha test."
 
 # ================================== #
-#      WORLDGUARD ENTEGRASYONU       #
+#      WORLDGUARD INTEGRATION        #
 # ================================== #
 worldguard_integration:
   enabled: true
 
-  # Bölgelere özel ayarlar.
+  # Define custom AFK rules for specific regions.
+  # Keys ('0', '1') are just identifiers.
   region_overrides:
     '0':
       region: "pvp_arena"
-      max_afk_time: "3m"
+      max_afk_time: "3m" # Stricter time for PVP
       actions:
         - type: "PLAYER"
           command: "spawn"
     '1':
-      region: "afk_odasi"
-      max_afk_time: "disabled"
+      region: "afk_room"
+      max_afk_time: "disabled" # No AFK kick in this region
     '2':
-      region: "ticaret_alani"
-      max_afk_time: "1h"
+      region: "trade_area"
+      max_afk_time: "1h" # Relaxed time for trading
 
 # ================================== #
-#          MANUEL /AFK KOMUTU        #
+#        MANUAL /AFK COMMAND         #
 # ================================== #
 afk_command:
   enabled: true
@@ -292,7 +331,7 @@ afk_command:
 
   on_afk:
     broadcast: true
-    default_reason: "Sebep belirtilmedi"
+    default_reason: "No reason specified"
     set_invulnerable: true
     tag_format: "&7[AFK] "
 
@@ -300,19 +339,41 @@ afk_command:
     broadcast: true
 
 # ================================== #
-#      İSTİSNALAR (EXEMPTIONS)   #
+#      COMMAND SETTINGS              #
+# ================================== #
+# You can rename the plugin commands here to avoid conflicts
+# or to translate them. Restart required.
+commands:
+  main:
+    command: "antiafk"
+    aliases: ["aafk", "afkadmin"]
+  afk:
+    command: "afk"
+    aliases: ["away", "brb"]
+  afktest:
+    command: "afktest"
+    aliases: ["testafk"]
+  afkcevap:
+    command: "afkcevap"
+    aliases: ["answer", "reply"]
+
+# ================================== #
+#      EXEMPTIONS & PERMISSIONS      #
 # ================================== #
 exemptions:
+  # Permissions to bypass specific checks.
   permissions:
-    bypass_all: "antiafk.bypass.all"
-    bypass_classic: "antiafk.bypass.classic"
-    bypass_behavioral: "antiafk.bypass.behavioral"
-    bypass_pointless: "antiafk.bypass.pointless"
-    bypass_autoclicker: "antiafk.bypass.autoclicker"
+    bypass_all: "antiafk.bypass.all"               # Bypasses EVERYTHING
+    bypass_classic: "antiafk.bypass.classic"       # Bypasses standard timer
+    bypass_behavioral: "antiafk.bypass.behavioral" # Bypasses AI detection
+    bypass_pointless: "antiafk.bypass.pointless"   # Bypasses pointless activity check
+    bypass_autoclicker: "antiafk.bypass.autoclicker" # Bypasses click speed check
 
+  # Worlds where AntiAFK is completely disabled.
   disabled_worlds:
-    - "creative_dunyasi"
+    - "creative_world"
 
+  # GameModes that are ignored by AntiAFK.
   exempt_gamemodes:
     - "SPECTATOR"
     - "CREATIVE"

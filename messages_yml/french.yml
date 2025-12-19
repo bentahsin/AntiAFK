@@ -53,6 +53,12 @@ turing_test:
     ORANGE: "&6Orange"
     CYAN: "&3Cyan"
 
+  bedrock_form:
+    title: "Vérification anti-bot"
+    content: "Veuillez cliquer sur le bouton 'VÉRIFIER' ci-dessous pour confirmer que vous n'êtes pas un robot."
+    button_verify: "✅ VÉRIFIER"
+    button_fake: "❌ Annuler"
+
 # Mensagens de Comando
 command:
   antiafk:

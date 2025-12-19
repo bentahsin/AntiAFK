@@ -64,6 +64,8 @@ public class ConfigManager {
             "   Stored in 'messages.yml'. Changing the setting below DOES NOT automatically",
             "   translate 'messages.yml' to preserve your custom edits.",
             "   -> You must edit 'messages.yml' manually for in-game player translations.",
+            "   -> You can find pre-translated 'messages.yml' files on our GitHub.",
+            "   -> https://github.com/bentahsin/AntiAFK/tree/master/messages_yml",
             "",
             "Available System Languages: Turkish, English, Spanish, German, French, Russian, Polish"
     })

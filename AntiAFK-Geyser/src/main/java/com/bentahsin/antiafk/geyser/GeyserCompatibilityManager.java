@@ -101,7 +101,7 @@ public class GeyserCompatibilityManager implements IInputCompatibility {
         timeoutTask[0] = Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (plugin.getPlayersInChatInput().contains(playerUUID)) {
                 plugin.clearPlayerChatInput(playerUUID);
-                playerLanguageManager.sendMessage(player, "gui.region.input_cancelled"); // Veya "Zaman aşımı" mesajı
+                playerLanguageManager.sendMessage(player, "gui.region.input_cancelled");
             }
         }, INPUT_TIMEOUT_SECONDS * 20L);
     }

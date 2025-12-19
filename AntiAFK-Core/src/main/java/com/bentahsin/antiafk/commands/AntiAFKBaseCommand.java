@@ -73,7 +73,6 @@ public class AntiAFKBaseCommand extends BaseCommand {
     @Subcommand("help")
     @Description("Eklenti yardım mesajını gösterir.")
     public void onHelp(CommandSender sender) {
-        // Dinamik label (komut adı) kullanımı
         lang.sendMessage(sender, "command.antiafk.usage", "%label%", configManager.getMainCommandName());
     }
 
@@ -88,7 +87,6 @@ public class AntiAFKBaseCommand extends BaseCommand {
 
         configManager.loadConfig();
         debugManager.loadConfigSettings();
-        // SystemLanguageManager reload işlemi ConfigManager içinde tetiklenmeli veya burada eklenmeli
         lang.loadMessages();
 
         long time = System.currentTimeMillis() - start;
@@ -163,21 +161,17 @@ public class AntiAFKBaseCommand extends BaseCommand {
     @CommandCompletion("@players")
     @Description("Bir oyuncunun AFK geçmişini ve durumunu kontrol eder.")
     public void onCheck(CommandSender sender, String targetName) {
-        // Ana iş parçacığını kilitlememek için asenkron işlem başlatıyoruz
         CompletableFuture.runAsync(() -> {
             @SuppressWarnings("deprecation")
             OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
 
-            // Oyuncu hiç sunucuya girmemişse
             if (target == null || (!target.hasPlayedBefore() && !target.isOnline())) {
                 Bukkit.getScheduler().runTask(plugin, () -> lang.sendMessage(sender, "error.player_not_found"));
                 return;
             }
 
-            // İstatistikleri çek
             statsManager.getPlayerStats(target.getUniqueId(), target.getName())
                     .thenAccept(stats -> {
-                        // Sonuçları göstermek için tekrar Main Thread'e (Sync) dönüyoruz
                         Bukkit.getScheduler().runTask(plugin, () -> displayPlayerStats(sender, target, stats));
                     })
                     .exceptionally(ex -> {
@@ -214,7 +208,6 @@ public class AntiAFKBaseCommand extends BaseCommand {
             return;
         }
 
-        // Veritabanı işlemi
         databaseManager.getTopPlayers(dbColumn, 10).thenAccept(topPlayers -> {
             Bukkit.getScheduler().runTask(plugin, () -> {
                 if (topPlayers.isEmpty()) {
@@ -246,7 +239,6 @@ public class AntiAFKBaseCommand extends BaseCommand {
 
         lang.sendMessage(sender, "command.antiafk.check.header", "%player%", target.getName());
 
-        // Anlık Durum Analizi
         String statusMessage;
         if (onlineTarget != null) {
             if (afkManager.getStateManager().isEffectivelyAfk(onlineTarget)) {
@@ -261,7 +253,6 @@ public class AntiAFKBaseCommand extends BaseCommand {
         }
         sender.sendMessage(statusMessage);
 
-        // İstatistikler
         sender.sendMessage(lang.getMessage("sabika_system.total_afk_time",
                 "%time%", TimeUtil.formatTime(stats.getTotalAfkTime())));
 
@@ -277,8 +268,6 @@ public class AntiAFKBaseCommand extends BaseCommand {
         sender.sendMessage(lang.getMessage("sabika_system.captcha_stats",
                 "%passed%", String.valueOf(stats.getTuringTestsPassed()),
                 "%failed%", String.valueOf(stats.getTuringTestsFailed())));
-
-        // Eğer oyuncu şu an AFK ise sebebi
         if (onlineTarget != null && afkManager.getStateManager().isEffectivelyAfk(onlineTarget)) {
             String rawReason = afkManager.getStateManager().getAfkReason(onlineTarget);
             String displayReason = rawReason;
@@ -290,7 +279,6 @@ public class AntiAFKBaseCommand extends BaseCommand {
             sender.sendMessage(lang.getMessage("command.antiafk.check.reason", "%reason%", displayReason));
         }
 
-        // Bot olarak işaretli mi?
         String yes = lang.getMessage("command.antiafk.check.boolean_yes");
         String no = lang.getMessage("command.antiafk.check.boolean_no");
         boolean isAutonomous = onlineTarget != null && afkManager.getStateManager().isMarkedAsAutonomous(onlineTarget);

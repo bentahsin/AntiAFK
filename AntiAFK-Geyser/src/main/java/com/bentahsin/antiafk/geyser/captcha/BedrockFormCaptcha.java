@@ -23,7 +23,7 @@ public class BedrockFormCaptcha implements ICaptcha {
 
     @Override
     public String getTypeName() {
-        return "BEDROCK_FORM"; // Config'de bu isimle geçecek
+        return "BEDROCK_FORM";
     }
 
     @Override
@@ -75,7 +75,6 @@ public class BedrockFormCaptcha implements ICaptcha {
             }
         });
 
-        // Formu kapatırsa veya iptal ederse
         builder.closedOrInvalidResultHandler(() -> {
             Bukkit.getScheduler().runTask(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("AntiAFK")), () -> {
                 api.submitCaptchaResult(player, false, "Form Closed");

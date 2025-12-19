@@ -28,19 +28,19 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 @Singleton
-@ConfigHeader({
-        "===================================================================",
-        "                 AntiAFK by BenTahsin - Ana Konfigürasyon          ",
-        "===================================================================",
-        "Plugin ile ilgili tüm mesajları ve metinleri 'messages.yml' dosyasından düzenleyebilirsiniz."
-})
-@ConfigVersion(1)
+@ConfigVersion(2)
 @Backup(
         enabled = true,
         path = "backups",
         onFailure = true,
         onMigration = true
 )
+@ConfigHeader({
+        "===================================================================",
+        "                 AntiAFK by benahsin - Main Configuration         ",
+        "===================================================================",
+        "You can edit all plugin messages and texts from the 'messages.yml' file."
+})
 @SuppressWarnings({"FieldCanBeLocal", "unused", "unchecked"})
 public class ConfigManager {
 
@@ -49,8 +49,8 @@ public class ConfigManager {
     @Ignore private final List<IRegionProvider> regionProviders = new CopyOnWriteArrayList<>();
     @Ignore private final LoadingCache<UUID, Optional<RegionOverride>> regionCache;
 
-    // --- TEMEL AYARLAR ---
-    @ConfigPath("lang") private String languageName = "Turkish";
+    // --- BASIC SETTINGS ---
+    @ConfigPath("lang") private String languageName = "English";
     @Ignore private SupportedLanguage language;
 
     @ConfigPath("max_afk_time")
@@ -67,7 +67,7 @@ public class ConfigManager {
     @Ignore
     private List<Map<String, Object>> warnings = new ArrayList<>();
 
-    // --- TESPİT AYARLARI ---
+    // --- DETECTION SETTINGS ---
     @ConfigPath("detection.auto_set_afk_after")
     @Transform(TimeConverter.class)
     private long autoSetAfkSeconds = 60;
@@ -93,17 +93,21 @@ public class ConfigManager {
     @ConfigPath("detection.auto-clicker.max-deviation") @Validate(min = 0) private long autoClickerMaxDeviation = 10;
     @ConfigPath("detection.auto-clicker.detections-to-punish") @Validate(min = 1) private int autoClickerDetectionsToPunish = 3;
 
-    // --- DÜNYA DEĞİŞİMİ ---
+    // --- WORLD CHANGE ---
     @ConfigPath("detection.check-world-change.enabled") private boolean checkWorldChangeEnabled = true;
     @ConfigPath("detection.check-world-change.cooldown") @Validate(min = 1) private int worldChangeCooldown = 20;
     @ConfigPath("detection.check-world-change.max-changes") @Validate(min = 1) private int maxWorldChanges = 5;
 
-    // --- YENİDEN GİRİŞ KORUMASI ---
+    // --- REJOIN PROTECTION ---
     @ConfigPath("rejoin_protection.enabled") private boolean rejoinProtectionEnabled = true;
     @ConfigPath("rejoin_protection.cooldown") @Transform(TimeConverter.class) private long rejoinCooldownSeconds = 300;
 
-    // --- TURING TESTİ (CAPTCHA) ---
+    // --- TURING TEST (CAPTCHA) ---
     @ConfigPath("turing_test.enabled") private boolean turingTestEnabled = true;
+
+    @ConfigPath("turing_test.palettes")
+    private Map<String, Map<String, Object>> captchaPalettesRaw = new HashMap<>();
+
     @ConfigPath("turing_test.question_answer.answer_timeout_seconds") @Validate(min = 5) private int qaCaptchaTimeoutSeconds = 20;
 
     @ConfigPath("turing_test.on_failure_actions")
@@ -115,9 +119,8 @@ public class ConfigManager {
     @ConfigPath("turing_test.color_palette.distractor_color_count") @Validate(min = 1) private int colorPaletteDistractorColorCount = 2;
     @ConfigPath("turing_test.color_palette.distractor_item_count_per_color") @Validate(min = 1) private int colorPaletteDistractorItemCount = 4;
     @ConfigPath("turing_test.color_palette.available_colors") private List<String> colorPaletteAvailableColors = new ArrayList<>();
-    @ConfigPath("turing_test.palettes") private Map<String, Map<String, Object>> captchaPalettesRaw = new HashMap<>();
 
-    // --- ÖĞRENME MODU ---
+    // --- LEARNING MODE ---
     @ConfigPath("learning_mode.enabled") private boolean learningModeEnabled = true;
     @ConfigPath("learning_mode.analysis_task_period_ticks") @Validate(min = 1) private long analysisTaskPeriodTicks = 40L;
     @ConfigPath("learning_mode.similarity_threshold") private double learningSimilarityThreshold = 25.0;
@@ -126,17 +129,17 @@ public class ConfigManager {
     @ConfigPath("learning_mode.security.max_vectors_per_pattern") private int maxVectorsPerPattern = 12000;
     @ConfigPath("learning_mode.security.pre_filter_size_ratio") private double preFilterSizeRatio = 0.5;
 
-    // --- DAVRANIŞSAL ANALİZ ---
+    // --- BEHAVIORAL ANALYSIS ---
     @ConfigPath("behavioral-analysis.enabled") private boolean behaviorAnalysisEnabled = false;
     @ConfigPath("behavioral-analysis.history-size-ticks") @Validate(min = 20) private int behaviorHistorySizeTicks = 600;
 
     // --- DISCORD ---
     @ConfigPath("discord_webhook.enabled") private boolean discordWebhookEnabled = false;
-    @ConfigPath("discord_webhook.webhook_url") private String discordWebhookUrl = "BURAYA_WEBHOOK_URL_YAPISTIRIN";
+    @ConfigPath("discord_webhook.webhook_url") private String discordWebhookUrl = "PASTE_YOUR_WEBHOOK_URL_HERE";
     @ConfigPath("discord_webhook.bot_name") private String discordBotName = "AntiAFK Guard";
     @ConfigPath("discord_webhook.avatar_url") private String discordAvatarUrl = "";
 
-    // --- İZİNLER & MUAFİYETLER ---
+    // --- PERMISSIONS & EXEMPTIONS ---
     @ConfigPath("exemptions.permissions.bypass_all") private String permBypassAll = "antiafk.bypass.all";
     @ConfigPath("exemptions.permissions.bypass_classic") private String permBypassClassic = "antiafk.bypass.classic";
     @ConfigPath("exemptions.permissions.bypass_behavioral") private String permBypassBehavioral = "antiafk.bypass.behavioral";
@@ -146,14 +149,28 @@ public class ConfigManager {
     @ConfigPath("exemptions.disabled_worlds") private List<String> disabledWorlds = new ArrayList<>();
     @ConfigPath("exemptions.exempt_gamemodes") private List<String> exemptGameModes = new ArrayList<>();
 
-    // --- AFK KOMUTU ---
+    // --- AFK COMMAND ---
     @ConfigPath("afk_command.enabled") private boolean afkCommandEnabled = true;
-    @ConfigPath("afk_command.on_afk.default_reason") private String afkDefaultReason = "Sebep belirtilmedi";
+    @ConfigPath("afk_command.on_afk.default_reason") private String afkDefaultReason = "No reason specified";
     @ConfigPath("afk_command.on_afk.set_invulnerable") private boolean setInvulnerable = true;
     @ConfigPath("afk_command.on_afk.tag_format") private String afkTagFormat = "&7[AFK] ";
     @ConfigPath("afk_command.on_afk.broadcast") private boolean broadcastOnAfk = true;
     @ConfigPath("afk_command.on_return.broadcast") private boolean broadcastOnReturn = true;
 
+    // --- COMMAND SETTINGS ---
+    @ConfigPath("commands.main.command") private String mainCommandName = "antiafk";
+    @ConfigPath("commands.main.aliases") private List<String> mainCommandAliases = new ArrayList<>(Arrays.asList("aafk", "afkadmin"));
+
+    @ConfigPath("commands.afk.command") private String afkCommandName = "afk";
+    @ConfigPath("commands.afk.aliases") private List<String> afkCommandAliases = new ArrayList<>(Arrays.asList("away", "brb"));
+
+    @ConfigPath("commands.afktest.command") private String afkTestCommandName = "afktest";
+    @ConfigPath("commands.afktest.aliases") private List<String> afkTestCommandAliases = new ArrayList<>(Collections.singletonList("testafk"));
+
+    @ConfigPath("commands.afkcevap.command") private String afkCevapCommandName = "afkcevap";
+    @ConfigPath("commands.afkcevap.aliases") private List<String> afkCevapCommandAliases = new ArrayList<>(Arrays.asList("answer", "reply"));
+
+    // --- WORLDGUARD ---
     @ConfigPath("worldguard_integration.enabled") private boolean worldGuardEnabled = false;
 
     @ConfigPath("worldguard_integration.region_overrides")
@@ -162,23 +179,12 @@ public class ConfigManager {
     @Ignore private List<RegionOverride> regionOverrides = new ArrayList<>();
     @Ignore private Map<String, RegionOverride> regionOverrideMap = new HashMap<>();
 
+    // --- PROGRESSIVE PUNISHMENT ---
     @ConfigPath("progressive_punishment.enabled") private boolean progressivePunishmentEnabled = true;
     @ConfigPath("progressive_punishment.reset_after") private String punishmentResetAfterStr = "30d";
 
     @ConfigPath("progressive_punishment.punishments")
     private List<Map<String, Object>> punishmentLevelsRaw = new ArrayList<>();
-
-    @ConfigPath("commands.main.command") private String mainCommandName = "antiafk";
-    @ConfigPath("commands.main.aliases") private List<String> mainCommandAliases = new ArrayList<>();
-
-    @ConfigPath("commands.afk.command") private String afkCommandName = "afk";
-    @ConfigPath("commands.afk.aliases") private List<String> afkCommandAliases = new ArrayList<>();
-
-    @ConfigPath("commands.afktest.command") private String afkTestCommandName = "afktest";
-    @ConfigPath("commands.afktest.aliases") private List<String> afkTestCommandAliases = new ArrayList<>();
-
-    @ConfigPath("commands.afkcevap.command") private String afkCevapCommandName = "afkcevap";
-    @ConfigPath("commands.afkcevap.aliases") private List<String> afkCevapCommandAliases = new ArrayList<>();
 
     @Ignore private long punishmentResetMillis;
     @Ignore private List<PunishmentLevel> punishmentLevels = new ArrayList<>();
@@ -209,25 +215,32 @@ public class ConfigManager {
         loadConfig();
     }
 
+    /**
+     * Fills default values in English.
+     */
     private void initializeDefaults() {
+        // Colors
         colorPaletteAvailableColors = new ArrayList<>(Arrays.asList(
                 "RED", "BLUE", "LIME", "YELLOW", "ORANGE", "CYAN", "MAGENTA"
         ));
 
-        disabledWorlds = new ArrayList<>(Collections.singletonList("creative_dunyasi"));
+        // Exemptions
+        disabledWorlds = new ArrayList<>(Collections.singletonList("creative_world"));
         exemptGameModes = new ArrayList<>(Arrays.asList("SPECTATOR", "CREATIVE"));
 
+        // Default Action (Kick)
         Map<String, String> defaultAction = new HashMap<>();
         defaultAction.put("type", "CONSOLE");
-        defaultAction.put("command", "kick %player% &cAFK süreniz doldu.");
+        defaultAction.put("command", "kick %player% &cAFK time expired.");
         actions = new ArrayList<>(Collections.singletonList(defaultAction));
 
+        // Default Warnings
         warningsRaw = new ArrayList<>();
 
         Map<String, Object> warn1 = new HashMap<>();
         warn1.put("time", "5m");
         warn1.put("type", "CHAT");
-        warn1.put("message", "&e[AFK] &7Hareketsiz görünüyorsun. &c%time_left% &7içinde hareket etmezsen cezalandırılacaksın.");
+        warn1.put("message", "&e[AntiAFK] &7You seem inactive. You will be punished if you don't move in &c%time_left%&7.");
         warn1.put("bar_color", "RED");
         warn1.put("bar_style", "SOLID");
         warningsRaw.add(warn1);
@@ -235,8 +248,8 @@ public class ConfigManager {
         Map<String, Object> warn2 = new HashMap<>();
         warn2.put("time", "1m");
         warn2.put("type", "TITLE");
-        warn2.put("title", "&c&lDİKKAT");
-        warn2.put("subtitle", "&e1 dakika içinde hareket etmelisin!");
+        warn2.put("title", "&c&lWARNING");
+        warn2.put("subtitle", "&eYou must move within 1 minute!");
         warn2.put("sound", "BLOCK_NOTE_BLOCK_PLING");
         warn2.put("bar_color", "RED");
         warn2.put("bar_style", "SOLID");
@@ -245,20 +258,22 @@ public class ConfigManager {
         Map<String, Object> warn3 = new HashMap<>();
         warn3.put("time", "10s");
         warn3.put("type", "ACTION_BAR");
-        warn3.put("message", "&4&lSunucudan atılıyor: %time_left%");
+        warn3.put("message", "&4&lKicking in: %time_left%");
         warn3.put("sound", "ENTITY_EXPERIENCE_ORB_PICKUP");
         warn3.put("bar_color", "RED");
         warn3.put("bar_style", "SOLID");
         warningsRaw.add(warn3);
 
+        // Progressive Punishments
         punishmentLevelsRaw = new ArrayList<>();
 
+        // Level 1
         Map<String, Object> lvl1 = new HashMap<>();
         lvl1.put("count", 1);
         List<Map<String, String>> lvl1Actions = new ArrayList<>();
         Map<String, String> act1 = new HashMap<>();
         act1.put("type", "CONSOLE");
-        act1.put("command", "warn %player% Lütfen sunucuda AFK kalmaktan kaçının.");
+        act1.put("command", "warn %player% Please avoid staying AFK on the server.");
         lvl1Actions.add(act1);
         Map<String, String> act2 = new HashMap<>();
         act2.put("type", "PLAYER");
@@ -267,58 +282,37 @@ public class ConfigManager {
         lvl1.put("actions", lvl1Actions);
         punishmentLevelsRaw.add(lvl1);
 
+        // Level 3
         Map<String, Object> lvl3 = new HashMap<>();
         lvl3.put("count", 3);
         List<Map<String, String>> lvl3Actions = new ArrayList<>();
         Map<String, String> act3 = new HashMap<>();
         act3.put("type", "CONSOLE");
-        act3.put("command", "kick %player% &cTekrar eden AFK davranışı nedeniyle sunucudan atıldınız.");
+        act3.put("command", "kick %player% &cKicked due to repeated AFK behavior.");
         lvl3Actions.add(act3);
         lvl3.put("actions", lvl3Actions);
         punishmentLevelsRaw.add(lvl3);
 
+        // Level 5
         Map<String, Object> lvl5 = new HashMap<>();
         lvl5.put("count", 5);
         List<Map<String, String>> lvl5Actions = new ArrayList<>();
         Map<String, String> act5 = new HashMap<>();
         act5.put("type", "CONSOLE");
-        act5.put("command", "tempban %player% 10m &cAFK kalmayı alışkanlık haline getirdiğiniz için geçici olarak uzaklaştırıldınız.");
+        act5.put("command", "tempban %player% 10m &cTemporarily banned for habitual AFK behavior.");
         lvl5Actions.add(act5);
         lvl5.put("actions", lvl5Actions);
         punishmentLevelsRaw.add(lvl5);
 
+        // Captcha Failure Actions
         captchaFailureActions = new ArrayList<>();
         Map<String, String> failAct1 = new HashMap<>();
         failAct1.put("type", "CONSOLE");
-        failAct1.put("command", "kick %player% &cBot testi başarısız!");
+        failAct1.put("command", "kick %player% &cBot test failed!");
         captchaFailureActions.add(failAct1);
 
-        regionOverridesRaw = new HashMap<>();
-
-        Map<String, Object> reg0 = new HashMap<>();
-        reg0.put("region", "pvp_arena");
-        reg0.put("max_afk_time", "3m");
-        List<Map<String, String>> reg0Acts = new ArrayList<>();
-        Map<String, String> regAct1 = new HashMap<>();
-        regAct1.put("type", "PLAYER");
-        regAct1.put("command", "spawn");
-        reg0Acts.add(regAct1);
-        reg0.put("actions", reg0Acts);
-        regionOverridesRaw.put("0", reg0);
-
-        Map<String, Object> reg1 = new HashMap<>();
-        reg1.put("region", "afk_odasi");
-        reg1.put("max_afk_time", "disabled");
-        regionOverridesRaw.put("1", reg1);
-
-        Map<String, Object> reg2 = new HashMap<>();
-        reg2.put("region", "ticaret_alani");
-        reg2.put("max_afk_time", "1h");
-        regionOverridesRaw.put("2", reg2);
-
-
+        // Captcha Palettes
         captchaPalettesRaw = new HashMap<>();
-
         Map<String, Object> qa = new HashMap<>();
         qa.put("enabled", true);
         qa.put("weight", 40);
@@ -333,6 +327,30 @@ public class ConfigManager {
         bf.put("enabled", true);
         bf.put("weight", 100);
         captchaPalettesRaw.put("BEDROCK_FORM", bf);
+
+        // WorldGuard Regions
+        regionOverridesRaw = new HashMap<>();
+
+        Map<String, Object> reg0 = new HashMap<>();
+        reg0.put("region", "pvp_arena");
+        reg0.put("max_afk_time", "3m");
+        List<Map<String, String>> reg0Acts = new ArrayList<>();
+        Map<String, String> regAct1 = new HashMap<>();
+        regAct1.put("type", "PLAYER");
+        regAct1.put("command", "spawn");
+        reg0Acts.add(regAct1);
+        reg0.put("actions", reg0Acts);
+        regionOverridesRaw.put("0", reg0);
+
+        Map<String, Object> reg1 = new HashMap<>();
+        reg1.put("region", "afk_room");
+        reg1.put("max_afk_time", "disabled");
+        regionOverridesRaw.put("1", reg1);
+
+        Map<String, Object> reg2 = new HashMap<>();
+        reg2.put("region", "trade_area");
+        reg2.put("max_afk_time", "1h");
+        regionOverridesRaw.put("2", reg2);
     }
 
     public void loadConfig() {
@@ -569,7 +587,6 @@ public class ConfigManager {
     public long getPunishmentResetMillis() { return punishmentResetMillis; }
     public List<PunishmentLevel> getPunishmentLevels() { return punishmentLevels; }
     public int getHighestPunishmentCount() { return highestPunishmentCount; }
-
     public String getMainCommandName() { return mainCommandName; }
     public List<String> getMainCommandAliases() { return mainCommandAliases; }
     public String getAfkCommandName() { return afkCommandName; }

@@ -1,6 +1,7 @@
 package com.bentahsin.antiafk.managers;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.api.action.IAFKAction;
 import com.bentahsin.antiafk.api.events.AntiAFKPunishEvent;
 import com.bentahsin.antiafk.models.PunishmentLevel;
 import com.bentahsin.antiafk.models.RegionOverride;
@@ -19,6 +20,7 @@ import org.bukkit.entity.Player;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -169,6 +171,12 @@ public class PunishmentManager {
         }
     }
 
+    private final Map<String, IAFKAction> customActions = new ConcurrentHashMap<>();
+
+    public void registerCustomAction(String name, IAFKAction action) {
+        customActions.put(name.toUpperCase(), action);
+    }
+
     /**
      * Bir oyuncu için belirlenen eylem listesini (komutlar, discord mesajları vb.) yürütür.
      *
@@ -186,6 +194,16 @@ public class PunishmentManager {
 
         for (Map<String, String> action : actions) {
             String type = action.get("type");
+
+            if (customActions.containsKey(type)) {
+                try {
+                    customActions.get(type).execute(player);
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Custom action '" + type + "' failed for " + player.getName());
+                    plugin.getLogger().warning(e.getMessage());
+                }
+                continue;
+            }
 
             if ("DISCORD_WEBHOOK".equalsIgnoreCase(type)) {
                 String message = action.get("message");

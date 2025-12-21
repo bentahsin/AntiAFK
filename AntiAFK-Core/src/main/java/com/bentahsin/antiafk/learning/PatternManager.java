@@ -93,4 +93,11 @@ public class PatternManager {
     public Collection<Pattern> getKnownPatterns() {
         return knownPatterns.values();
     }
+
+    /**
+     * İsmi verilen deseni döndürür. API için gereklidir.
+     */
+    public Pattern getPattern(String name) {
+        return knownPatterns.get(name);
+    }
 }

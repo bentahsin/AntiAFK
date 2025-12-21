@@ -1,10 +1,12 @@
 package com.bentahsin.antiafk.api;
 
+import com.bentahsin.antiafk.api.action.IAFKAction;
 import com.bentahsin.antiafk.api.models.PlayerAFKStats;
 import com.bentahsin.antiafk.api.region.IRegionProvider;
 import com.bentahsin.antiafk.api.turing.ICaptcha;
 import org.bukkit.entity.Player;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -105,4 +107,37 @@ public interface AntiAFKAPI {
      * @param provider Kaydedilecek sağlayıcı.
      */
     void registerRegionProvider(IRegionProvider provider);
+
+    /**
+     * Sisteme özel bir aksiyon türü kaydeder.
+     * Bu sayede config.yml dosyasında 'type: OZEL_AKSIYON' kullanılabilir.
+     *
+     * @param actionName Config'de kullanılacak isim (Örn: "RPG_MANA_DRAIN").
+     * @param action Çalıştırılacak kod bloğu.
+     */
+    void registerCustomAction(String actionName, IAFKAction action);
+
+    /**
+     * Bir oyuncunun şu anki hareketlerinin, belirtilen bot deseniyle
+     * ne kadar örtüştüğünü (benzerlik skoru) hesaplar.
+     *
+     * @param player Analiz edilecek oyuncu.
+     * @param patternName Karşılaştırılacak desen adı (dosya adı).
+     * @return 0.0 (Benzemiyor) ile 1.0 (Birebir Aynı) arası skor.
+     *         Eğer veri yeterli değilse -1 döner.
+     */
+    double calculateSimilarityScore(Player player, String patternName);
+
+    /**
+     * Kayıtlı tüm bot desenlerinin isimlerini döndürür.
+     * @return Desen isimleri listesi.
+     */
+    List<String> getKnownPatternNames();
+
+    /**
+     * Oyuncunun şu an sistem tarafından "Şüpheli" (Bot ihtimali yüksek)
+     * olarak işaretlenip işaretlenmediğini döndürür.
+     * (Captcha çözmesi beklenen durum).
+     */
+    boolean isSuspicious(Player player);
 }

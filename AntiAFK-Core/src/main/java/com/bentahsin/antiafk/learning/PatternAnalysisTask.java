@@ -184,4 +184,25 @@ public class PatternAnalysisTask extends BukkitRunnable {
 
         return new TimeSeries(data);
     }
+
+    /**
+     * API için senkron veya asenkron anlık skor hesaplar.
+     * Not: Bu işlem ağır olabilir, dikkatli kullanılmalı.
+     */
+    public double calculateScoreForApi(Player player, String patternName) {
+        List<MovementVector> history = observationWindows.get(player.getUniqueId());
+        Pattern pattern = patternManager.getPattern(patternName);
+
+        if (history == null || pattern == null || history.size() < MIN_OBSERVATION_SIZE) {
+            return -1.0;
+        }
+
+        TimeSeries tsPlayer = convertToTimeSeries(history);
+        TimeSeries tsPattern = convertToTimeSeries(pattern.getVectors());
+
+        TimeWarpInfo info = FastDTW.getWarpInfoBetween(tsPlayer, tsPattern, searchRadius, distanceFunction);
+
+        double distance = info.getDistance();
+        return 1.0 / (1.0 + distance);
+    }
 }

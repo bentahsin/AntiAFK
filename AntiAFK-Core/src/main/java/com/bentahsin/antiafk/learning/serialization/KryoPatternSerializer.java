@@ -1,6 +1,8 @@
 package com.bentahsin.antiafk.learning.serialization;
 
+import com.bentahsin.antiafk.learning.MovementVector;
 import com.bentahsin.antiafk.learning.Pattern;
+import com.bentahsin.antiafk.learning.util.CustomVector;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
@@ -8,6 +10,7 @@ import com.esotericsoftware.kryo.io.Output;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
 public class KryoPatternSerializer implements ISerializer {
 
@@ -15,10 +18,15 @@ public class KryoPatternSerializer implements ISerializer {
 
     public KryoPatternSerializer() {
         this.kryo = new Kryo();
+
+        kryo.setReferences(true);
+
         kryo.register(Pattern.class, 10);
-        kryo.register(java.util.ArrayList.class, 11);
-        kryo.register(com.bentahsin.antiafk.learning.MovementVector.class, 12);
-        kryo.register(com.bentahsin.antiafk.learning.MovementVector.PlayerAction.class, 14);
+        kryo.register(ArrayList.class, 11);
+        kryo.register(MovementVector.class, 12);
+        kryo.register(MovementVector.PlayerAction.class, 14);
+
+        kryo.register(CustomVector.class, 15);
     }
 
     @Override

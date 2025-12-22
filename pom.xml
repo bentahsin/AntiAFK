@@ -109,7 +109,7 @@
             <dependency>
                 <groupId>com.github.bentahsin</groupId>
                 <artifactId>AntiAFKFastDTW</artifactId>
-                <version>1.0.0</version>
+                <version>1.0.1</version>
             </dependency>
             <dependency>
                 <groupId>com.github.bentahsin</groupId>
@@ -131,6 +131,12 @@
                 <artifactId>annotations</artifactId>
                 <version>24.0.1</version>
                 <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>6.0.1</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -16,18 +16,18 @@ class PunishmentLogicTest {
     @DisplayName("Ceza Seviyesi Seçimi Doğru Çalışmalı")
     void testPunishmentLevelSelection() {
         List<PunishmentLevel> levels = new ArrayList<>();
-        levels.add(new PunishmentLevel(1, null)); // Uyarı
-        levels.add(new PunishmentLevel(3, null)); // Kick
-        levels.add(new PunishmentLevel(5, null)); // Ban
+        levels.add(new PunishmentLevel(1, null));
+        levels.add(new PunishmentLevel(3, null));
+        levels.add(new PunishmentLevel(5, null));
 
         Collections.sort(levels);
 
-        assertEquals(1, findLevel(levels, 1).getCount()); // 1. Ceza -> Seviye 1
-        assertEquals(1, findLevel(levels, 2).getCount()); // 2. Ceza -> Seviye 1 (Arada kalıyor)
-        assertEquals(3, findLevel(levels, 3).getCount()); // 3. Ceza -> Seviye 3
-        assertEquals(3, findLevel(levels, 4).getCount()); // 4. Ceza -> Seviye 3
-        assertEquals(5, findLevel(levels, 5).getCount()); // 5. Ceza -> Seviye 5
-        assertEquals(5, findLevel(levels, 10).getCount()); // 10. Ceza -> Seviye 5 (Max)
+        assertEquals(1, findLevel(levels, 1).getCount());
+        assertEquals(1, findLevel(levels, 2).getCount());
+        assertEquals(3, findLevel(levels, 3).getCount());
+        assertEquals(3, findLevel(levels, 4).getCount());
+        assertEquals(5, findLevel(levels, 5).getCount());
+        assertEquals(5, findLevel(levels, 10).getCount());
     }
 
     private PunishmentLevel findLevel(List<PunishmentLevel> levels, int currentCount) {

@@ -30,7 +30,6 @@ class VectorPoolConcurrencyTest {
         CountDownLatch latch = new CountDownLatch(threadCount);
         List<Future<Boolean>> results = new ArrayList<>();
 
-        // 2. Threadleri Başlat
         for (int i = 0; i < threadCount; i++) {
             results.add(executor.submit(() -> {
                 try {

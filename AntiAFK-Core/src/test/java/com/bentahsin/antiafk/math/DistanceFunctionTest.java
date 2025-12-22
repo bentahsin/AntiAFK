@@ -13,7 +13,6 @@ class DistanceFunctionTest {
     @Test
     @DisplayName("Birebir Aynı İki Hareketin Mesafesi 0 Olmalı")
     void testIdenticalVectors() {
-        // [PosX, PosY, RotX, RotY, Action, Duration]
         double[] vec1 = {1.0, 0.0, 90.0, 0.0, 0.0, 20.0};
         double[] vec2 = {1.0, 0.0, 90.0, 0.0, 0.0, 20.0};
 
@@ -25,7 +24,6 @@ class DistanceFunctionTest {
     @Test
     @DisplayName("Sadece Pozisyon Farkı Ağırlığı Testi")
     void testPositionDifference() {
-        // X ekseninde 1 birim fark var. Position Weight = 1.0 olduğu için sonuç 1.0 olmalı.
         double[] vec1 = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
         double[] vec2 = {1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
@@ -37,8 +35,6 @@ class DistanceFunctionTest {
     @Test
     @DisplayName("Eylem (Action) Farkı Cezası Testi")
     void testActionMismatch() {
-        // Action ordinali farklı (Biri Yürüme, Biri Zıplama gibi)
-        // Penaltı puanı 5.0
         double[] vec1 = {0.0, 0.0, 0.0, 0.0, 1.0, 0.0};
         double[] vec2 = {0.0, 0.0, 0.0, 0.0, 2.0, 0.0};
 

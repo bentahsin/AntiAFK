@@ -11,13 +11,11 @@ class CustomVectorTest {
     @Test
     @DisplayName("Vektör Mesafesi (Euclidean) Doğru Hesaplanmalı")
     void testDistanceCalculation() {
-        // 3-4-5 Üçgeni Testi
         CustomVector v1 = new CustomVector(0, 0);
         CustomVector v2 = new CustomVector(3, 4);
 
         double distance = v1.distance(v2);
 
-        // Beklenen: 5.0
         assertEquals(5.0, distance, 0.0001, "Mesafe hesaplaması hatalı!");
     }
 
@@ -26,7 +24,6 @@ class CustomVectorTest {
     void testVectorMutability() {
         CustomVector vector = new CustomVector(10, 20);
 
-        // Değerleri değiştir
         vector.set(50, 60);
 
         assertAll("Vektör güncellemeleri",

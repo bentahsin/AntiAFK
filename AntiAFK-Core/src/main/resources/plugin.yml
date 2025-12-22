@@ -1,5 +1,5 @@
 name: AntiAFK
-version: 1.0.3
+version: 1.0.4
 main: com.bentahsin.antiafk.AntiAFKPlugin
 api-version: '1.13'
 author: bentahsin

@@ -1,5 +1,6 @@
 package com.bentahsin.antiafk.learning;
 
+import com.bentahsin.antiafk.api.learning.MovementVector;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;

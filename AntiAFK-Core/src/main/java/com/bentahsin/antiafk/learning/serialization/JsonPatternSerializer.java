@@ -1,6 +1,6 @@
 package com.bentahsin.antiafk.learning.serialization;
 
-import com.bentahsin.antiafk.learning.Pattern;
+import com.bentahsin.antiafk.api.learning.Pattern;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 

@@ -1,6 +1,6 @@
 package com.bentahsin.antiafk.learning.util;
 
-import com.bentahsin.antiafk.learning.MovementVector;
+import com.bentahsin.antiafk.api.learning.MovementVector;
 import com.bentahsin.antiafk.learning.pool.VectorPoolManager;
 
 import java.util.ArrayList;

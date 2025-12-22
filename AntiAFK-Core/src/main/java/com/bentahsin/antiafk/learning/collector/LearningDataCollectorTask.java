@@ -1,6 +1,6 @@
 package com.bentahsin.antiafk.learning.collector;
 
-import com.bentahsin.antiafk.learning.MovementVector;
+import com.bentahsin.antiafk.api.learning.MovementVector;
 import com.bentahsin.antiafk.learning.PatternAnalysisTask;
 import com.google.inject.Inject;
 import com.google.inject.Provider;

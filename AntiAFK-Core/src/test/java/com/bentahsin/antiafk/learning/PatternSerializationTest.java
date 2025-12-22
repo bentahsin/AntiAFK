@@ -1,5 +1,7 @@
 package com.bentahsin.antiafk.learning;
 
+import com.bentahsin.antiafk.api.learning.MovementVector;
+import com.bentahsin.antiafk.api.learning.Pattern;
 import com.bentahsin.antiafk.learning.serialization.KryoPatternSerializer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

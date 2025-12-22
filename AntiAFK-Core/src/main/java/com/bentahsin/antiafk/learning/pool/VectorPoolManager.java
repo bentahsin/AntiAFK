@@ -3,7 +3,7 @@ package com.bentahsin.antiafk.learning.pool;
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.language.Lang;
 import com.bentahsin.antiafk.language.SystemLanguageManager;
-import com.bentahsin.antiafk.learning.MovementVector;
+import com.bentahsin.antiafk.api.learning.MovementVector;
 import com.bentahsin.antiafk.managers.DebugManager;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

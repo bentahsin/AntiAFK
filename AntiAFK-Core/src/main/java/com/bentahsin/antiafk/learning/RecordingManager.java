@@ -1,6 +1,8 @@
 package com.bentahsin.antiafk.learning;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.api.learning.MovementVector;
+import com.bentahsin.antiafk.api.learning.Pattern;
 import com.bentahsin.antiafk.language.Lang;
 import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.learning.pool.VectorPoolManager;
@@ -111,6 +113,24 @@ public class RecordingManager {
     public void clearAllRecordings() {
         activeRecordings.values().forEach(list -> list.forEach(vectorPoolManager::returnVector));
         activeRecordings.clear();
+    }
+
+    /**
+     * Hazır bir Pattern nesnesini diske kaydeder (API kullanımı için).
+     */
+    public void savePatternToDisk(Pattern pattern, String format) {
+        ISerializer serializer = format.equalsIgnoreCase("kryo")
+                ? new KryoPatternSerializer()
+                : new JsonPatternSerializer();
+
+        File file = new File(recordsDirectory, pattern.getName() + "." + serializer.getFileExtension() + ".pattern");
+
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            serializer.serialize(pattern, fos);
+            plugin.getLogger().info("API: Pattern '" + pattern.getName() + "' saved to disk.");
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.SEVERE, "API: Could not save pattern '" + pattern.getName() + "'", e);
+        }
     }
 
     public void onPlayerQuit(Player player) {

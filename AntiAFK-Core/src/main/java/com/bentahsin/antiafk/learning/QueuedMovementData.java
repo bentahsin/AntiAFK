@@ -1,5 +1,7 @@
 package com.bentahsin.antiafk.learning;
 
+import com.bentahsin.antiafk.api.learning.MovementVector;
+
 import java.util.UUID;
 
 /**

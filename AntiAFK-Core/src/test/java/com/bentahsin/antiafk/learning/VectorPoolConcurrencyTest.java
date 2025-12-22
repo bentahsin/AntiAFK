@@ -1,5 +1,6 @@
 package com.bentahsin.antiafk.learning;
 
+import com.bentahsin.antiafk.api.learning.MovementVector;
 import com.bentahsin.antiafk.learning.pool.MovementVectorFactory;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;

@@ -1,6 +1,7 @@
 package com.bentahsin.antiafk.learning;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
+import com.bentahsin.antiafk.api.learning.Pattern;
 import com.bentahsin.antiafk.language.Lang;
 import com.bentahsin.antiafk.language.SystemLanguageManager;
 import com.bentahsin.antiafk.learning.serialization.KryoPatternSerializer;
@@ -99,5 +100,20 @@ public class PatternManager {
      */
     public Pattern getPattern(String name) {
         return knownPatterns.get(name);
+    }
+
+    /**
+     * Bellekteki (RAM) desen listesine yeni bir desen ekler.
+     * (Disk işlemini RecordingManager yapar).
+     */
+    public void addPattern(Pattern pattern) {
+        knownPatterns.put(pattern.getName(), pattern);
+    }
+
+    /**
+     * Bellekten bir deseni siler.
+     */
+    public void removePattern(String name) {
+        knownPatterns.remove(name);
     }
 }

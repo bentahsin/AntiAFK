@@ -1,8 +1,8 @@
 package com.bentahsin.antiafk.learning.serialization;
 
-import com.bentahsin.antiafk.learning.MovementVector;
-import com.bentahsin.antiafk.learning.Pattern;
-import com.bentahsin.antiafk.learning.util.CustomVector;
+import com.bentahsin.antiafk.api.learning.MovementVector;
+import com.bentahsin.antiafk.api.learning.Pattern;
+import com.bentahsin.antiafk.api.learning.CustomVector;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;

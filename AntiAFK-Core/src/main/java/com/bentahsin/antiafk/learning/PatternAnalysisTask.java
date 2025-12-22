@@ -2,6 +2,8 @@ package com.bentahsin.antiafk.learning;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.api.enums.DetectionType;
+import com.bentahsin.antiafk.api.learning.MovementVector;
+import com.bentahsin.antiafk.api.learning.Pattern;
 import com.bentahsin.antiafk.learning.dtw.MovementVectorDistanceFn;
 import com.bentahsin.antiafk.learning.pool.VectorPoolManager;
 import com.bentahsin.antiafk.learning.util.LimitedQueue;

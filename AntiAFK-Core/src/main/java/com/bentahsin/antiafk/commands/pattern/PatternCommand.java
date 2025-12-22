@@ -5,7 +5,7 @@ import co.aikar.commands.annotation.*;
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.language.Lang;
 import com.bentahsin.antiafk.language.SystemLanguageManager;
-import com.bentahsin.antiafk.learning.Pattern;
+import com.bentahsin.antiafk.api.learning.Pattern;
 import com.bentahsin.antiafk.learning.RecordingManager;
 import com.bentahsin.antiafk.learning.serialization.ISerializer;
 import com.bentahsin.antiafk.learning.serialization.JsonPatternSerializer;

@@ -1,6 +1,6 @@
 package com.bentahsin.antiafk.learning.collector;
 
-import com.bentahsin.antiafk.learning.MovementVector;
+import com.bentahsin.antiafk.api.learning.MovementVector;
 import org.bukkit.Location;
 
 /**

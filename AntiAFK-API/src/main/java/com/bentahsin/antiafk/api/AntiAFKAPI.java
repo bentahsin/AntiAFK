@@ -1,6 +1,11 @@
 package com.bentahsin.antiafk.api;
 
+
 import com.bentahsin.antiafk.api.action.IAFKAction;
+import com.bentahsin.antiafk.api.managers.AIEngineAPI;
+import com.bentahsin.antiafk.api.managers.BehaviorAPI;
+import com.bentahsin.antiafk.api.managers.PatternAPI;
+import com.bentahsin.antiafk.api.managers.TuringAPI;
 import com.bentahsin.antiafk.api.models.PlayerAFKStats;
 import com.bentahsin.antiafk.api.region.IRegionProvider;
 import com.bentahsin.antiafk.api.turing.ICaptcha;
@@ -16,6 +21,11 @@ import java.util.concurrent.CompletableFuture;
  */
 @SuppressWarnings("unused")
 public interface AntiAFKAPI {
+
+    BehaviorAPI getBehaviorAPI();
+    PatternAPI getPatternAPI();
+    TuringAPI getTuringAPI();
+    AIEngineAPI getAIEngineAPI();
 
     /**
      * Bir oyuncunun şu anda AFK olup olmadığını kontrol eder.

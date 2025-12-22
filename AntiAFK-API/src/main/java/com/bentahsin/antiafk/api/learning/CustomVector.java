@@ -1,4 +1,4 @@
-package com.bentahsin.antiafk.learning.util;
+package com.bentahsin.antiafk.api.learning;
 
 import java.io.Serializable;
 

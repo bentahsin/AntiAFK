@@ -1,6 +1,6 @@
 package com.bentahsin.antiafk.math;
 
-import com.bentahsin.antiafk.learning.util.CustomVector;
+import com.bentahsin.antiafk.api.learning.CustomVector;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

@@ -45,6 +45,12 @@
             <artifactId>api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.bentahsin</groupId>
+            <artifactId>AntiAFK-API</artifactId>
+            <version>1.0.4-RELEASE</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

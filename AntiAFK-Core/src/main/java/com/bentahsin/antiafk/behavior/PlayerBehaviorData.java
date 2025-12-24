@@ -56,7 +56,7 @@ public class PlayerBehaviorData {
             return;
         }
 
-        if (lastMoveLocation != null && lastMoveLocation.getWorld() == current.getWorld()) {
+        if (lastMoveLocation != null && Objects.equals(lastMoveLocation.getWorld(), current.getWorld())) {
             totalDistanceTraveled += current.distance(lastMoveLocation);
         }
 

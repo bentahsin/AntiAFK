@@ -3,6 +3,7 @@ package com.bentahsin.antiafk.behavior;
 import org.bukkit.Location;
 
 import java.util.LinkedList;
+import java.util.Objects;
 
 /**
  * Her oyuncu için davranış analizi verilerini tutan veri sınıfı.
@@ -70,7 +71,7 @@ public class PlayerBehaviorData {
     }
 
     private boolean isInsideRadius(Location loc1, Location loc2, double radius) {
-        if (loc1.getWorld() != loc2.getWorld()) return false;
+        if (!Objects.equals(loc1.getWorld(), loc2.getWorld())) return false;
         return loc1.distanceSquared(loc2) <= (radius * radius);
     }
 

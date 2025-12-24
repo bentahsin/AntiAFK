@@ -82,7 +82,10 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
                                         DetectionType.POINTLESS_ACTIVITY
                                 )
                         );
-
+                        data.reset();
+                    } else {
+                        debugManager.log(DebugManager.DebugModule.BEHAVIORAL_ANALYSIS,
+                                "Confinement period ended for %s without violation. Resetting window.", player.getName());
                         data.reset();
                     }
                 }

@@ -159,6 +159,8 @@ behavior:
   autoclicker_detected: "Wykryto auto-klicker."
   rapid_world_change: "Wykryto szybką zmianę świata."
   turing_test_failed: "Test na bota nie powiódł się."
+  learned_pattern_detected: "Wykryto wyuczony wzorzec bota (%pattern%)"
+  afk_pool_detected: "Wykryto AFK pool lub ruch okrężny."
   debug:
     suspicion: "!§8[AntiAFK-Debug] Podejrzenie trajektorii. Rozpoczęto analizę."
     repetition: "!§8[AntiAFK-Debug] Powtórzenie trajektorii %time%s! Licznik: %count%/%max_repeats%"

@@ -68,6 +68,29 @@ public class BehaviorAnalysisTask extends BukkitRunnable {
             }
 
             PlayerBehaviorData data = analysisManagerProvider.get().getPlayerData(player);
+
+            if (configManager.isConfinementCheckEnabled()) {
+                long durationMillis = data.getConfinementDuration();
+                long requiredMillis = configManager.getConfinementCheckDurationMillis();
+
+                if (durationMillis > requiredMillis) {
+                    if (data.getTotalDistanceTraveled() > configManager.getConfinementMinDistance()) {
+                        Bukkit.getScheduler().runTask(plugin, () ->
+                                afkManagerProvider.get().getBotDetectionManager().triggerSuspicionAndChallenge(
+                                        player,
+                                        "behavior.afk_pool_detected",
+                                        DetectionType.POINTLESS_ACTIVITY
+                                )
+                        );
+                        data.reset();
+                    } else {
+                        debugManager.log(DebugManager.DebugModule.BEHAVIORAL_ANALYSIS,
+                                "Confinement period ended for %s without violation. Resetting window.", player.getName());
+                        data.reset();
+                    }
+                }
+            }
+
             LinkedList<Location> history = data.getMovementHistory();
             boolean matchFound = false;
 

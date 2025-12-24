@@ -159,6 +159,8 @@ behavior:
   autoclicker_detected: "Auto-Klicker erkannt."
   rapid_world_change: "Schneller Weltwechsel erkannt."
   turing_test_failed: "Bot-Test fehlgeschlagen."
+  learned_pattern_detected: "Gelerntes Bot-Muster erkannt (%pattern%)"
+  afk_pool_detected: "AFK-Pool oder Kreisbewegung erkannt."
   debug:
     suspicion: "!§8[AntiAFK-Debug] Verdächtige Trajektorie. Analyse gestartet."
     repetition: "!§8[AntiAFK-Debug] %time%s Trajektorienwiederholung! Anzahl: %count%/%max_repeats%"

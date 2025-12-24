@@ -223,6 +223,22 @@ behavioral-analysis:
   direction-tolerance: 25.0
   similarity-threshold: 0.85
 
+  confinement-check:
+    enabled: true
+
+    # The duration a player must remain within the restricted area to be flagged.
+    # Recommended: Max AFK time + a small buffer (e.g., 15m + 5m = 20m).
+    check-duration: "20m"
+
+    # The radius in blocks for the confinement area.
+    # A value of 3.0 means checking if the player stayed within a 6x6 area.
+    radius: 3.0
+
+    # The minimum total distance (sum of all steps) the player must have traveled.
+    # This ensures that someone simply standing still is handled by standard AFK timers.
+    # AFK pool users will have a high total distance but low displacement.
+    min-distance-traveled: 100.0
+
 # ================================== #
 #    LEARNING MODE (PATTERN AI)      #
 # ================================== #

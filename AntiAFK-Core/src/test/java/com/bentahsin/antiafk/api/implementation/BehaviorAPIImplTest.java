@@ -57,7 +57,7 @@ class BehaviorAPIImplTest {
 
         behaviorAPI.resetBehaviorData(player);
 
-        verify(behaviorData, times(1)).reset(); // Davranış verisi silindi mi?
-        verify(botDetectionManager, times(1)).resetBotDetectionData(any()); // Bot verisi silindi mi?
+        verify(behaviorData, times(1)).reset();
+        verify(botDetectionManager, times(1)).resetBotDetectionData(any());
     }
 }

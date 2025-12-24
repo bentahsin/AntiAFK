@@ -60,7 +60,7 @@ class BehaviorAPITest {
         assertEquals(2, result.size(), "3 noktadan 2 vektör (değişim) oluşmalı.");
 
         assertEquals(10.0, result.get(0).getPositionChange().getX(), 0.001);
-        assertEquals(0.0, result.get(0).getPositionChange().getY(), 0.001); // Z değişimi (CustomVector.Y = World.Z)
+        assertEquals(0.0, result.get(0).getPositionChange().getY(), 0.001);
 
         assertEquals(0.0, result.get(1).getPositionChange().getX(), 0.001);
         assertEquals(10.0, result.get(1).getPositionChange().getY(), 0.001);

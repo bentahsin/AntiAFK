@@ -14,7 +14,6 @@ import static org.mockito.Mockito.*;
 
 class AntiAFKAPIIntegrationTest {
 
-    // Mock Alt Implementasyonlar
     @Mock private TuringAPIImpl turingAPI;
     @Mock private PatternAPIImpl patternAPI;
     @Mock private BehaviorAPIImpl behaviorAPI;
@@ -28,7 +27,6 @@ class AntiAFKAPIIntegrationTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Constructor injection (Diğer managerlar null olabilir çünkü test ettiğimiz metotlarda kullanılmıyor)
         mainApi = new AntiAFKAPIImpl(
                 null, null, null, null, null,
                 patternAnalysisTask, behaviorAPI, patternAPI, turingAPI, aiEngineAPI

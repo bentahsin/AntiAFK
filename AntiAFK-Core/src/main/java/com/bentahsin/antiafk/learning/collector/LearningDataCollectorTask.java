@@ -20,6 +20,8 @@ public class LearningDataCollectorTask extends BukkitRunnable {
     private final Provider<PatternAnalysisTask> analysisTaskProvider;
     private final Map<UUID, LearningData> playerData = new ConcurrentHashMap<>();
 
+    private PatternAnalysisTask cachedAnalysisTask;
+
     @Inject
     public LearningDataCollectorTask(Provider<PatternAnalysisTask> analysisTaskProvider) {
         this.analysisTaskProvider = analysisTaskProvider;
@@ -27,8 +29,10 @@ public class LearningDataCollectorTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        PatternAnalysisTask analysisTask = analysisTaskProvider.get();
-        if (analysisTask == null) return;
+        if (cachedAnalysisTask == null) {
+            cachedAnalysisTask = analysisTaskProvider.get();
+            if (cachedAnalysisTask == null) return;
+        }
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             LearningData data = playerData.computeIfAbsent(player.getUniqueId(), k -> new LearningData());
@@ -83,7 +87,7 @@ public class LearningDataCollectorTask extends BukkitRunnable {
             dX = dZ = dYaw = dPitch = 0;
         }
 
-        analysisTaskProvider.get().queueMovementData(p.getUniqueId(), dX, dZ, dYaw, dPitch, action, duration);
+        cachedAnalysisTask.queueMovementData(p.getUniqueId(), dX, dZ, dYaw, dPitch, action, duration);
     }
 
     public void onPlayerQuit(Player player) {

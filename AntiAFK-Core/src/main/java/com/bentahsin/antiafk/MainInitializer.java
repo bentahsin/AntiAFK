@@ -6,6 +6,7 @@ import com.bentahsin.antiafk.api.implementation.AntiAFKAPIImpl;
 import com.bentahsin.antiafk.commands.AntiAFKBaseCommand;
 import com.bentahsin.antiafk.commands.CaptchaCommands;
 import com.bentahsin.antiafk.commands.PlayerAFKCommand;
+import com.bentahsin.antiafk.commands.StressCommand;
 import com.bentahsin.antiafk.commands.pattern.PatternCommand;
 import com.bentahsin.antiafk.gui.book.BookInputListener;
 import com.bentahsin.antiafk.gui.book.BookInputManager;
@@ -53,6 +54,7 @@ public class MainInitializer {
     private final Provider<PlayerAFKCommand> playerAFKCommandProvider;
     private final Provider<CaptchaCommands> captchaCommandsProvider;
     private final Provider<PatternCommand> patternCommandProvider;
+    private final Provider<StressCommand> stressCommandProvider;
 
     @Inject
     public MainInitializer(
@@ -67,7 +69,8 @@ public class MainInitializer {
             Provider<AntiAFKBaseCommand> baseCommandProvider,
             Provider<PlayerAFKCommand> playerAFKCommandProvider,
             Provider<CaptchaCommands> captchaCommandsProvider,
-            Provider<PatternCommand> patternCommandProvider
+            Provider<PatternCommand> patternCommandProvider,
+            Provider<StressCommand> stressCommandProvider
     ) {
         this.plugin = plugin;
         this.configManager = configManager;
@@ -88,6 +91,7 @@ public class MainInitializer {
         this.playerAFKCommandProvider = playerAFKCommandProvider;
         this.captchaCommandsProvider = captchaCommandsProvider;
         this.patternCommandProvider = patternCommandProvider;
+        this.stressCommandProvider = stressCommandProvider;
     }
 
     public void initialize() {
@@ -143,6 +147,7 @@ public class MainInitializer {
         acfManager.registerCommand(playerAFKCommandProvider.get());
         acfManager.registerCommand(captchaCommandsProvider.get());
         acfManager.registerCommand(patternCommandProvider.get());
+        acfManager.registerCommand(stressCommandProvider.get());
 
         debugManager.log(DebugManager.DebugModule.COMMAND_REGISTRATION, "Commands registered via ACF.");
     }

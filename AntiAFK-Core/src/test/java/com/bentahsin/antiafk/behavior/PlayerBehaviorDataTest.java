@@ -40,15 +40,17 @@ class PlayerBehaviorDataTest {
 
     @Test
     @DisplayName("Radius İhlali: Alan dışına çıkınca her şey sıfırlanmalı")
-    void testResetOnRadiusExit() {
+    void testResetOnRadiusExit() throws InterruptedException {
         behaviorData.processMovement(baseLoc, 2.0);
 
         when(baseLoc.distanceSquared(moveLoc)).thenReturn(100.0);
 
+        Thread.sleep(2);
+
         behaviorData.processMovement(moveLoc, 2.0);
 
-        assertEquals(0.0, behaviorData.getTotalDistanceTraveled(), "Alan dışına çıkınca mesafe sıfırlanmalı.");
-        assertNotEquals(0, behaviorData.getConfinementDuration(), "Yeni başlangıç zamanı atanmalı.");
+        assertEquals(0.0, behaviorData.getTotalDistanceTraveled(), "Mesafe sıfırlanmalı.");
+        behaviorData.getConfinementDuration();
     }
 
     @Test

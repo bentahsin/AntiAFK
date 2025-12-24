@@ -38,10 +38,17 @@ class BehaviorAnalysisLogicTest {
     @Mock private PlayerStateManager stateManager;
     @Mock private Player player;
     @Mock private PlayerBehaviorData playerData;
+    @Mock private org.bukkit.configuration.file.FileConfiguration mockConfig;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        when(plugin.getConfig()).thenReturn(mockConfig);
+
+        when(mockConfig.getInt(anyString(), anyInt())).thenAnswer(i -> i.getArgument(1));
+        when(mockConfig.getDouble(anyString(), anyDouble())).thenAnswer(i -> i.getArgument(1));
+        when(mockConfig.getBoolean(anyString(), anyBoolean())).thenAnswer(i -> i.getArgument(1));
 
         bukkitMock = mockStatic(Bukkit.class);
         bukkitMock.when(Bukkit::getOnlinePlayers).thenReturn(Collections.singletonList(player));
@@ -55,13 +62,7 @@ class BehaviorAnalysisLogicTest {
         when(player.isOnline()).thenReturn(true);
         when(stateManager.isEffectivelyAfk(player)).thenReturn(false);
 
-        task = new BehaviorAnalysisTask(
-                plugin,
-                behaviorManagerProvider,
-                configManager,
-                debugManager,
-                afkManagerProvider
-        );
+        task = new BehaviorAnalysisTask(plugin, behaviorManagerProvider, configManager, debugManager, afkManagerProvider);
     }
 
     @AfterEach

@@ -160,6 +160,8 @@ behavior:
   autoclicker_detected: "Auto-clicker detected."
   rapid_world_change: "Rapid world changing detected."
   turing_test_failed: "Bot test failed."
+  learned_pattern_detected: "Learned bot pattern detected (%pattern%)"
+  afk_pool_detected: "AFK pool or circular movement detected."
   debug:
     suspicion: "!§8[AntiAFK-Debug] Trajectory suspicion. Analysis started."
     repetition: "!§8[AntiAFK-Debug] %time%s trajectory repetition! Count: %count%/%max_repeats%"

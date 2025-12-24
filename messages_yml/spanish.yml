@@ -159,6 +159,8 @@ behavior:
   autoclicker_detected: "Auto-clicker detectado."
   rapid_world_change: "Cambio rápido de mundo detectado."
   turing_test_failed: "Prueba de bot fallada."
+  learned_pattern_detected: "Patrón de bot aprendido detectado (%pattern%)"
+  afk_pool_detected: "Detección de AFK pool o movimiento circular."
   debug:
     suspicion: "!§8[AntiAFK-Debug] Sospecha de trayectoria. Análisis iniciado."
     repetition: "!§8[AntiAFK-Debug] ¡Repetición de trayectoria de %time%s! Conteo: %count%/%max_repeats%"

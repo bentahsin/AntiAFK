@@ -159,6 +159,8 @@ behavior:
   autoclicker_detected: "Обнаружен авто-кликер."
   rapid_world_change: "Обнаружена быстрая смена мира."
   turing_test_failed: "Тест на бота провален."
+  learned_pattern_detected: "Обнаружен изученный паттерн бота (%pattern%)"
+  afk_pool_detected: "Обнаружен AFK-pool или круговое движение."
   debug:
     suspicion: "!§8[AntiAFK-Debug] Подозрение на траекторию. Анализ начат."
     repetition: "!§8[AntiAFK-Debug] Повторение траектории %time%с! Счетчик: %count%/%max_repeats%"

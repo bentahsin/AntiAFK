@@ -159,7 +159,7 @@ behavior:
   autoclicker_detected: "Auto-clicker tespiti."
   rapid_world_change: "Sürekli dünya değiştirme tespiti."
   turing_test_failed: "Bot testi başarısız."
-  learned_pattern_detected: "Öğrenilmiş bot deseni (%pattern%)"
+  learned_pattern_detected: "Öğrenilmiş bot deseni tespit edildi. (%pattern%)"
   afk_pool_detected: "AFK havuzu veya dairesel hareket tespiti."
   debug:
     suspicion: "!§8[AntiAFK-Debug] Yörünge şüphesi. Analiz başlıyor."

@@ -226,6 +226,40 @@ public class ConfigManager {
     private boolean behaviorAnalysisEnabled = false;
     @ConfigPath("behavioral-analysis.history-size-ticks") @Validate(min = 20) private int behaviorHistorySizeTicks = 600;
 
+    // --- CONFINEMENT CHECK (AFK POOLS) ---
+    @ConfigPath("behavioral-analysis.confinement-check.enabled")
+    @Comment({
+            "==================================",
+            "      CONFINEMENT ANALYSIS",
+            "==================================",
+            "Detects players who move significantly but never leave a small area.",
+            "Useful for catching AFK Pools, Piston pushers, and Circle macros."
+    })
+    private boolean confinementCheckEnabled = true;
+
+    @ConfigPath("behavioral-analysis.confinement-check.check-duration")
+    @Comment({
+            "The duration a player must remain within the restricted area to be flagged.",
+            "Recommended: Max AFK time + a small buffer (e.g., 15m + 5m = 20m)."
+    })
+    @Transform(TimeConverter.class)
+    private long confinementCheckDurationSeconds = 1200;
+
+    @ConfigPath("behavioral-analysis.confinement-check.radius")
+    @Comment({
+            "The radius in blocks for the confinement area.",
+            "A value of 3.0 means checking if the player stayed within a 6x6 area."
+    })
+    private double confinementRadius = 3.0;
+
+    @ConfigPath("behavioral-analysis.confinement-check.min-distance-traveled")
+    @Comment({
+            "The minimum total distance (sum of all steps) the player must have traveled.",
+            "This ensures that someone simply standing still is handled by standard AFK timers.",
+            "AFK pool users will have a high total distance but low displacement."
+    })
+    private double confinementMinDistance = 100.0;
+
     // --- DISCORD ---
     @ConfigPath("discord_webhook.enabled")
     @Comment({
@@ -710,6 +744,10 @@ public class ConfigManager {
     public double getPreFilterSizeRatio() { return preFilterSizeRatio; }
     public boolean isBehaviorAnalysisEnabled() { return behaviorAnalysisEnabled; }
     public int getBehaviorHistorySizeTicks() { return behaviorHistorySizeTicks; }
+    public boolean isConfinementCheckEnabled() { return confinementCheckEnabled; }
+    public long getConfinementCheckDurationMillis() { return confinementCheckDurationSeconds * 1000L; }
+    public double getConfinementRadius() { return confinementRadius; }
+    public double getConfinementMinDistance() { return confinementMinDistance; }
     public boolean isDiscordWebhookEnabled() { return discordWebhookEnabled; }
     public String getDiscordWebhookUrl() { return discordWebhookUrl; }
     public String getDiscordBotName() { return discordBotName; }

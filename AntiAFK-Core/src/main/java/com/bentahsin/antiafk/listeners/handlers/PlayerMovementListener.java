@@ -67,6 +67,9 @@ public class PlayerMovementListener extends ActivityListener implements org.bukk
                     history.removeFirst();
                 }
             }
+
+            double radius = configManager.getConfinementRadius();
+            data.processMovement(event.getTo(), radius);
         }
     }
 

@@ -230,7 +230,6 @@ behavioral-analysis:
     # Recommended: Max AFK time + a small buffer (e.g., 15m + 5m = 20m).
     check-duration: "20m"
 
-
     # The radius in blocks for the confinement area.
     # A value of 3.0 means checking if the player stayed within a 6x6 area.
     radius: 3.0

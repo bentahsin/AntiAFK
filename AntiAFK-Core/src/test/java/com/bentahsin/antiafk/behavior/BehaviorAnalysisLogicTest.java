@@ -39,6 +39,7 @@ class BehaviorAnalysisLogicTest {
     @Mock private Player player;
     @Mock private PlayerBehaviorData playerData;
     @Mock private org.bukkit.configuration.file.FileConfiguration mockConfig;
+    @Mock private org.bukkit.scheduler.BukkitScheduler mockScheduler;
 
     @BeforeEach
     void setUp() {
@@ -52,6 +53,14 @@ class BehaviorAnalysisLogicTest {
 
         bukkitMock = mockStatic(Bukkit.class);
         bukkitMock.when(Bukkit::getOnlinePlayers).thenReturn(Collections.singletonList(player));
+
+        bukkitMock.when(Bukkit::getScheduler).thenReturn(mockScheduler);
+
+        when(mockScheduler.runTask(eq(plugin), any(Runnable.class))).thenAnswer(invocation -> {
+            Runnable runnable = invocation.getArgument(1);
+            runnable.run();
+            return null;
+        });
 
         when(behaviorManagerProvider.get()).thenReturn(behaviorManager);
         when(afkManagerProvider.get()).thenReturn(afkManager);

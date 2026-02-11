@@ -28,7 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 @Singleton
-@ConfigVersion(2)
+@ConfigVersion(3)
 @Backup(
         enabled = true,
         path = "backups",

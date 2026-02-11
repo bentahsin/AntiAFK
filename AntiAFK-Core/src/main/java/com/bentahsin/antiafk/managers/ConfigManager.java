@@ -273,6 +273,61 @@ public class ConfigManager {
     @ConfigPath("discord_webhook.bot_name") private String discordBotName = "AntiAFK Guard";
     @ConfigPath("discord_webhook.avatar_url") private String discordAvatarUrl = "";
 
+
+    // --- ESSENTIALS INTEGRATION ---
+    @ConfigPath("integrations.essentials.sync_status")
+    @Comment("Updates Essentials (/afk) status when AntiAFK status changes.")
+    private boolean essentialsSync = true;
+
+    // --- ECONOMY (VAULT) ---
+    @ConfigPath("integrations.economy.enabled")
+    @Comment("Enables Vault economy features (Tax/Salary). Requires Vault and an Economy plugin.")
+    private boolean economyEnabled = false;
+
+    @ConfigPath("integrations.economy.tax.enabled")
+    @Comment("Deducts money from the player for every AFK interval.")
+    private boolean taxEnabled = false;
+
+    @ConfigPath("integrations.economy.tax.amount")
+    private double taxAmount = 10.0;
+
+    @ConfigPath("integrations.economy.tax.interval_minutes")
+    private int taxInterval = 5;
+
+    @ConfigPath("integrations.economy.salary.enabled")
+    @Comment("Gives money to players standing in specific WorldGuard regions (AFK Pool reward).")
+    private boolean salaryEnabled = false;
+
+    @ConfigPath("integrations.economy.salary.regions")
+    @Comment({
+            "Define regions and salary amounts.",
+            "Format: region_name: amount"
+    })
+    private Map<String, Double> salaryRegions = new HashMap<>();
+
+    @ConfigPath("integrations.economy.salary.interval_minutes")
+    private int salaryInterval = 10;
+
+    // --- FARM LIMITER ---
+    @ConfigPath("gameplay_control.farm_limiter.enabled")
+    @Comment({
+            "WARNING: This feature prevents mob spawning and crop growth near AFK players.",
+            "Disabled by default. It improves server performance but may affect gameplay."
+    })
+    private boolean farmLimiterEnabled = false;
+
+    @ConfigPath("gameplay_control.farm_limiter.radius")
+    private int farmLimiterRadius = 32;
+
+    @ConfigPath("gameplay_control.farm_limiter.allow_if_active_player_nearby")
+    @Comment("If there is a NON-AFK player near the AFK player, farms will continue to work.")
+    private boolean farmLimiterCheckFriends = true;
+
+    // --- ITEM PICKUP BLOCKER ---
+    @ConfigPath("gameplay_control.item_pickup_blocker.enabled")
+    @Comment("Prevents AFK players from picking up items from the ground (Protection against Auto-inventory cheats).")
+    private boolean itemPickupBlockerEnabled = false;
+
     // --- PERMISSIONS & EXEMPTIONS ---
     @ConfigPath("exemptions.permissions.bypass_all")
     @Comment({
@@ -752,6 +807,18 @@ public class ConfigManager {
     public String getDiscordWebhookUrl() { return discordWebhookUrl; }
     public String getDiscordBotName() { return discordBotName; }
     public String getDiscordAvatarUrl() { return discordAvatarUrl; }
+    public boolean isEssentialsSync() { return essentialsSync;}
+    public boolean isEconomyEnabled() { return economyEnabled; }
+    public boolean isTaxEnabled() { return taxEnabled; }
+    public double getTaxAmount() { return taxAmount; }
+    public int getTaxInterval() { return taxInterval; }
+    public boolean isSalaryEnabled() { return salaryEnabled; }
+    public Map<String, Double> getSalaryRegions() { return salaryRegions; }
+    public int getSalaryInterval() { return salaryInterval; }
+    public boolean isFarmLimiterEnabled() { return farmLimiterEnabled; }
+    public int getFarmLimiterRadius() { return farmLimiterRadius; }
+    public boolean isFarmLimiterCheckFriends() { return farmLimiterCheckFriends; }
+    public boolean isItemPickupBlockerEnabled() { return itemPickupBlockerEnabled; }
     public String getPermBypassAll() { return permBypassAll; }
     public String getPermBypassClassic() { return permBypassClassic; }
     public String getPermBypassBehavioral() { return permBypassBehavioral; }

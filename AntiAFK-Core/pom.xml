@@ -18,9 +18,13 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- BenthLicense Versiyon Tanımları -->
+        <benth.plugin.version>2.0.0-SNAPSHOT</benth.plugin.version>
     </properties>
 
     <dependencies>
+        <!-- (Mevcut bağımlılıklar aynen kalıyor...) -->
         <dependency>
             <groupId>com.bentahsin</groupId>
             <artifactId>AntiAFK-API</artifactId>
@@ -30,18 +34,23 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
+            <!-- Provided scope önemlidir, analiz için kullanılacak ama gölgelenmeyecek -->
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>me.clip</groupId>
             <artifactId>placeholderapi</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.sk89q.worldguard</groupId>
             <artifactId>worldguard-bukkit</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>net.dmulloy2</groupId>
             <artifactId>ProtocolLib</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>net.wesjd</groupId>
@@ -96,8 +105,19 @@
             <artifactId>acf-paper</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.github.MilkBowl</groupId>
+            <artifactId>VaultAPI</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.essentialsx</groupId>
+            <artifactId>EssentialsX</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -127,6 +147,8 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+
+            <!-- 1. Maven Shade Plugin (ÖNCE ÇALIŞMALI) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -139,6 +161,7 @@
                         </goals>
                         <configuration>
                             <relocations>
+                                <!-- (Mevcut relocation ayarlarınız aynen kalıyor) -->
                                 <relocation>
                                     <pattern>net.wesjd.anvilgui</pattern>
                                     <shadedPattern>com.bentahsin.antiafk.libs.anvilgui</shadedPattern>

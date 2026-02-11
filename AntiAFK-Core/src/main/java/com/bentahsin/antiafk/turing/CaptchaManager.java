@@ -15,6 +15,7 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,6 +59,10 @@ public class CaptchaManager {
 
         for (ICaptcha captcha : availableCaptchas) {
             registerCaptcha(captcha);
+
+            if (captcha instanceof Listener) {
+                plugin.getServer().getPluginManager().registerEvents((Listener) captcha, plugin);
+            }
         }
 
         loadPalettes();

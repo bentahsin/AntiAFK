@@ -130,6 +130,11 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
         if (test == null || !event.getInventory().equals(test.getGui())) return;
 
         event.setCancelled(true);
+
+        if (event.getClickedInventory() == null || !event.getClickedInventory().equals(test.getGui())) {
+            return;
+        }
+
         ItemStack clickedItem = event.getCurrentItem();
 
         if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
@@ -208,3 +213,4 @@ public class ColorPaletteCaptcha implements ICaptcha, Listener {
         public boolean isCompleted() { return this.correctClicks >= this.totalCorrectItems; }
     }
 }
+

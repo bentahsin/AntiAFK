@@ -97,8 +97,8 @@
             <artifactId>BenthPAPIManager</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.bentahsin</groupId>
-            <artifactId>configuration</artifactId>
+            <groupId>dev.dejvokep</groupId>
+            <artifactId>boosted-yaml</artifactId>
         </dependency>
         <dependency>
             <groupId>co.aikar</groupId>
@@ -175,8 +175,8 @@
                                     <shadedPattern>com.bentahsin.antiafk.libs.benthpapimanager</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>com.bentahsin.configuration</pattern>
-                                    <shadedPattern>com.bentahsin.antiafk.libs.configuration</shadedPattern>
+                                    <pattern>dev.dejvokep.boostedyaml</pattern>
+                                    <shadedPattern>com.bentahsin.antiafk.libs.boostedyaml</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.sqlite</pattern>

@@ -54,6 +54,29 @@ discord_webhook:
   # Optional: URL to an image for the bot avatar.
   avatar_url: ""
 
+integrations:
+  essentials:
+    # Updates Essentials (/afk) status when AntiAFK status changes.
+    sync_status: true
+
+  # Requires Vault and an Economy plugin.
+  economy:
+    enabled: false
+
+    tax:
+      # Deducts money from the player for every AFK interval.
+      enabled: false
+      amount: 10.0
+      interval_minutes: 5
+
+    salary:
+      # Gives money to players standing in specific WorldGuard regions (AFK Pool reward).
+      enabled: false
+      interval_minutes: 10
+      # Define regions and salary amounts.
+      # Format: region_name: amount
+      regions: {}
+
 # ================================== #
 #          MAIN AFK SYSTEM           #
 # ================================== #
@@ -337,6 +360,22 @@ worldguard_integration:
     '2':
       region: "trade_area"
       max_afk_time: "1h" # Relaxed time for trading
+
+# ================================== #
+#         GAMEPLAY CONTROL           #
+# ================================== #
+gameplay_control:
+  farm_limiter:
+    # WARNING: This feature prevents mob spawning and crop growth near AFK players.
+    # Disabled by default. It improves server performance but may affect gameplay.
+    enabled: false
+    radius: 32
+    # If there is a NON-AFK player near the AFK player, farms will continue to work.
+    allow_if_active_player_nearby: true
+
+  item_pickup_blocker:
+    # Prevents AFK players from picking up items from the ground (protection against auto-inventory cheats).
+    enabled: false
 
 # ================================== #
 #        MANUAL /AFK COMMAND         #

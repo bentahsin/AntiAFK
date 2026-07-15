@@ -5,3 +5,4 @@ AntiAFK-Core.iml
 AntiAFK-API.iml
 AntiAFK-Geyser.iml
 dependency-reduced-pom.xml
+.vscode

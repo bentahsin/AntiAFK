@@ -3,6 +3,7 @@ package com.bentahsin.antiafk.listeners;
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.behavior.BehaviorAnalysisManager;
 import com.bentahsin.antiafk.listeners.handlers.*;
+import com.bentahsin.antiafk.managers.ConfigManager;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.bukkit.event.Listener;
@@ -13,6 +14,7 @@ public class ListenerManager {
 
     private final AntiAFKPlugin plugin;
     private final PluginManager pluginManager;
+    private final ConfigManager configManager;
     private final BehaviorAnalysisManager behaviorAnalysisManager;
 
     private final PlayerConnectionListener playerConnectionListener;
@@ -21,20 +23,26 @@ public class ListenerManager {
     private final PlayerInventoryListener playerInventoryListener;
     private final PlayerChatListener playerChatListener;
     private final PlayerStateListener playerStateListener;
+    private final PlayerItemPickupListener playerItemPickupListener;
+    private final FarmLimiterListener farmLimiterListener;
 
     @Inject
     public ListenerManager(
             AntiAFKPlugin plugin,
+            ConfigManager configManager,
             PlayerConnectionListener playerConnectionListener,
             PlayerMovementListener playerMovementListener,
             PlayerInteractionListener playerInteractionListener,
             PlayerInventoryListener playerInventoryListener,
             PlayerChatListener playerChatListener,
             PlayerStateListener playerStateListener,
+            PlayerItemPickupListener playerItemPickupListener,
+            FarmLimiterListener farmLimiterListener,
             BehaviorAnalysisManager behaviorAnalysisManager
     ) {
         this.plugin = plugin;
         this.pluginManager = plugin.getServer().getPluginManager();
+        this.configManager = configManager;
 
         this.playerConnectionListener = playerConnectionListener;
         this.playerMovementListener = playerMovementListener;
@@ -42,13 +50,11 @@ public class ListenerManager {
         this.playerInventoryListener = playerInventoryListener;
         this.playerChatListener = playerChatListener;
         this.playerStateListener = playerStateListener;
+        this.playerItemPickupListener = playerItemPickupListener;
+        this.farmLimiterListener = farmLimiterListener;
         this.behaviorAnalysisManager = behaviorAnalysisManager;
     }
 
-    /**
-     * Enjekte edilen tüm listener'ları Bukkit'in olay sistemine kaydeder.
-     * Bu metot, MainInitializer tarafından sadece bir kez çağrılmalıdır.
-     */
     public void registerListeners() {
         register(playerConnectionListener);
         register(playerMovementListener);
@@ -59,12 +65,14 @@ public class ListenerManager {
         if (behaviorAnalysisManager.isEnabled()) {
             register(behaviorAnalysisManager);
         }
+        if (configManager.isItemPickupBlockerEnabled()) {
+            register(playerItemPickupListener);
+        }
+        if (configManager.isFarmLimiterEnabled()) {
+            register(farmLimiterListener);
+        }
     }
 
-    /**
-     * Verilen bir dinleyici sınıfını Bukkit'e kaydeder.
-     * @param listener Kaydedilecek dinleyici.
-     */
     private void register(Listener listener) {
         pluginManager.registerEvents(listener, plugin);
     }

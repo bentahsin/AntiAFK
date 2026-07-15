@@ -2,12 +2,11 @@ package com.bentahsin.antiafk.managers;
 
 import com.bentahsin.antiafk.AntiAFKPlugin;
 import com.bentahsin.antiafk.api.region.IRegionProvider;
+import com.bentahsin.antiafk.config.AbstractYamlConfig;
 import com.bentahsin.antiafk.language.SupportedLanguage;
 import com.bentahsin.antiafk.models.PunishmentLevel;
 import com.bentahsin.antiafk.models.RegionOverride;
-import com.bentahsin.configuration.Configuration;
-import com.bentahsin.configuration.annotation.*;
-import com.bentahsin.configuration.converter.impl.TimeConverter;
+import com.bentahsin.antiafk.utils.TimeUtil;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.inject.Inject;
@@ -18,426 +17,146 @@ import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
-import java.io.File;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 @Singleton
-@ConfigVersion(3)
-@Backup(
-        enabled = true,
-        path = "backups",
-        onFailure = true,
-        onMigration = true
-)
-@ConfigHeader({
-        "===================================================================",
-        "                 AntiAFK by BenTahsin - Main Configuration         ",
-        "===================================================================",
-        "You can edit all plugin messages and texts from the 'messages.yml' file.",
-        "Need help? Check our GitHub or Discord."
-})
 @SuppressWarnings({"FieldCanBeLocal", "unused", "unchecked"})
-public class ConfigManager {
+public class ConfigManager extends AbstractYamlConfig {
 
-    @Ignore private final AntiAFKPlugin plugin;
-    @Ignore private final Configuration configuration;
-    @Ignore private final List<IRegionProvider> regionProviders = new CopyOnWriteArrayList<>();
-    @Ignore private final LoadingCache<UUID, Optional<RegionOverride>> regionCache;
+    private final AntiAFKPlugin plugin;
+    private final List<IRegionProvider> regionProviders = new CopyOnWriteArrayList<>();
+    private final LoadingCache<UUID, Optional<RegionOverride>> regionCache;
 
-    // --- BASIC SETTINGS ---
-    @ConfigPath("lang")
-    @Comment({
-            "==================================",
-            "        LANGUAGE SETTINGS",
-            "==================================",
-            "1. System Messages (Console):",
-            "   Changes the language of console logs, startup messages, and internal errors.",
-            "   Controlled by the 'lang' setting below.",
-            "",
-            "2. Player Messages (In-Game):",
-            "   Stored in 'messages.yml'. Changing the setting below DOES NOT automatically",
-            "   translate 'messages.yml' to preserve your custom edits.",
-            "   -> You must edit 'messages.yml' manually for in-game player translations.",
-            "   -> You can find pre-translated 'messages.yml' files on our GitHub.",
-            "   -> https://github.com/bentahsin/AntiAFK/tree/master/messages_yml",
-            "",
-            "Available System Languages: Turkish, English, Spanish, German, French, Russian, Polish"
-    })
-    private String languageName = "English";
-    @Ignore private SupportedLanguage language;
+    private String languageName;
+    private SupportedLanguage language;
 
-    @ConfigPath("max_afk_time")
-    @Comment({
-            "==================================",
-            "        MAIN AFK SYSTEM",
-            "==================================",
-            "The maximum time a player can stay inactive before final actions (kick/ban) are taken.",
-            "Note: This value can be overridden by WorldGuard region settings below.",
-            "Format: 10s (seconds), 15m (minutes), 1h (hours), 1d (days)."
-    })
-    @Transform(TimeConverter.class)
-    @Validate(min = 1)
-    private long maxAfkTimeSeconds = 900;
-
-    @ConfigPath("warnings")
-    @Comment({
-            "Warnings sent to the player based on the 'Time Remaining' until punishment.",
-            "The plugin checks these from largest time to smallest.",
-            "Available Types: CHAT, ACTION_BAR, TITLE, BOSS_BAR"
-    })
-    private List<Map<String, Object>> warningsRaw = new ArrayList<>();
-
-    @Ignore
+    private long maxAfkTimeSeconds;
     private List<Map<String, Object>> warnings = new ArrayList<>();
-
-    @ConfigPath("actions")
-    @Comment({
-            "Actions to execute when the 'max_afk_time' runs out.",
-            "Available Types: CONSOLE, PLAYER, DISCORD_WEBHOOK"
-    })
     private List<Map<String, String>> actions = new ArrayList<>();
 
-    // --- DETECTION SETTINGS ---
-    @ConfigPath("detection.auto_set_afk_after")
-    @Comment({
-            "==================================",
-            "        ACTIVITY DETECTION",
-            "==================================",
-            "After how long of inactivity should a player automatically get the [AFK] tag?",
-            "This serves as a visual indicator before the actual punishment.",
-            "Type 'disabled' to disable this feature."
-    })
-    @Transform(TimeConverter.class)
-    private long autoSetAfkSeconds = 60;
+    private long autoSetAfkSeconds;
+    private int maxPointlessActivities;
+    private boolean checkCamera;
+    private boolean checkChat;
+    private boolean checkInteraction;
+    private boolean checkToggleSneak;
+    private boolean checkItemDrop;
+    private boolean checkInventoryActivity;
+    private boolean checkItemConsume;
+    private boolean checkPlayerAttack;
+    private boolean checkHeldItemChange;
+    private boolean checkBookActivity;
 
-    @ConfigPath("detection.max-pointless-activities")
-    @Comment({
-            "If a player performs actions (jumping, hitting air, dropping items) while",
-            "standing on the SAME BLOCK more than this amount, they are considered a bot."
-    })
-    @Validate(min = 1)
-    private int maxPointlessActivities = 15;
+    private boolean autoClickerEnabled;
+    private int autoClickerCheckAmount;
+    private long autoClickerMaxDeviation;
+    private int autoClickerDetectionsToPunish;
 
-    @ConfigPath("detection.check_camera_movement")
-    @Comment("Define which player actions reset the AFK timer.")
-    private boolean checkCamera = true;
-    @ConfigPath("detection.check_chat_activity") private boolean checkChat = true;
-    @ConfigPath("detection.check_interaction") private boolean checkInteraction = true;
-    @ConfigPath("detection.check_toggle_sneak") private boolean checkToggleSneak = true;
-    @ConfigPath("detection.check_item_drop") private boolean checkItemDrop = true;
-    @ConfigPath("detection.check_inventory_activity") private boolean checkInventoryActivity = true;
-    @ConfigPath("detection.check_item_consume") private boolean checkItemConsume = true;
-    @ConfigPath("detection.check_player_attack") private boolean checkPlayerAttack = true;
+    private boolean checkWorldChangeEnabled;
+    private int worldChangeCooldown;
+    private int maxWorldChanges;
 
-    @ConfigPath("detection.check_held_item_change")
-    @Comment({"The following are disabled by default to prevent false positives."})
-    private boolean checkHeldItemChange = true;
-    @ConfigPath("detection.check_book_activity") private boolean checkBookActivity = true;
+    private boolean rejoinProtectionEnabled;
+    private long rejoinCooldownSeconds;
 
-    // --- AUTO CLICKER ---
-    @ConfigPath("detection.auto-clicker.enabled")
-    @Comment({
-            "Analyzes the statistical variance (standard deviation) of click intervals.",
-            "NOTE: This is automatically disabled for Bedrock players to prevent false positives."
-    })
-    private boolean autoClickerEnabled = true;
-    @ConfigPath("detection.auto-clicker.check-amount") @Validate(min = 5) private int autoClickerCheckAmount = 20;
-    @ConfigPath("detection.auto-clicker.max-deviation") @Validate(min = 0) private long autoClickerMaxDeviation = 10;
-    @ConfigPath("detection.auto-clicker.detections-to-punish") @Validate(min = 1) private int autoClickerDetectionsToPunish = 3;
-
-    // --- WORLD CHANGE ---
-    @ConfigPath("detection.check-world-change.enabled")
-    @Comment("Prevents players from resetting their AFK status by rapidly switching worlds.")
-    private boolean checkWorldChangeEnabled = true;
-    @ConfigPath("detection.check-world-change.cooldown") @Validate(min = 1) private int worldChangeCooldown = 20;
-    @ConfigPath("detection.check-world-change.max-changes") @Validate(min = 1) private int maxWorldChanges = 5;
-
-    // --- REJOIN PROTECTION ---
-    @ConfigPath("rejoin_protection.enabled")
-    @Comment({
-            "==================================",
-            "        REJOIN PROTECTION",
-            "==================================",
-            "If a player is kicked for AFK, they cannot rejoin for this duration."
-    })
-    private boolean rejoinProtectionEnabled = true;
-    @ConfigPath("rejoin_protection.cooldown") @Transform(TimeConverter.class) private long rejoinCooldownSeconds = 300;
-
-    // --- TURING TEST (CAPTCHA) ---
-    @ConfigPath("turing_test.enabled")
-    @Comment({
-            "==================================",
-            "   TURING TEST (CAPTCHA)",
-            "==================================",
-            "If a player is flagged as 'Suspicious', they will be presented with a Captcha test."
-    })
-    private boolean turingTestEnabled = true;
-
-    @ConfigPath("turing_test.palettes")
-    @Comment("Which captcha types are active and their probability weights.")
-    private Map<String, Map<String, Object>> captchaPalettesRaw = new HashMap<>();
-
-    @ConfigPath("turing_test.question_answer.answer_timeout_seconds") @Validate(min = 5) private int qaCaptchaTimeoutSeconds = 20;
-
-    @ConfigPath("turing_test.on_failure_actions")
-    @Comment("Commands to execute if player FAILS the test or runs out of time.")
+    private boolean turingTestEnabled;
+    private int qaCaptchaTimeoutSeconds;
     private List<Map<String, String>> captchaFailureActions = new ArrayList<>();
+    private int colorPaletteGuiRows;
+    private int colorPaletteTimeLimit;
+    private int colorPaletteCorrectCount;
+    private int colorPaletteDistractorColorCount;
+    private int colorPaletteDistractorItemCount;
+    private List<String> colorPaletteAvailableColors = new ArrayList<>();
 
-    @ConfigPath("turing_test.color_palette.gui_rows") @Validate(min = 1, max = 6) private int colorPaletteGuiRows = 3;
-    @ConfigPath("turing_test.color_palette.time_limit_seconds") @Validate(min = 5) private int colorPaletteTimeLimit = 15;
-    @ConfigPath("turing_test.color_palette.correct_item_count") @Validate(min = 1) private int colorPaletteCorrectCount = 5;
-    @ConfigPath("turing_test.color_palette.distractor_color_count") @Validate(min = 1) private int colorPaletteDistractorColorCount = 2;
-    @ConfigPath("turing_test.color_palette.distractor_item_count_per_color") @Validate(min = 1) private int colorPaletteDistractorItemCount = 4;
-    @ConfigPath("turing_test.color_palette.available_colors") private List<String> colorPaletteAvailableColors = new ArrayList<>();
+    private boolean learningModeEnabled;
+    private long analysisTaskPeriodTicks;
+    private double learningSimilarityThreshold;
+    private int learningSearchRadius;
+    private long maxPatternFileSizeKb;
+    private int maxVectorsPerPattern;
+    private double preFilterSizeRatio;
 
-    // --- LEARNING MODE ---
-    @ConfigPath("learning_mode.enabled")
-    @Comment({
-            "==================================",
-            "    LEARNING MODE (PATTERN AI)",
-            "==================================",
-            "This module compares live player movements against recorded bot patterns."
-    })
-    private boolean learningModeEnabled = true;
-    @ConfigPath("learning_mode.analysis_task_period_ticks") @Validate(min = 1) private long analysisTaskPeriodTicks = 40L;
-    @ConfigPath("learning_mode.similarity_threshold") private double learningSimilarityThreshold = 25.0;
-    @ConfigPath("learning_mode.search_radius") private int learningSearchRadius = 10;
+    private boolean behaviorAnalysisEnabled;
+    private int behaviorHistorySizeTicks;
+    private boolean confinementCheckEnabled;
+    private long confinementCheckDurationSeconds;
+    private double confinementRadius;
+    private double confinementMinDistance;
 
-    @ConfigPath("learning_mode.security.max_pattern_file_size_kb")
-    @Comment("Security limits to prevent memory overflows.")
-    private long maxPatternFileSizeKb = 1024;
-    @ConfigPath("learning_mode.security.max_vectors_per_pattern") private int maxVectorsPerPattern = 12000;
-    @ConfigPath("learning_mode.security.pre_filter_size_ratio") private double preFilterSizeRatio = 0.5;
+    private boolean discordWebhookEnabled;
+    private String discordWebhookUrl;
+    private String discordBotName;
+    private String discordAvatarUrl;
 
-    // --- BEHAVIORAL ANALYSIS ---
-    @ConfigPath("behavioral-analysis.enabled")
-    @Comment({
-            "==================================",
-            "    ADVANCED BEHAVIOR ANALYSIS",
-            "==================================",
-            "This system records player movement vectors and looks for repetitive loops."
-    })
-    private boolean behaviorAnalysisEnabled = false;
-    @ConfigPath("behavioral-analysis.history-size-ticks") @Validate(min = 20) private int behaviorHistorySizeTicks = 600;
+    private boolean essentialsSync;
 
-    // --- CONFINEMENT CHECK (AFK POOLS) ---
-    @ConfigPath("behavioral-analysis.confinement-check.enabled")
-    @Comment({
-            "==================================",
-            "      CONFINEMENT ANALYSIS",
-            "==================================",
-            "Detects players who move significantly but never leave a small area.",
-            "Useful for catching AFK Pools, Piston pushers, and Circle macros."
-    })
-    private boolean confinementCheckEnabled = true;
-
-    @ConfigPath("behavioral-analysis.confinement-check.check-duration")
-    @Comment({
-            "The duration a player must remain within the restricted area to be flagged.",
-            "Recommended: Max AFK time + a small buffer (e.g., 15m + 5m = 20m)."
-    })
-    @Transform(TimeConverter.class)
-    private long confinementCheckDurationSeconds = 1200;
-
-    @ConfigPath("behavioral-analysis.confinement-check.radius")
-    @Comment({
-            "The radius in blocks for the confinement area.",
-            "A value of 3.0 means checking if the player stayed within a 6x6 area."
-    })
-    private double confinementRadius = 3.0;
-
-    @ConfigPath("behavioral-analysis.confinement-check.min-distance-traveled")
-    @Comment({
-            "The minimum total distance (sum of all steps) the player must have traveled.",
-            "This ensures that someone simply standing still is handled by standard AFK timers.",
-            "AFK pool users will have a high total distance but low displacement."
-    })
-    private double confinementMinDistance = 100.0;
-
-    // --- DISCORD ---
-    @ConfigPath("discord_webhook.enabled")
-    @Comment({
-            "==================================",
-            "           INTEGRATIONS",
-            "==================================",
-            "Send notifications like kick/ban to Discord."
-    })
-    private boolean discordWebhookEnabled = false;
-    @ConfigPath("discord_webhook.webhook_url") private String discordWebhookUrl = "PASTE_YOUR_WEBHOOK_URL_HERE";
-    @ConfigPath("discord_webhook.bot_name") private String discordBotName = "AntiAFK Guard";
-    @ConfigPath("discord_webhook.avatar_url") private String discordAvatarUrl = "";
-
-
-    // --- ESSENTIALS INTEGRATION ---
-    @ConfigPath("integrations.essentials.sync_status")
-    @Comment("Updates Essentials (/afk) status when AntiAFK status changes.")
-    private boolean essentialsSync = true;
-
-    // --- ECONOMY (VAULT) ---
-    @ConfigPath("integrations.economy.enabled")
-    @Comment("Enables Vault economy features (Tax/Salary). Requires Vault and an Economy plugin.")
-    private boolean economyEnabled = false;
-
-    @ConfigPath("integrations.economy.tax.enabled")
-    @Comment("Deducts money from the player for every AFK interval.")
-    private boolean taxEnabled = false;
-
-    @ConfigPath("integrations.economy.tax.amount")
-    private double taxAmount = 10.0;
-
-    @ConfigPath("integrations.economy.tax.interval_minutes")
-    private int taxInterval = 5;
-
-    @ConfigPath("integrations.economy.salary.enabled")
-    @Comment("Gives money to players standing in specific WorldGuard regions (AFK Pool reward).")
-    private boolean salaryEnabled = false;
-
-    @ConfigPath("integrations.economy.salary.regions")
-    @Comment({
-            "Define regions and salary amounts.",
-            "Format: region_name: amount"
-    })
+    private boolean economyEnabled;
+    private boolean taxEnabled;
+    private double taxAmount;
+    private int taxInterval;
+    private boolean salaryEnabled;
     private Map<String, Double> salaryRegions = new HashMap<>();
+    private int salaryInterval;
 
-    @ConfigPath("integrations.economy.salary.interval_minutes")
-    private int salaryInterval = 10;
+    private boolean farmLimiterEnabled;
+    private int farmLimiterRadius;
+    private boolean farmLimiterCheckFriends;
 
-    // --- FARM LIMITER ---
-    @ConfigPath("gameplay_control.farm_limiter.enabled")
-    @Comment({
-            "WARNING: This feature prevents mob spawning and crop growth near AFK players.",
-            "Disabled by default. It improves server performance but may affect gameplay."
-    })
-    private boolean farmLimiterEnabled = false;
+    private boolean itemPickupBlockerEnabled;
 
-    @ConfigPath("gameplay_control.farm_limiter.radius")
-    private int farmLimiterRadius = 32;
-
-    @ConfigPath("gameplay_control.farm_limiter.allow_if_active_player_nearby")
-    @Comment("If there is a NON-AFK player near the AFK player, farms will continue to work.")
-    private boolean farmLimiterCheckFriends = true;
-
-    // --- ITEM PICKUP BLOCKER ---
-    @ConfigPath("gameplay_control.item_pickup_blocker.enabled")
-    @Comment("Prevents AFK players from picking up items from the ground (Protection against Auto-inventory cheats).")
-    private boolean itemPickupBlockerEnabled = false;
-
-    // --- PERMISSIONS & EXEMPTIONS ---
-    @ConfigPath("exemptions.permissions.bypass_all")
-    @Comment({
-            "==================================",
-            "      EXEMPTIONS & PERMISSIONS",
-            "=================================="
-    })
-    private String permBypassAll = "antiafk.bypass.all";
-    @ConfigPath("exemptions.permissions.bypass_classic") private String permBypassClassic = "antiafk.bypass.classic";
-    @ConfigPath("exemptions.permissions.bypass_behavioral") private String permBypassBehavioral = "antiafk.bypass.behavioral";
-    @ConfigPath("exemptions.permissions.bypass_pointless") private String permBypassPointless = "antiafk.bypass.pointless";
-    @ConfigPath("exemptions.permissions.bypass_autoclicker") private String permBypassAutoclicker = "antiafk.bypass.autoclicker";
-    @ConfigPath("afk_command.permission") private String permAfkCommandUse = "antiafk.command.afk";
-
-    @ConfigPath("exemptions.disabled_worlds")
-    @Comment("Worlds where AntiAFK is completely disabled.")
+    private String permBypassAll;
+    private String permBypassClassic;
+    private String permBypassBehavioral;
+    private String permBypassPointless;
+    private String permBypassAutoclicker;
+    private String permAfkCommandUse;
     private List<String> disabledWorlds = new ArrayList<>();
-
-    @ConfigPath("exemptions.exempt_gamemodes")
-    @Comment("GameModes that are ignored by AntiAFK.")
     private List<String> exemptGameModes = new ArrayList<>();
 
-    // --- AFK COMMAND ---
-    @ConfigPath("afk_command.enabled")
-    @Comment({
-            "==================================",
-            "       MANUAL /AFK COMMAND",
-            "=================================="
-    })
-    private boolean afkCommandEnabled = true;
-    @ConfigPath("afk_command.on_afk.default_reason") private String afkDefaultReason = "No reason specified";
-    @ConfigPath("afk_command.on_afk.set_invulnerable") private boolean setInvulnerable = true;
-    @ConfigPath("afk_command.on_afk.tag_format") private String afkTagFormat = "&7[AFK] ";
-    @ConfigPath("afk_command.on_afk.broadcast") private boolean broadcastOnAfk = true;
-    @ConfigPath("afk_command.on_return.broadcast") private boolean broadcastOnReturn = true;
+    private boolean afkCommandEnabled;
+    private String afkDefaultReason;
+    private boolean setInvulnerable;
+    private String afkTagFormat;
+    private boolean broadcastOnAfk;
+    private boolean broadcastOnReturn;
 
-    // --- COMMAND SETTINGS ---
-    @ConfigPath("commands.main.command")
-    @Comment({
-            "==================================",
-            "         COMMAND SETTINGS",
-            "==================================",
-            "You can rename the plugin commands here to avoid conflicts.",
-            "Restart required."
-    })
-    private String mainCommandName = "antiafk";
-    @ConfigPath("commands.main.aliases") private List<String> mainCommandAliases = new ArrayList<>(Arrays.asList("aafk", "afkadmin"));
+    private String mainCommandName;
+    private List<String> mainCommandAliases = new ArrayList<>();
+    private String afkCommandName;
+    private List<String> afkCommandAliases = new ArrayList<>();
+    private String afkTestCommandName;
+    private List<String> afkTestCommandAliases = new ArrayList<>();
+    private String afkCevapCommandName;
+    private List<String> afkCevapCommandAliases = new ArrayList<>();
 
-    @ConfigPath("commands.afk.command") private String afkCommandName = "afk";
-    @ConfigPath("commands.afk.aliases") private List<String> afkCommandAliases = new ArrayList<>(Arrays.asList("away", "brb"));
+    private boolean worldGuardEnabled;
+    private List<RegionOverride> regionOverrides = new ArrayList<>();
+    private Map<String, RegionOverride> regionOverrideMap = new HashMap<>();
 
-    @ConfigPath("commands.afktest.command") private String afkTestCommandName = "afktest";
-    @ConfigPath("commands.afktest.aliases") private List<String> afkTestCommandAliases = new ArrayList<>(Collections.singletonList("testafk"));
-
-    @ConfigPath("commands.afkcevap.command") private String afkCevapCommandName = "afkcevap";
-    @ConfigPath("commands.afkcevap.aliases") private List<String> afkCevapCommandAliases = new ArrayList<>(Arrays.asList("answer", "reply"));
-
-    // --- WORLDGUARD ---
-    @ConfigPath("worldguard_integration.enabled")
-    @Comment({
-            "==================================",
-            "      WORLDGUARD INTEGRATION",
-            "=================================="
-    })
-    private boolean worldGuardEnabled = false;
-
-    @ConfigPath("worldguard_integration.region_overrides")
-    @Comment({
-            "Define custom AFK rules for specific regions.",
-            "Keys ('0', '1') are just identifiers."
-    })
-    private Map<String, Map<String, Object>> regionOverridesRaw = new HashMap<>();
-
-    @Ignore private List<RegionOverride> regionOverrides = new ArrayList<>();
-    @Ignore private Map<String, RegionOverride> regionOverrideMap = new HashMap<>();
-
-    // --- PROGRESSIVE PUNISHMENT ---
-    @ConfigPath("progressive_punishment.enabled")
-    @Comment({
-            "==================================",
-            "      PROGRESSIVE PUNISHMENT",
-            "==================================",
-            "This system tracks how many times a player has been punished.",
-            "You can increase the severity based on the offense count."
-    })
-    private boolean progressivePunishmentEnabled = true;
-
-    @ConfigPath("progressive_punishment.reset_after")
-    @Comment("How long should the punishment counter be remembered? (e.g. 30d)")
-    private String punishmentResetAfterStr = "30d";
-
-    @ConfigPath("progressive_punishment.punishments")
-    private List<Map<String, Object>> punishmentLevelsRaw = new ArrayList<>();
-
-    @Ignore private long punishmentResetMillis;
-    @Ignore private List<PunishmentLevel> punishmentLevels = new ArrayList<>();
-    @Ignore private int highestPunishmentCount = 0;
+    private boolean progressivePunishmentEnabled;
+    private String punishmentResetAfterStr;
+    private long punishmentResetMillis;
+    private List<PunishmentLevel> punishmentLevels = new ArrayList<>();
+    private int highestPunishmentCount = 0;
 
     public ConfigManager() {
+        super(null, "config.yml");
         this.plugin = null;
-        this.configuration = null;
         this.regionCache = null;
     }
 
     @Inject
     public ConfigManager(AntiAFKPlugin plugin) {
+        super(plugin, "config.yml");
         this.plugin = plugin;
-        this.configuration = new Configuration(plugin);
-
-        initializeDefaults();
 
         this.regionCache = Caffeine.newBuilder()
                 .maximumSize(1000)
@@ -451,259 +170,251 @@ public class ConfigManager {
         loadConfig();
     }
 
-    /**
-     * Fills default values in English.
-     */
-    private void initializeDefaults() {
-        // Renkler
-        colorPaletteAvailableColors = new ArrayList<>(Arrays.asList(
-                "RED", "BLUE", "LIME", "YELLOW", "ORANGE", "CYAN", "MAGENTA"
-        ));
-
-        // Exemptions
-        disabledWorlds = new ArrayList<>(Collections.singletonList("creative_world"));
-        exemptGameModes = new ArrayList<>(Arrays.asList("SPECTATOR", "CREATIVE"));
-
-        // Default Action (Kick)
-        Map<String, String> defaultAction = new HashMap<>();
-        defaultAction.put("type", "CONSOLE");
-        defaultAction.put("command", "kick %player% &cAFK time expired.");
-        actions = new ArrayList<>(Collections.singletonList(defaultAction));
-
-        // Default Warnings
-        warningsRaw = new ArrayList<>();
-
-        Map<String, Object> warn1 = new HashMap<>();
-        warn1.put("time", "5m");
-        warn1.put("type", "CHAT");
-        warn1.put("message", "&e[AntiAFK] &7You seem inactive. You will be punished if you don't move in &c%time_left%&7.");
-        warn1.put("bar_color", "RED");
-        warn1.put("bar_style", "SOLID");
-        warningsRaw.add(warn1);
-
-        Map<String, Object> warn2 = new HashMap<>();
-        warn2.put("time", "1m");
-        warn2.put("type", "TITLE");
-        warn2.put("title", "&c&lWARNING");
-        warn2.put("subtitle", "&eYou must move within 1 minute!");
-        warn2.put("sound", "BLOCK_NOTE_BLOCK_PLING");
-        warn2.put("bar_color", "RED");
-        warn2.put("bar_style", "SOLID");
-        warningsRaw.add(warn2);
-
-        Map<String, Object> warn3 = new HashMap<>();
-        warn3.put("time", "10s");
-        warn3.put("type", "ACTION_BAR");
-        warn3.put("message", "&4&lKicking in: %time_left%");
-        warn3.put("sound", "ENTITY_EXPERIENCE_ORB_PICKUP");
-        warn3.put("bar_color", "RED");
-        warn3.put("bar_style", "SOLID");
-        warningsRaw.add(warn3);
-
-        // Progressive Punishments
-        punishmentLevelsRaw = new ArrayList<>();
-
-        // Level 1
-        Map<String, Object> lvl1 = new HashMap<>();
-        lvl1.put("count", 1);
-        List<Map<String, String>> lvl1Actions = new ArrayList<>();
-        Map<String, String> act1 = new HashMap<>();
-        act1.put("type", "CONSOLE");
-        act1.put("command", "warn %player% Please avoid staying AFK on the server.");
-        lvl1Actions.add(act1);
-        Map<String, String> act2 = new HashMap<>();
-        act2.put("type", "PLAYER");
-        act2.put("command", "spawn");
-        lvl1Actions.add(act2);
-        lvl1.put("actions", lvl1Actions);
-        punishmentLevelsRaw.add(lvl1);
-
-        // Level 3
-        Map<String, Object> lvl3 = new HashMap<>();
-        lvl3.put("count", 3);
-        List<Map<String, String>> lvl3Actions = new ArrayList<>();
-        Map<String, String> act3 = new HashMap<>();
-        act3.put("type", "CONSOLE");
-        act3.put("command", "kick %player% &cKicked due to repeated AFK behavior.");
-        lvl3Actions.add(act3);
-        lvl3.put("actions", lvl3Actions);
-        punishmentLevelsRaw.add(lvl3);
-
-        // Level 5
-        Map<String, Object> lvl5 = new HashMap<>();
-        lvl5.put("count", 5);
-        List<Map<String, String>> lvl5Actions = new ArrayList<>();
-        Map<String, String> act5 = new HashMap<>();
-        act5.put("type", "CONSOLE");
-        act5.put("command", "tempban %player% 10m &cTemporarily banned for habitual AFK behavior.");
-        lvl5Actions.add(act5);
-        lvl5.put("actions", lvl5Actions);
-        punishmentLevelsRaw.add(lvl5);
-
-        // Captcha Failure Actions
-        captchaFailureActions = new ArrayList<>();
-        Map<String, String> failAct1 = new HashMap<>();
-        failAct1.put("type", "CONSOLE");
-        failAct1.put("command", "kick %player% &cBot test failed!");
-        captchaFailureActions.add(failAct1);
-
-        // Captcha Palettes
-        captchaPalettesRaw = new HashMap<>();
-        Map<String, Object> qa = new HashMap<>();
-        qa.put("enabled", true);
-        qa.put("weight", 40);
-        captchaPalettesRaw.put("QUESTION_ANSWER", qa);
-
-        Map<String, Object> cp = new HashMap<>();
-        cp.put("enabled", true);
-        cp.put("weight", 60);
-        captchaPalettesRaw.put("COLOR_PALETTE", cp);
-
-        Map<String, Object> bf = new HashMap<>();
-        bf.put("enabled", true);
-        bf.put("weight", 100);
-        captchaPalettesRaw.put("BEDROCK_FORM", bf);
-
-        // WorldGuard Regions
-        regionOverridesRaw = new HashMap<>();
-
-        Map<String, Object> reg0 = new HashMap<>();
-        reg0.put("region", "pvp_arena");
-        reg0.put("max_afk_time", "3m");
-        List<Map<String, String>> reg0Acts = new ArrayList<>();
-        Map<String, String> regAct1 = new HashMap<>();
-        regAct1.put("type", "PLAYER");
-        regAct1.put("command", "spawn");
-        reg0Acts.add(regAct1);
-        reg0.put("actions", reg0Acts);
-        regionOverridesRaw.put("0", reg0);
-
-        Map<String, Object> reg1 = new HashMap<>();
-        reg1.put("region", "afk_room");
-        reg1.put("max_afk_time", "disabled");
-        regionOverridesRaw.put("1", reg1);
-
-        Map<String, Object> reg2 = new HashMap<>();
-        reg2.put("region", "trade_area");
-        reg2.put("max_afk_time", "1h");
-        regionOverridesRaw.put("2", reg2);
-    }
-
     public void loadConfig() {
-        File configFile = new File(plugin.getDataFolder(), "config.yml");
-        if (!configFile.exists()) {
-            plugin.saveDefaultConfig();
-        }
-
+        plugin.saveDefaultConfig();
         plugin.reloadConfig();
-        configuration.init(this, "config.yml");
+        reload();
     }
 
-    @PostLoad
-    public void postLoad() {
+    @Override
+    protected void onLoad() {
+        this.languageName = getString("lang", "English");
         this.language = SupportedLanguage.fromConfigName(languageName);
-        TimeConverter timeConverter = new TimeConverter();
 
-        warnings.clear();
-        if (warningsRaw != null) {
-            for (Map<String, Object> raw : warningsRaw) {
-                if (raw == null || raw.isEmpty() || !raw.containsKey("time")) continue;
+        this.maxAfkTimeSeconds = TimeUtil.parseTime(getString("max_afk_time", "15m"));
+        loadWarnings();
+        this.actions = getStringMapList("actions");
 
-                try {
-                    Map<String, Object> processed = new HashMap<>(raw);
-                    String timeStr = String.valueOf(raw.getOrDefault("time", "0s"));
-                    processed.put("time", timeConverter.convertToField(timeStr));
+        this.autoSetAfkSeconds = TimeUtil.parseTime(getString("detection.auto_set_afk_after", "1m"));
+        this.maxPointlessActivities = getInt("detection.max-pointless-activities", 15);
+        this.checkCamera = getBoolean("detection.check_camera_movement", true);
+        this.checkChat = getBoolean("detection.check_chat_activity", true);
+        this.checkInteraction = getBoolean("detection.check_interaction", true);
+        this.checkToggleSneak = getBoolean("detection.check_toggle_sneak", true);
+        this.checkItemDrop = getBoolean("detection.check_item_drop", true);
+        this.checkInventoryActivity = getBoolean("detection.check_inventory_activity", true);
+        this.checkItemConsume = getBoolean("detection.check_item_consume", true);
+        this.checkPlayerAttack = getBoolean("detection.check_player_attack", true);
+        this.checkHeldItemChange = getBoolean("detection.check_held_item_change", true);
+        this.checkBookActivity = getBoolean("detection.check_book_activity", true);
 
-                    processed.put("bar_color", String.valueOf(raw.getOrDefault("bar_color", "RED")).toUpperCase());
-                    processed.put("bar_style", String.valueOf(raw.getOrDefault("bar_style", "SOLID")).toUpperCase());
+        this.autoClickerEnabled = getBoolean("detection.auto-clicker.enabled", true);
+        this.autoClickerCheckAmount = getInt("detection.auto-clicker.check-amount", 20);
+        this.autoClickerMaxDeviation = getLong("detection.auto-clicker.max-deviation", 10);
+        this.autoClickerDetectionsToPunish = getInt("detection.auto-clicker.detections-to-punish", 3);
 
-                    warnings.add(processed);
-                } catch (Exception e) {
-                    if (plugin != null) plugin.getLogger().warning("Warning processing error: " + e.getMessage());
-                }
+        this.checkWorldChangeEnabled = getBoolean("detection.check-world-change.enabled", true);
+        this.worldChangeCooldown = getInt("detection.check-world-change.cooldown", 20);
+        this.maxWorldChanges = getInt("detection.check-world-change.max-changes", 5);
+
+        this.rejoinProtectionEnabled = getBoolean("rejoin_protection.enabled", true);
+        this.rejoinCooldownSeconds = TimeUtil.parseTime(getString("rejoin_protection.cooldown", "5m"));
+
+        this.turingTestEnabled = getBoolean("turing_test.enabled", true);
+        this.qaCaptchaTimeoutSeconds = getInt("turing_test.question_answer.answer_timeout_seconds", 20);
+        this.captchaFailureActions = getStringMapList("turing_test.on_failure_actions");
+        this.colorPaletteGuiRows = getInt("turing_test.color_palette.gui_rows", 3);
+        this.colorPaletteTimeLimit = getInt("turing_test.color_palette.time_limit_seconds", 15);
+        this.colorPaletteCorrectCount = getInt("turing_test.color_palette.correct_item_count", 5);
+        this.colorPaletteDistractorColorCount = getInt("turing_test.color_palette.distractor_color_count", 2);
+        this.colorPaletteDistractorItemCount = getInt("turing_test.color_palette.distractor_item_count_per_color", 4);
+        this.colorPaletteAvailableColors = getStringList("turing_test.color_palette.available_colors");
+
+        this.learningModeEnabled = getBoolean("learning_mode.enabled", true);
+        this.analysisTaskPeriodTicks = getLong("learning_mode.analysis_task_period_ticks", 40L);
+        this.learningSimilarityThreshold = getDouble("learning_mode.similarity_threshold", 25.0);
+        this.learningSearchRadius = getInt("learning_mode.search_radius", 10);
+        this.maxPatternFileSizeKb = getLong("learning_mode.security.max_pattern_file_size_kb", 1024);
+        this.maxVectorsPerPattern = getInt("learning_mode.security.max_vectors_per_pattern", 12000);
+        this.preFilterSizeRatio = getDouble("learning_mode.security.pre_filter_size_ratio", 0.5);
+
+        this.behaviorAnalysisEnabled = getBoolean("behavioral-analysis.enabled", false);
+        this.behaviorHistorySizeTicks = getInt("behavioral-analysis.history-size-ticks", 600);
+        this.confinementCheckEnabled = getBoolean("behavioral-analysis.confinement-check.enabled", true);
+        this.confinementCheckDurationSeconds = TimeUtil.parseTime(getString("behavioral-analysis.confinement-check.check-duration", "20m"));
+        this.confinementRadius = getDouble("behavioral-analysis.confinement-check.radius", 3.0);
+        this.confinementMinDistance = getDouble("behavioral-analysis.confinement-check.min-distance-traveled", 100.0);
+
+        this.discordWebhookEnabled = getBoolean("discord_webhook.enabled", false);
+        this.discordWebhookUrl = getString("discord_webhook.webhook_url", "PASTE_YOUR_WEBHOOK_URL_HERE");
+        this.discordBotName = getString("discord_webhook.bot_name", "AntiAFK Guard");
+        this.discordAvatarUrl = getString("discord_webhook.avatar_url", "");
+
+        this.essentialsSync = getBoolean("integrations.essentials.sync_status", true);
+
+        this.economyEnabled = getBoolean("integrations.economy.enabled", false);
+        this.taxEnabled = getBoolean("integrations.economy.tax.enabled", false);
+        this.taxAmount = getDouble("integrations.economy.tax.amount", 10.0);
+        this.taxInterval = getInt("integrations.economy.tax.interval_minutes", 5);
+        this.salaryEnabled = getBoolean("integrations.economy.salary.enabled", false);
+        this.salaryRegions = loadSalaryRegions();
+        this.salaryInterval = getInt("integrations.economy.salary.interval_minutes", 10);
+
+        this.farmLimiterEnabled = getBoolean("gameplay_control.farm_limiter.enabled", false);
+        this.farmLimiterRadius = getInt("gameplay_control.farm_limiter.radius", 32);
+        this.farmLimiterCheckFriends = getBoolean("gameplay_control.farm_limiter.allow_if_active_player_nearby", true);
+
+        this.itemPickupBlockerEnabled = getBoolean("gameplay_control.item_pickup_blocker.enabled", false);
+
+        this.permBypassAll = getString("exemptions.permissions.bypass_all", "antiafk.bypass.all");
+        this.permBypassClassic = getString("exemptions.permissions.bypass_classic", "antiafk.bypass.classic");
+        this.permBypassBehavioral = getString("exemptions.permissions.bypass_behavioral", "antiafk.bypass.behavioral");
+        this.permBypassPointless = getString("exemptions.permissions.bypass_pointless", "antiafk.bypass.pointless");
+        this.permBypassAutoclicker = getString("exemptions.permissions.bypass_autoclicker", "antiafk.bypass.autoclicker");
+        this.permAfkCommandUse = getString("afk_command.permission", "antiafk.command.afk");
+        this.disabledWorlds = getStringList("exemptions.disabled_worlds");
+        this.exemptGameModes = getStringList("exemptions.exempt_gamemodes");
+
+        this.afkCommandEnabled = getBoolean("afk_command.enabled", true);
+        this.afkDefaultReason = getString("afk_command.on_afk.default_reason", "No reason specified");
+        this.setInvulnerable = getBoolean("afk_command.on_afk.set_invulnerable", true);
+        this.afkTagFormat = getString("afk_command.on_afk.tag_format", "&7[AFK] ");
+        this.broadcastOnAfk = getBoolean("afk_command.on_afk.broadcast", true);
+        this.broadcastOnReturn = getBoolean("afk_command.on_return.broadcast", true);
+
+        this.mainCommandName = getString("commands.main.command", "antiafk");
+        this.mainCommandAliases = getStringList("commands.main.aliases");
+        this.afkCommandName = getString("commands.afk.command", "afk");
+        this.afkCommandAliases = getStringList("commands.afk.aliases");
+        this.afkTestCommandName = getString("commands.afktest.command", "afktest");
+        this.afkTestCommandAliases = getStringList("commands.afktest.aliases");
+        this.afkCevapCommandName = getString("commands.afkcevap.command", "afkcevap");
+        this.afkCevapCommandAliases = getStringList("commands.afkcevap.aliases");
+
+        this.worldGuardEnabled = getBoolean("worldguard_integration.enabled", false);
+        loadRegionOverrides();
+
+        this.progressivePunishmentEnabled = getBoolean("progressive_punishment.enabled", true);
+        this.punishmentResetAfterStr = getString("progressive_punishment.reset_after", "30d");
+        loadPunishmentLevels();
+
+        if (regionCache != null) regionCache.invalidateAll();
+    }
+
+    private void loadWarnings() {
+        List<Map<String, Object>> raw = getMapList("warnings");
+        List<Map<String, Object>> processed = new ArrayList<>();
+
+        for (Map<String, Object> entry : raw) {
+            if (entry == null || entry.isEmpty() || !entry.containsKey("time")) continue;
+
+            try {
+                Map<String, Object> warning = new HashMap<>(entry);
+                String timeStr = String.valueOf(entry.getOrDefault("time", "0s"));
+                warning.put("time", TimeUtil.parseTime(timeStr));
+                warning.put("bar_color", String.valueOf(entry.getOrDefault("bar_color", "RED")).toUpperCase());
+                warning.put("bar_style", String.valueOf(entry.getOrDefault("bar_style", "SOLID")).toUpperCase());
+                processed.add(warning);
+            } catch (Exception e) {
+                if (plugin != null) plugin.getLogger().warning("Warning processing error: " + e.getMessage());
             }
-
-            warnings.sort((w1, w2) -> {
-                Number n1 = (Number) w1.get("time");
-                Number n2 = (Number) w2.get("time");
-                if (n1 == null || n2 == null) return 0;
-                return Long.compare(n2.longValue(), n1.longValue());
-            });
         }
+
+        processed.sort((w1, w2) -> {
+            Number n1 = (Number) w1.get("time");
+            Number n2 = (Number) w2.get("time");
+            if (n1 == null || n2 == null) return 0;
+            return Long.compare(n2.longValue(), n1.longValue());
+        });
+
+        this.warnings = processed;
+    }
+
+    private void loadPunishmentLevels() {
+        List<Map<String, Object>> raw = getMapList("progressive_punishment.punishments");
+        List<PunishmentLevel> levels = new ArrayList<>();
+        int highest = 0;
+
+        for (Map<String, Object> entry : raw) {
+            if (entry == null || entry.isEmpty()) continue;
+
+            try {
+                int count = 0;
+                if (entry.get("count") instanceof Number) {
+                    count = ((Number) entry.get("count")).intValue();
+                }
+
+                List<Map<String, String>> levelActions = new ArrayList<>();
+                Object actionsObj = entry.get("actions");
+                if (actionsObj instanceof List) {
+                    for (Object obj : (List<?>) actionsObj) {
+                        if (obj instanceof Map) {
+                            levelActions.add((Map<String, String>) obj);
+                        }
+                    }
+                }
+
+                if (count > highest) highest = count;
+                levels.add(new PunishmentLevel(count, levelActions));
+            } catch (Exception e) {
+                if (plugin != null) plugin.getLogger().warning("Punishment level processing error: " + e.getMessage());
+            }
+        }
+
+        Collections.sort(levels);
 
         if (punishmentResetAfterStr != null && punishmentResetAfterStr.equalsIgnoreCase("never")) {
             punishmentResetMillis = -1;
         } else if (punishmentResetAfterStr != null) {
-            punishmentResetMillis = timeConverter.convertToField(punishmentResetAfterStr) * 1000;
+            punishmentResetMillis = TimeUtil.parseTime(punishmentResetAfterStr) * 1000;
         } else {
             punishmentResetMillis = 0;
         }
 
-        punishmentLevels.clear();
-        highestPunishmentCount = 0;
-        if (punishmentLevelsRaw != null) {
-            for (Map<String, Object> raw : punishmentLevelsRaw) {
-                if (raw == null || raw.isEmpty()) continue;
+        this.punishmentLevels = levels;
+        this.highestPunishmentCount = highest;
+    }
 
-                try {
-                    int count = 0;
-                    if (raw.get("count") instanceof Number) {
-                        count = ((Number) raw.get("count")).intValue();
-                    }
+    private void loadRegionOverrides() {
+        List<RegionOverride> overrides = new ArrayList<>();
+        Map<String, RegionOverride> overrideMap = new HashMap<>();
 
-                    List<Map<String, String>> actions = new ArrayList<>();
-                    Object actionsObj = raw.get("actions");
-                    if (actionsObj instanceof List) {
-                        for (Object obj : (List<?>) actionsObj) {
-                            if (obj instanceof Map) {
-                                actions.add((Map<String, String>) obj);
-                            }
-                        }
-                    }
+        if (worldGuardEnabled) {
+            Section regionsSection = getSection("worldguard_integration.region_overrides");
+            if (regionsSection != null) {
+                for (Object key : regionsSection.getKeys()) {
+                    Section regionSection = regionsSection.getSection(String.valueOf(key));
+                    if (regionSection == null) continue;
 
-                    if (count > highestPunishmentCount) highestPunishmentCount = count;
-                    punishmentLevels.add(new PunishmentLevel(count, actions));
-                } catch (Exception e) {
-                    if (plugin != null) plugin.getLogger().warning("Punishment level processing error: " + e.getMessage());
+                    String regionName = regionSection.getString("region");
+                    if (regionName == null || regionName.isEmpty()) continue;
+
+                    String maxAfkTimeStr = regionSection.getString("max_afk_time", "15m");
+                    long time = maxAfkTimeStr.equalsIgnoreCase("disabled") ? -1 : TimeUtil.parseTime(maxAfkTimeStr);
+
+                    List<Map<String, String>> regionActions = regionSection.contains("actions")
+                            ? getStringMapListFrom(regionSection, "actions")
+                            : this.actions;
+
+                    RegionOverride override = new RegionOverride(regionName, time, regionActions);
+                    overrides.add(override);
+                    overrideMap.put(regionName.toLowerCase(), override);
                 }
-            }
-            Collections.sort(punishmentLevels);
-        }
-
-        regionOverrides.clear();
-        regionOverrideMap.clear();
-
-        if (worldGuardEnabled && regionOverridesRaw != null) {
-            for (Map.Entry<String, Map<String, Object>> entry : regionOverridesRaw.entrySet()) {
-                Map<String, Object> raw = entry.getValue();
-                if (raw == null || raw.isEmpty()) continue;
-
-                String regionName = (String) raw.get("region");
-                if (regionName == null || regionName.isEmpty()) continue;
-
-                String maxAfkTimeStr = String.valueOf(raw.getOrDefault("max_afk_time", "15m"));
-                long time = maxAfkTimeStr.equalsIgnoreCase("disabled") ? -1 : timeConverter.convertToField(maxAfkTimeStr);
-
-                List<Map<String, String>> regionActions = new ArrayList<>();
-                Object actionsObj = raw.get("actions");
-
-                if (actionsObj instanceof List) {
-                    for (Object obj : (List<?>) actionsObj) {
-                        if (obj instanceof Map) {
-                            regionActions.add((Map<String, String>) obj);
-                        }
-                    }
-                } else {
-                    regionActions = this.actions;
-                }
-
-                RegionOverride override = new RegionOverride(regionName, time, regionActions);
-                regionOverrides.add(override);
-                regionOverrideMap.put(regionName.toLowerCase(), override);
             }
         }
 
-        if (regionCache != null) regionCache.invalidateAll();
+        this.regionOverrides = overrides;
+        this.regionOverrideMap = overrideMap;
+    }
+
+    private List<Map<String, String>> getStringMapListFrom(Section section, String path) {
+        List<Map<String, String>> result = new ArrayList<>();
+        for (Map<?, ?> map : section.getMapList(path)) {
+            result.add((Map<String, String>) map);
+        }
+        return result;
+    }
+
+    private Map<String, Double> loadSalaryRegions() {
+        Map<String, Double> regions = new HashMap<>();
+        Section section = getSection("integrations.economy.salary.regions");
+        if (section != null) {
+            for (Object key : section.getKeys()) {
+                String name = String.valueOf(key);
+                regions.put(name, section.getDouble(name, 0.0));
+            }
+        }
+        return regions;
     }
 
     public FileConfiguration getRawConfig() { return plugin.getConfig(); }

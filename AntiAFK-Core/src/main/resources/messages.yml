@@ -18,6 +18,10 @@ error:
 info:
   reloaded: "&aEklenti konfigürasyonu ve mesajları başarıyla yeniden yüklendi."
 
+# Farm Limiter / Item Pickup Blocker Mesajları
+gameplay_control:
+  item_pickup_blocker:
+    blocked: "&cAFK durumdayken yerden eşya alamazsın!"
 
 # Yeniden Giriş Koruması Mesajı
 rejoin_kick: "&cAFK ceza süreniz henüz dolmadı! Lütfen &e%time_left% &csonra tekrar deneyin."
